@@ -1,0 +1,55 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS Settings\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-27 10:32:00\n"
+"Language: ja-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# 設定ページ
+msgid "primaryUnit"
+msgstr "主要単位"
+
+msgid "vibrationFeedback"
+msgstr "バイブレーション"
+
+msgid "autoSave"
+msgstr "自動保存"
+
+msgid "keepScreenOn"
+msgstr "画面常時点灯"
+
+msgid "mu"
+msgstr "亩"
+
+msgid "hectare"
+msgstr "ヘクタール"
+
+msgid "squareMeter"
+msgstr "平方メートル"
+
+msgid "enabled"
+msgstr "有効"
+
+msgid "disabled"
+msgstr "無効"
+
+msgid "resetSettings"
+msgstr "設定リセット"
+
+msgid "storageInfo"
+msgstr "保存情報"
+
+msgid "version"
+msgstr "バージョン"
+
+# 新規追加
+msgid "largeFont"
+msgstr "大文字モード"
+
+msgid "miniMapEnabled"
+msgstr "小地図"
+
+# 共通
+msgid "recordsCount"
+msgstr "件"

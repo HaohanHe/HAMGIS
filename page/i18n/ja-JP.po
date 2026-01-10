@@ -1,0 +1,245 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-27 10:32:00\n"
+"Language: ja-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# 測量ページ
+msgid "locating"
+msgstr "測位中..."
+
+msgid "weakSignal"
+msgstr "信号弱"
+
+msgid "points"
+msgstr "点位"
+
+msgid "area"
+msgstr "面積"
+
+msgid "perimeter"
+msgstr "周長"
+
+msgid "history"
+msgstr "履歴"
+
+msgid "settings"
+msgstr "設定"
+
+msgid "noGPS"
+msgstr "測位待機中..."
+
+msgid "unnamed"
+msgstr "未命名地块"
+
+msgid "noData"
+msgstr "データなし"
+
+msgid "delete"
+msgstr "削除"
+
+# 設定ページ
+msgid "primaryUnit"
+msgstr "主要単位"
+
+msgid "vibrationFeedback"
+msgstr "バイブレーション"
+
+msgid "autoSave"
+msgstr "自動保存"
+
+msgid "keepScreenOn"
+msgstr "画面常時点灯"
+
+msgid "mu"
+msgstr "亩"
+
+msgid "hectare"
+msgstr "ヘクタール"
+
+msgid "squareMeter"
+msgstr "平方メートル"
+
+msgid "enabled"
+msgstr "有効"
+
+msgid "disabled"
+msgstr "無効"
+
+msgid "resetSettings"
+msgstr "設定リセット"
+
+msgid "storageInfo"
+msgstr "保存情報"
+
+msgid "version"
+msgstr "バージョン"
+
+# 共通
+msgid "confirm"
+msgstr "確定"
+
+msgid "cancel"
+msgstr "キャンセル"
+
+msgid "save"
+msgstr "保存"
+
+msgid "loading"
+msgstr "読み込み中..."
+
+msgid "error"
+msgstr "エラー"
+
+msgid "success"
+msgstr "成功"
+
+msgid "btn_view_details"
+msgstr "詳細と地図を表示"
+
+msgid "accuracy"
+msgstr "精度"
+
+msgid "addPoint"
+msgstr "点を追加"
+
+msgid "undo"
+msgstr "元に戻す"
+
+msgid "finishField"
+msgstr "地块を完了"
+
+msgid "startMeasure"
+msgstr "測量開始"
+
+msgid "gpsReady"
+msgstr "GPS準備完了"
+
+msgid "noPermission"
+msgstr "権限なし"
+
+msgid "msg_points_insufficient"
+msgstr "地块完了には最低3点必要です"
+
+# 共通
+msgid "field"
+msgstr "地块"
+
+# プロジェクト詳細ページ
+msgid "elevationData"
+msgstr "標高データ"
+
+msgid "noElevationData"
+msgstr "標高データなし"
+
+msgid "avgAltitude"
+msgstr "平均標高"
+
+msgid "maxAltitude"
+msgstr "最高標高"
+
+msgid "minAltitude"
+msgstr "最低標高"
+
+msgid "coordDistribution"
+msgstr "座標分布"
+
+msgid "recordedCompleteArea"
+msgstr "記録完了エリア"
+
+msgid "insufficientPoints"
+msgstr "座標不足\n表示できません"
+
+msgid "coordDetails"
+msgstr "座標詳細"
+
+msgid "noCoordData"
+msgstr "座標データなし"
+
+# 新規追加
+msgid "elevationRange"
+msgstr "標高差"
+
+msgid "startPoint"
+msgstr "開始点"
+
+msgid "endPoint"
+msgstr "終了点"
+
+msgid "measurementTime"
+msgstr "測量時間"
+
+# 設定ページ新規
+msgid "largeFont"
+msgstr "大文字モード"
+
+msgid "miniMapEnabled"
+msgstr "小地図"
+
+# 測量ページ新規
+msgid "altitude"
+msgstr "標高"
+
+msgid "moveToOpenArea"
+msgstr "開けた場所に移動してください"
+
+# プロジェクト詳細ページ新規
+msgid "miniMap"
+msgstr "小地図"
+
+# 共通
+msgid "recordsCount"
+msgstr "件"
+
+# プロジェクト詳細ページ新規
+msgid "completed"
+msgstr "完了"
+
+msgid "draft"
+msgstr "下書き"
+
+msgid "individual"
+msgstr "個"
+
+msgid "viewMap"
+msgstr "地図を表示"
+
+msgid "pointDetailsTable"
+msgstr "点位詳細表"
+
+msgid "serialNumber"
+msgstr "番号"
+
+msgid "time"
+msgstr "時間"
+
+msgid "position"
+msgstr "位置"
+
+msgid "height"
+msgstr "高さ"
+
+msgid "showingPoints"
+msgstr "最初の%d件/%d件を表示"
+
+msgid "miniMapDisabled"
+msgstr "小地図が無効です\n設定で有効にしてください"
+
+msgid "mapPageTitle"
+msgstr "完全な地図"
+
+msgid "mapInfoPanel"
+msgstr "地図情報"
+
+msgid "scale"
+msgstr "スケール"
+
+# 地图ページ
+msgid "back"
+msgstr "戻る"
+
+# 通用
+msgid "individual"
+msgstr "個"

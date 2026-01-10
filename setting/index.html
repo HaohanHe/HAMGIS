@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAMGIS 数据管理中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2), transparent 50%),
+                linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { 
+                background: 
+                    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2), transparent 50%),
+                    linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            }
+            50% { 
+                background: 
+                    radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 20% 80%, rgba(255, 119, 198, 0.3), transparent 50%),
+                    radial-gradient(circle at 60% 60%, rgba(120, 219, 255, 0.2), transparent 50%),
+                    linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            }
+        }
+
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            background: 
+                linear-gradient(145deg, 
+                    rgba(255,255,255,0.25) 0%,
+                    rgba(255,255,255,0.1) 50%,
+                    rgba(255,255,255,0.05) 100%),
+                radial-gradient(circle at 20% 20%, rgba(120,119,198,0.15), transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(255,119,198,0.15), transparent 60%),
+                linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 40px;
+            border: 2px solid rgba(255,255,255,0.6);
+            overflow: hidden;
+            box-shadow: 
+                0 40px 120px rgba(0,0,0,0.15),
+                0 20px 60px rgba(0,0,0,0.1),
+                0 0 0 1px rgba(255,255,255,0.2),
+                inset 0 2px 0 rgba(255,255,255,0.95),
+                inset 0 -1px 0 rgba(0,0,0,0.02);
+            backdrop-filter: blur(60px);
+            margin-top: 40px;
+            margin-bottom: 40px;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(120,119,198,0.08), transparent 50%),
+                radial-gradient(circle at 70% 80%, rgba(255,119,198,0.08), transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(120,219,255,0.05), transparent 60%);
+            pointer-events: none;
+            border-radius: 38px;
+            animation: phoneGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes phoneGlow {
+            0%, 100% { 
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8;
+                transform: scale(1.01);
+            }
+        }
+
+        .app-container:hover {
+            transform: scale(1.01);
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 60px 0 35px 0;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(193,159,222,0.98) 0%,
+                    rgba(183,149,212,0.95) 30%,
+                    rgba(173,139,202,0.92) 70%,
+                    rgba(163,129,192,0.88) 100%),
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.25), transparent 60%),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.15), transparent 50%);
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 800;
+            backdrop-filter: blur(60px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 
+                0 12px 40px rgba(193,159,222,0.35),
+                0 6px 20px rgba(193,159,222,0.2),
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.1), 
+                transparent);
+            animation: headerShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes headerShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .app-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .app-header .subtitle {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        /* 帮助按钮 */
+        .help-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .help-button:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+            transform: scale(1.1);
+        }
+
+        .help-button::before {
+            content: '?';
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .main-content {
+            padding: 30px 25px;
+            max-width: 100%;
+            margin: 0 auto;
+            background: 
+                linear-gradient(180deg, 
+                    rgba(255,255,255,0.95) 0%, 
+                    rgba(248,250,252,0.9) 50%,
+                    rgba(241,245,249,0.85) 100%),
+                radial-gradient(circle at 50% 0%, rgba(255,255,255,0.4), transparent 60%);
+            backdrop-filter: blur(80px);
+            border-radius: 38px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255,255,255,0.8) 20%, 
+                rgba(255,255,255,0.9) 50%, 
+                rgba(255,255,255,0.8) 80%, 
+                transparent 100%);
+            animation: topShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes topShimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        /* 统计概览 */
+        .stats-section {
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stats-card {
+            background: 
+                linear-gradient(145deg, 
+                    rgba(255,255,255,0.95) 0%,
+                    rgba(255,255,255,0.85) 50%,
+                    rgba(255,255,255,0.75) 100%),
+                radial-gradient(circle at 15% 15%, rgba(193,159,222,0.08), transparent 60%),
+                radial-gradient(circle at 85% 85%, rgba(147,51,234,0.06), transparent 50%);
+            backdrop-filter: blur(50px);
+            border-radius: 24px;
+            padding: 28px 24px;
+            border: 2px solid rgba(255,255,255,0.7);
+            box-shadow: 
+                0 16px 50px rgba(0,0,0,0.08),
+                0 8px 25px rgba(0,0,0,0.04),
+                0 4px 12px rgba(193,159,222,0.1),
+                inset 0 2px 0 rgba(255,255,255,0.98),
+                inset 0 -1px 0 rgba(193,159,222,0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 
+                0 25px 70px rgba(0,0,0,0.12),
+                0 12px 35px rgba(0,0,0,0.06),
+                0 6px 18px rgba(193,159,222,0.15),
+                inset 0 2px 0 rgba(255,255,255,1);
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(193,159,222,0.4) 20%, 
+                rgba(147,51,234,0.4) 50%, 
+                rgba(59,130,246,0.4) 80%, 
+                transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .stats-card:hover::before {
+            opacity: 1;
+        }
+
+        .stats-title {
+            font-size: 15px;
+            color: #64748b;
+            margin-bottom: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        .stats-title::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, #c19fde, #9333ea);
+            border-radius: 1px;
+        }
+
+        .stats-value {
+            font-size: 38px;
+            font-weight: 900;
+            background: linear-gradient(135deg, 
+                #c19fde 0%, 
+                #9333ea 30%,
+                #3b82f6 60%, 
+                #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            -moz-background-clip: text;
+            line-height: 1;
+            background-size: 200% 200%;
+            animation: gradientShift 5s ease-in-out infinite;
+            filter: drop-shadow(0 2px 8px rgba(193,159,222,0.3));
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* 区域标题 */
+        .section-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 24px;
+            padding-left: 6px;
+            position: relative;
+            display: inline-block;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .section-title::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #c19fde, #9333ea);
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(193,159,222,0.4);
+        }
+
+        /* 记录列表 */
+        .record-list {
+            background: 
+                linear-gradient(145deg, 
+                    rgba(255,255,255,0.98) 0%,
+                    rgba(255,255,255,0.92) 50%,
+                    rgba(255,255,255,0.85) 100%),
+                radial-gradient(circle at 20% 20%, rgba(193,159,222,0.06), transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(147,51,234,0.04), transparent 50%);
+            backdrop-filter: blur(60px);
+            border-radius: 28px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.8);
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.1),
+                0 10px 30px rgba(0,0,0,0.05),
+                0 4px 15px rgba(193,159,222,0.1),
+                inset 0 2px 0 rgba(255,255,255,1),
+                inset 0 -1px 0 rgba(193,159,222,0.03);
+            position: relative;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .record-list::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(34,197,94,0.4), 
+                rgba(16,185,129,0.4), 
+                transparent);
+        }
+
+        /* 为每个记录项添加延迟动画 */
+        .record-item:nth-child(1) { animation: slideInLeft 0.6s ease-out 0.2s both; }
+        .record-item:nth-child(2) { animation: slideInLeft 0.6s ease-out 0.4s both; }
+        .record-item:nth-child(3) { animation: slideInLeft 0.6s ease-out 0.6s both; }
+        .record-item:nth-child(4) { animation: slideInLeft 0.6s ease-out 0.8s both; }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .record-item {
+            padding: 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .record-item:last-child {
+            border-bottom: none;
+        }
+
+        .record-item:hover {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(193,159,222,0.08) 0%, 
+                    rgba(147,51,234,0.04) 50%,
+                    rgba(59,130,246,0.02) 100%);
+            transform: translateX(6px);
+            box-shadow: 
+                0 8px 25px rgba(193,159,222,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+
+        .record-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background: linear-gradient(135deg, #c19fde, #9333ea, #3b82f6);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 0 15px rgba(193,159,222,0.4);
+        }
+
+        .record-item:hover::before {
+            opacity: 1;
+            width: 6px;
+        }
+
+        .record-item-info {
+            flex: 1;
+        }
+
+        .record-item-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .record-item-details {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .record-item-details::before {
+            content: '📍';
+            font-size: 12px;
+        }
+
+        .record-item-area {
+            font-size: 26px;
+            font-weight: 900;
+            background: linear-gradient(135deg, 
+                #c19fde 0%, 
+                #9333ea 40%,
+                #10b981 70%, 
+                #059669 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            -moz-background-clip: text;
+            text-align: right;
+            line-height: 1;
+            filter: drop-shadow(0 2px 6px rgba(193,159,222,0.2));
+        }
+
+        /* 导出功能 */
+        .export-section {
+            margin-top: 30px;
+            animation: fadeInUp 1.2s ease-out;
+        }
+
+        /* 导出格式选择器 */
+        .export-format-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .format-option {
+            position: relative;
+        }
+
+        .format-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .format-option label {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: 
+                linear-gradient(145deg, 
+                    rgba(255,255,255,0.95) 0%,
+                    rgba(255,255,255,0.85) 100%),
+                radial-gradient(circle at 20% 20%, rgba(193,159,222,0.06), transparent 60%);
+            backdrop-filter: blur(50px);
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,0.7);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.06),
+                inset 0 2px 0 rgba(255,255,255,0.98);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .format-option label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(193,159,222,0.1) 0%, 
+                rgba(147,51,234,0.08) 50%,
+                rgba(59,130,246,0.06) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: 18px;
+        }
+
+        .format-option input[type="radio"]:checked + label::before {
+            opacity: 1;
+        }
+
+        .format-option input[type="radio"]:checked + label {
+            border-color: #c19fde;
+            box-shadow: 
+                0 12px 35px rgba(193,159,222,0.25),
+                0 6px 18px rgba(193,159,222,0.15),
+                inset 0 2px 0 rgba(255,255,255,1),
+                inset 0 0 0 2px rgba(193,159,222,0.3);
+            transform: translateY(-2px);
+        }
+
+        .format-option label:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 35px rgba(0,0,0,0.1),
+                inset 0 2px 0 rgba(255,255,255,1);
+        }
+
+        .format-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .format-info {
+            flex: 1;
+        }
+
+        .format-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+
+        .format-desc {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* 主导出按钮 */
+        .export-btn-main {
+            width: 100%;
+            padding: 22px 32px;
+            border: none;
+            border-radius: 20px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(193,159,222,0.95) 0%, 
+                    rgba(147,51,234,0.9) 40%,
+                    rgba(59,130,246,0.85) 100%),
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.25), transparent 60%);
+            color: white;
+            font-size: 18px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 
+                0 12px 35px rgba(193,159,222,0.4),
+                0 6px 18px rgba(193,159,222,0.25),
+                inset 0 2px 0 rgba(255,255,255,0.3),
+                inset 0 -1px 0 rgba(0,0,0,0.1);
+            backdrop-filter: blur(30px);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .export-btn-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255,255,255,0.3), 
+                transparent);
+            transition: left 0.6s ease;
+        }
+
+        .export-btn-main:hover::before {
+            left: 100%;
+        }
+
+        .export-btn-main:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 
+                0 20px 50px rgba(193,159,222,0.5),
+                0 10px 25px rgba(193,159,222,0.35),
+                inset 0 2px 0 rgba(255,255,255,0.4);
+        }
+
+        .export-btn-main:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .export-btn-main:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hint-text {
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            padding: 20px 24px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(255,255,255,0.6) 0%, 
+                    rgba(255,255,255,0.4) 100%),
+                radial-gradient(circle at 30% 30%, rgba(193,159,222,0.1), transparent 60%);
+            backdrop-filter: blur(40px);
+            border-radius: 16px;
+            border: 2px solid rgba(255,255,255,0.5);
+            box-shadow: 
+                0 8px 25px rgba(0,0,0,0.05),
+                inset 0 1px 0 rgba(255,255,255,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hint-text::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(193,159,222,0.1), 
+                transparent);
+            animation: hintShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes hintShimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* 动画效果 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* 加载状态 */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(193,159,222,0.2);
+            border-top: 4px solid #c19fde;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state .description {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* 帮助弹窗 */
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .help-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .help-content {
+            background: 
+                linear-gradient(145deg, 
+                    rgba(255,255,255,0.98) 0%,
+                    rgba(255,255,255,0.95) 100%);
+            border-radius: 30px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 40px;
+            box-shadow: 
+                0 30px 80px rgba(0,0,0,0.3),
+                0 15px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.4s ease;
+            position: relative;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .help-content h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #c19fde, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            -moz-background-clip: text;
+        }
+
+        .help-content h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 15px;
+            border-left: 4px solid #c19fde;
+        }
+
+        .help-content p {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 15px;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+
+        .help-content li {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #475569;
+            margin-bottom: 10px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .help-content li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .help-content .format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .help-content .format-card {
+            background: linear-gradient(135deg, rgba(193,159,222,0.1), rgba(147,51,234,0.05));
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid rgba(193,159,222,0.2);
+        }
+
+        .help-content .format-card .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .help-content .format-card .name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+
+        .help-content .format-card .desc {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .close-help {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(193,159,222,0.1);
+            border: 2px solid rgba(193,159,222,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-help:hover {
+            background: rgba(193,159,222,0.2);
+            border-color: rgba(193,159,222,0.5);
+            transform: rotate(90deg);
+        }
+
+        .close-help::before {
+            content: '×';
+            font-size: 28px;
+            font-weight: 300;
+            color: #64748b;
+        }
+
+        .help-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .help-content::-webkit-scrollbar-track {
+            background: rgba(193,159,222,0.1);
+            border-radius: 4px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb {
+            background: rgba(193,159,222,0.4);
+            border-radius: 4px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(193,159,222,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <button class="help-button" onclick="showHelp()" title="使用帮助"></button>
+            <h1>HAMGIS</h1>
+            <div class="subtitle">数据管理中心</div>
+        </div>
+        
+        <div class="main-content">
+            <!-- 统计概览 -->
+            <div class="stats-section">
+                <div class="stats-grid">
+                    <div class="stats-card">
+                        <div class="stats-title" id="label-measurement-count">测量次数</div>
+                        <div class="stats-value" id="total-records">0</div>
+                    </div>
+                    
+                    <div class="stats-card">
+                        <div class="stats-title" id="label-total-area">总面积</div>
+                        <div class="stats-value" id="total-area">0.0</div>
+                    </div>
+                </div>
+                
+                <div class="stats-card">
+                    <div class="stats-title" id="label-latest-measurement">最近测量</div>
+                    <div class="stats-value" style="font-size: 18px; color: #64748b;" id="latest-measurement" data-no-data="暂无数据">暂无数据</div>
+                </div>
+            </div>
+            
+            <!-- 测量记录 -->
+            <div class="section-title">📊 测量记录</div>
+            <div class="record-list" id="record-list">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+            
+            <!-- 导出功能 -->
+            <div class="export-section">
+                <div class="section-title">📤 数据导出</div>
+                
+                <!-- 导出格式选择 -->
+                <div class="export-format-selector">
+                    <div class="format-option" data-format="csv_summary">
+                        <input type="radio" name="export-format" id="format-csv-summary" value="csv_summary" checked>
+                        <label for="format-csv-summary">
+                            <div class="format-icon">📊</div>
+                            <div class="format-info">
+                                <div class="format-name">CSV 项目汇总</div>
+                                <div class="format-desc">每个项目一行，适合Excel分析</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="format-option" data-format="csv_detailed">
+                        <input type="radio" name="export-format" id="format-csv-detailed" value="csv_detailed">
+                        <label for="format-csv-detailed">
+                            <div class="format-icon">📍</div>
+                            <div class="format-info">
+                                <div class="format-name">CSV 详细点位</div>
+                                <div class="format-desc">每个采集点一行，包含坐标和海拔</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="format-option" data-format="json">
+                        <input type="radio" name="export-format" id="format-json" value="json">
+                        <label for="format-json">
+                            <div class="format-icon">📄</div>
+                            <div class="format-info">
+                                <div class="format-name">JSON 完整数据</div>
+                                <div class="format-desc">包含所有字段和元数据，适合备份</div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <div class="format-option" data-format="geojson">
+                        <input type="radio" name="export-format" id="format-geojson" value="geojson">
+                        <label for="format-geojson">
+                            <div class="format-icon">🗺️</div>
+                            <div class="format-info">
+                                <div class="format-name">GeoJSON 标准格式</div>
+                                <div class="format-desc">GIS标准格式，可导入ArcMap/QGIS</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- 导出按钮 -->
+                <button class="export-btn-main" id="export-btn" onclick="performExport()">
+                    📤 导出选中格式
+                </button>
+                
+                <div class="hint-text">
+                    💡 数据已从手表自动同步，支持多种格式导出和云端备份
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助弹窗 -->
+    <div class="help-modal" id="help-modal">
+        <div class="help-content">
+            <button class="close-help" onclick="closeHelp()" title="关闭"></button>
+            
+            <h2>📖 HAMGIS 使用说明</h2>
+            <p>欢迎使用HAMGIS测亩软件数据管理中心！本页面提供强大的数据导出功能，支持多种专业格式。</p>
+
+            <h3>🎯 主要功能</h3>
+            <ul>
+                <li>查看所有测量项目的统计信息</li>
+                <li>浏览测量记录列表</li>
+                <li>导出数据为多种专业格式</li>
+                <li>支持Excel分析和GIS软件导入</li>
+            </ul>
+
+            <h3>📤 数据导出格式</h3>
+            <div class="format-grid">
+                <div class="format-card">
+                    <div class="icon">📊</div>
+                    <div class="name">CSV 项目汇总</div>
+                    <div class="desc">每个项目一行，包含面积、海拔、点数等信息，适合在Excel中进行数据分析和统计</div>
+                </div>
+                
+                <div class="format-card">
+                    <div class="icon">📍</div>
+                    <div class="name">CSV 详细点位</div>
+                    <div class="desc">每个采集点一行，包含完整的经纬度坐标和海拔信息，适合坐标验证和轨迹分析</div>
+                </div>
+                
+                <div class="format-card">
+                    <div class="icon">📄</div>
+                    <div class="name">JSON 完整数据</div>
+                    <div class="desc">包含所有字段和元数据的完整数据结构，适合数据备份和系统间迁移</div>
+                </div>
+                
+                <div class="format-card">
+                    <div class="icon">🗺️</div>
+                    <div class="name">GeoJSON 标准</div>
+                    <div class="desc">符合RFC 7946标准的GIS格式，可直接导入ArcMap、QGIS等专业GIS软件进行地图制作和空间分析</div>
+                </div>
+            </div>
+
+            <h3>📝 使用步骤</h3>
+            <ul>
+                <li><strong>步骤1:</strong> 在手表端完成测量后，数据会自动同步到手机</li>
+                <li><strong>步骤2:</strong> 在"数据导出"区域选择需要的导出格式</li>
+                <li><strong>步骤3:</strong> 点击"导出选中格式"按钮</li>
+                <li><strong>步骤4:</strong> 文件会自动下载到浏览器的下载文件夹</li>
+                <li><strong>步骤5:</strong> 使用相应软件打开导出的文件</li>
+            </ul>
+
+            <h3>💡 使用建议</h3>
+            <ul>
+                <li><strong>Excel分析:</strong> 使用CSV项目汇总格式，可以快速进行面积统计、数据筛选和图表制作</li>
+                <li><strong>坐标验证:</strong> 使用CSV详细点位格式，可以逐点检查GPS坐标的准确性</li>
+                <li><strong>数据备份:</strong> 使用JSON完整数据格式，可以保存所有原始数据，防止数据丢失</li>
+                <li><strong>GIS分析:</strong> 使用GeoJSON标准格式，可以在专业GIS软件中进行空间分析、地图制作和可视化</li>
+            </ul>
+
+            <h3>🗺️ GeoJSON在GIS软件中的使用</h3>
+            <p><strong>ArcMap/ArcGIS导入步骤:</strong></p>
+            <ul>
+                <li>打开ArcMap或ArcGIS Pro</li>
+                <li>点击"添加数据" → 选择导出的.geojson文件</li>
+                <li>数据会自动显示为多边形图层</li>
+                <li>可以查看属性表，包含面积、海拔等所有信息</li>
+            </ul>
+
+            <p><strong>QGIS导入步骤:</strong></p>
+            <ul>
+                <li>打开QGIS</li>
+                <li>拖拽.geojson文件到QGIS窗口</li>
+                <li>或使用"图层" → "添加图层" → "添加矢量图层"</li>
+                <li>选择导出的.geojson文件即可</li>
+            </ul>
+
+            <h3>📊 数据字段说明</h3>
+            <p><strong>CSV项目汇总包含字段:</strong></p>
+            <ul>
+                <li>ID、项目名称、测量时间</li>
+                <li>面积（平方米、亩、公顷）</li>
+                <li>周长、采集点数、GPS精度</li>
+                <li>海拔数据（平均、最高、最低、高差）</li>
+                <li>项目状态</li>
+            </ul>
+
+            <h3>⚠️ 注意事项</h3>
+            <ul>
+                <li>CSV文件在Excel中打开时，如果中文显示乱码，请使用"数据" → "从文本/CSV导入"，并选择UTF-8编码</li>
+                <li>GeoJSON文件使用WGS84坐标系（EPSG:4326），与GPS采集的坐标系一致</li>
+                <li>导出的文件名包含时间戳，不会覆盖之前的导出文件</li>
+                <li>建议定期导出数据进行备份，防止数据丢失</li>
+            </ul>
+
+            <h3>🔧 技术支持</h3>
+            <p>如有问题或建议，请联系技术支持团队。</p>
+            <p style="margin-top: 30px; text-align: center; color: #94a3b8; font-size: 14px;">
+                HAMGIS v1.1.0 | 专业测亩软件
+            </p>
+        </div>
+    </div>
+
+    <!-- 先加载导出管理器 -->
+    <script src="./export.js"></script>
+    
+    <script>
+        // 等待页面和所有资源完全加载
+        window.addEventListener('load', function() {
+            console.log('window.onload事件触发');
+            console.log('检查exportManager:', typeof window.exportManager);
+            console.log('检查ExportManager:', typeof window.ExportManager);
+            
+            // 延迟初始化，确保所有脚本都已加载
+            setTimeout(function() {
+                loadData();
+            }, 500);
+        });
+
+        // 加载数据
+        function loadData() {
+            // 模拟加载延迟
+            setTimeout(() => {
+                renderStatistics();
+                renderRecordList();
+                initializeExportManager();
+            }, 1000);
+        }
+
+        // 初始化导出管理器
+        function initializeExportManager() {
+            console.log('开始初始化导出管理器');
+            
+            // 检查exportManager是否存在
+            if (typeof exportManager === 'undefined') {
+                console.error('exportManager未定义！');
+                alert('导出管理器加载失败，请刷新页面重试');
+                return;
+            }
+            
+            console.log('exportManager类型:', typeof exportManager);
+            
+            // 模拟测量数据
+            const measurements = [
+                {
+                    id: '1703123456789',
+                    name: '田地A区域',
+                    timestamp: Date.now() - 2 * 60 * 60 * 1000,
+                    date: '2024-12-20',
+                    status: 'completed',
+                    points: [
+                        { lat: 34.052235, lon: 118.243683, altitude: 125.5, timestamp: Date.now() - 2 * 60 * 60 * 1000 },
+                        { lat: 34.052335, lon: 118.243783, altitude: 126.2, timestamp: Date.now() - 2 * 60 * 60 * 1000 + 30000 },
+                        { lat: 34.052435, lon: 118.243883, altitude: 127.8, timestamp: Date.now() - 2 * 60 * 60 * 1000 + 60000 },
+                        { lat: 34.052535, lon: 118.243983, altitude: 128.1, timestamp: Date.now() - 2 * 60 * 60 * 1000 + 90000 }
+                    ],
+                    pointCount: 4,
+                    area: {
+                        squareMeters: 1566.67,
+                        mu: 2.35,
+                        hectares: 0.157
+                    },
+                    perimeter: 158.4,
+                    accuracy: 3,
+                    elevation: {
+                        average: 126.9,
+                        max: 128.1,
+                        min: 125.5,
+                        range: 2.6
+                    }
+                },
+                {
+                    id: '1703023456789',
+                    name: '南侧地块',
+                    timestamp: Date.now() - 26 * 60 * 60 * 1000,
+                    date: '2024-12-19',
+                    status: 'completed',
+                    points: [
+                        { lat: 34.052635, lon: 118.244083, altitude: 130.2, timestamp: Date.now() - 26 * 60 * 60 * 1000 },
+                        { lat: 34.052735, lon: 118.244183, altitude: 131.5, timestamp: Date.now() - 26 * 60 * 60 * 1000 + 30000 },
+                        { lat: 34.052835, lon: 118.244283, altitude: 132.8, timestamp: Date.now() - 26 * 60 * 60 * 1000 + 60000 },
+                        { lat: 34.052935, lon: 118.244383, altitude: 133.1, timestamp: Date.now() - 26 * 60 * 60 * 1000 + 90000 },
+                        { lat: 34.053035, lon: 118.244483, altitude: 134.5, timestamp: Date.now() - 26 * 60 * 60 * 1000 + 120000 },
+                        { lat: 34.053135, lon: 118.244583, altitude: 135.2, timestamp: Date.now() - 26 * 60 * 60 * 1000 + 150000 }
+                    ],
+                    pointCount: 6,
+                    area: {
+                        squareMeters: 2746.67,
+                        mu: 4.12,
+                        hectares: 0.275
+                    },
+                    perimeter: 210.5,
+                    accuracy: 2,
+                    elevation: {
+                        average: 132.9,
+                        max: 135.2,
+                        min: 130.2,
+                        range: 5.0
+                    }
+                },
+                {
+                    id: '1702923456789',
+                    name: '北区测量',
+                    timestamp: Date.now() - 50 * 60 * 60 * 1000,
+                    date: '2024-12-18',
+                    status: 'completed',
+                    points: [
+                        { lat: 34.053235, lon: 118.244683, altitude: 118.5, timestamp: Date.now() - 50 * 60 * 60 * 1000 },
+                        { lat: 34.053335, lon: 118.244783, altitude: 119.2, timestamp: Date.now() - 50 * 60 * 60 * 1000 + 30000 },
+                        { lat: 34.053435, lon: 118.244883, altitude: 120.1, timestamp: Date.now() - 50 * 60 * 60 * 1000 + 60000 },
+                        { lat: 34.053535, lon: 118.244983, altitude: 121.3, timestamp: Date.now() - 50 * 60 * 60 * 1000 + 90000 },
+                        { lat: 34.053635, lon: 118.245083, altitude: 122.0, timestamp: Date.now() - 50 * 60 * 60 * 1000 + 120000 }
+                    ],
+                    pointCount: 5,
+                    area: {
+                        squareMeters: 2520.0,
+                        mu: 3.78,
+                        hectares: 0.252
+                    },
+                    perimeter: 200.8,
+                    accuracy: 4,
+                    elevation: {
+                        average: 120.2,
+                        max: 122.0,
+                        min: 118.5,
+                        range: 3.5
+                    }
+                },
+                {
+                    id: '1702823456789',
+                    name: '东侧农田',
+                    timestamp: Date.now() - 74 * 60 * 60 * 1000,
+                    date: '2024-12-17',
+                    status: 'completed',
+                    points: [
+                        { lat: 34.053735, lon: 118.245183, altitude: 115.2, timestamp: Date.now() - 74 * 60 * 60 * 1000 },
+                        { lat: 34.053835, lon: 118.245283, altitude: 116.5, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 30000 },
+                        { lat: 34.053935, lon: 118.245383, altitude: 117.8, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 60000 },
+                        { lat: 34.054035, lon: 118.245483, altitude: 118.9, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 90000 },
+                        { lat: 34.054135, lon: 118.245583, altitude: 119.5, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 120000 },
+                        { lat: 34.054235, lon: 118.245683, altitude: 120.1, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 150000 },
+                        { lat: 34.054335, lon: 118.245783, altitude: 121.2, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 180000 },
+                        { lat: 34.054435, lon: 118.245883, altitude: 122.0, timestamp: Date.now() - 74 * 60 * 60 * 1000 + 210000 }
+                    ],
+                    pointCount: 8,
+                    area: {
+                        squareMeters: 4166.67,
+                        mu: 6.25,
+                        hectares: 0.417
+                    },
+                    perimeter: 258.3,
+                    accuracy: 2,
+                    elevation: {
+                        average: 118.9,
+                        max: 122.0,
+                        min: 115.2,
+                        range: 6.8
+                    }
+                }
+            ];
+            
+            // 设置测量数据到导出管理器
+            exportManager.setMeasurements(measurements);
+            
+            console.log('导出管理器初始化完成，数据量:', measurements.length);
+        }
+
+        // 渲染统计信息
+        function renderStatistics() {
+            // 模拟数据
+            const stats = {
+                totalRecords: 12,
+                totalArea: 28.6,
+                latestMeasurement: '2小时前 • 田地A区域'
+            };
+
+            document.getElementById('total-records').textContent = stats.totalRecords;
+            document.getElementById('total-area').textContent = stats.totalArea.toFixed(1);
+            document.getElementById('latest-measurement').textContent = stats.latestMeasurement;
+        }
+
+        // 渲染记录列表
+        function renderRecordList() {
+            const records = [
+                {
+                    name: '田地A区域',
+                    date: '12/20 14:30',
+                    points: 4,
+                    accuracy: 3,
+                    area: 2.35
+                },
+                {
+                    name: '南侧地块',
+                    date: '12/19 16:45',
+                    points: 6,
+                    accuracy: 2,
+                    area: 4.12
+                },
+                {
+                    name: '北区测量',
+                    date: '12/18 09:20',
+                    points: 5,
+                    accuracy: 4,
+                    area: 3.78
+                },
+                {
+                    name: '东侧农田',
+                    date: '12/17 11:15',
+                    points: 8,
+                    accuracy: 2,
+                    area: 6.25
+                }
+            ];
+
+            const recordList = document.getElementById('record-list');
+            
+            if (records.length === 0) {
+                recordList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📊</div>
+                        <div class="title">暂无测量记录</div>
+                        <div class="description">请在手表端完成测量后同步数据</div>
+                    </div>
+                `;
+                return;
+            }
+
+            recordList.innerHTML = records.map(record => `
+                <div class="record-item">
+                    <div class="record-item-info">
+                        <div class="record-item-name">${record.name}</div>
+                        <div class="record-item-details">${record.date} • ${record.points}个点 • 精度±${record.accuracy}m</div>
+                    </div>
+                    <div class="record-item-area">${record.area} 亩</div>
+                </div>
+            `).join('');
+        }
+
+        // 执行导出
+        window.performExport = function() {
+            console.log('performExport被调用');
+            
+            // 检查exportManager是否存在
+            if (typeof exportManager === 'undefined') {
+                console.error('exportManager未定义！');
+                alert('导出管理器未加载，请刷新页面重试');
+                return;
+            }
+            
+            const btn = document.getElementById('export-btn');
+            const originalText = btn.textContent;
+            
+            // 获取选中的格式
+            const selectedFormat = document.querySelector('input[name="export-format"]:checked');
+            if (!selectedFormat) {
+                alert('请选择导出格式');
+                return;
+            }
+            
+            const format = selectedFormat.value;
+            const formatNames = {
+                'csv_summary': 'CSV项目汇总',
+                'csv_detailed': 'CSV详细点位',
+                'json': 'JSON完整数据',
+                'geojson': 'GeoJSON标准格式'
+            };
+            
+            // 更新按钮状态
+            btn.textContent = '📤 导出中...';
+            btn.disabled = true;
+            
+            // 模拟导出过程
+            setTimeout(() => {
+                try {
+                    // 调用导出管理器
+                    const success = exportManager.exportAndDownload(format);
+                    
+                    if (success) {
+                        btn.textContent = '✅ 导出完成';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                    } else {
+                        btn.textContent = '❌ 导出失败';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                        alert('导出失败，请重试');
+                    }
+                } catch (e) {
+                    console.error('导出错误:', e);
+                    btn.textContent = '❌ 导出失败';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                    }, 2000);
+                    alert('导出失败: ' + e.message);
+                }
+            }, 800);
+        };
+
+        // 显示帮助弹窗
+        window.showHelp = function() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        };
+
+        // 关闭帮助弹窗
+        window.closeHelp = function() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+        };
+
+        // 点击弹窗背景关闭
+        document.getElementById('help-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHelp();
+            }
+        });
+
+        // ESC键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeHelp();
+            }
+        });
+    </script>
+</body>
+</html>

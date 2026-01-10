@@ -1,0 +1,10 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-20 10:51:00\n"
+"Language: en-US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# App-side service - no internationalization used
+# All text is hardcoded in Chinese for logging

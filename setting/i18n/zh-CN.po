@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-20 10:51:00\n"
+"Language: zh-CN\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# 设置应用实际使用的文本
+msgid "settings"
+msgstr "设置"
+
+msgid "noData"
+msgstr "无数据"
+
+msgid "delete"
+msgstr "删除"
+
+msgid "points"
+msgstr "点位"
+
+# 设置项
+msgid "primaryUnit"
+msgstr "主要单位"
+
+msgid "vibrationFeedback"
+msgstr "震动反馈"
+
+msgid "autoSave"
+msgstr "自动保存"
+
+msgid "keepScreenOn"
+msgstr "保持亮屏"
+
+msgid "largeFont"
+msgstr "大字模式"
+
+# 单位
+msgid "mu"
+msgstr "亩"
+
+msgid "hectare"
+msgstr "公顷"
+
+msgid "squareMeter"
+msgstr "平方米"
+
+# 状态
+msgid "enabled"
+msgstr "开启"
+
+msgid "disabled"
+msgstr "关闭"
+
+# 按钮
+msgid "resetSettings"
+msgstr "重置设置"
+
+msgid "storageInfo"
+msgstr "存储信息"
+
+msgid "version"
+msgstr "版本"
+
+# 通用
+msgid "confirm"
+msgstr "确定"
+
+msgid "cancel"
+msgstr "取消"
+
+msgid "save"
+msgstr "保存"
+
+msgid "loading"
+msgstr "加载中..."
+
+msgid "error"
+msgstr "错误"
+
+msgid "success"
+msgstr "成功"

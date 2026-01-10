@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAMGIS测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-box h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+        
+        .status {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .button {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .button:active {
+            transform: scale(0.98);
+        }
+        
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            min-height: 50px;
+        }
+        
+        .success {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌾 HAMGIS</h1>
+        <div class="subtitle">数据管理中心 - 测试版本</div>
+        
+        <div class="info-box">
+            <h3>📱 测试目的</h3>
+            <p>验证Settings App在Zepp App中是否能正常显示和运行</p>
+        </div>
+        
+        <div class="status" id="status">
+            ⏳ 正在初始化...
+        </div>
+        
+        <button class="button" onclick="testClick()">
+            🧪 点击测试功能
+        </button>
+        
+        <button class="button" onclick="testLocalStorage()" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            💾 测试数据存储
+        </button>
+        
+        <div class="output" id="output"></div>
+        
+        <div class="debug-info" id="debug">
+            <strong>调试信息:</strong><br>
+            <span id="debug-content">等待JavaScript执行...</span>
+        </div>
+    </div>
+
+    <script>
+        // 调试日志函数
+        function log(message) {
+            console.log('[HAMGIS Settings]', message);
+            var debugContent = document.getElementById('debug-content');
+            if (debugContent) {
+                debugContent.innerHTML += '<br>' + new Date().toLocaleTimeString() + ': ' + message;
+            }
+        }
+        
+        // 页面加载
+        log('页面脚本开始执行');
+        log('User Agent: ' + navigator.userAgent);
+        
+        // 更新状态
+        try {
+            document.getElementById('status').innerHTML = '✅ JavaScript正常运行';
+            document.getElementById('status').style.background = '#c8e6c9';
+            document.getElementById('status').style.color = '#2e7d32';
+            log('DOM操作成功');
+        } catch (e) {
+            log('DOM操作失败: ' + e.message);
+        }
+        
+        // 测试点击
+        function testClick() {
+            log('按钮被点击');
+            var output = document.getElementById('output');
+            var clickCount = parseInt(output.getAttribute('data-count') || '0') + 1;
+            output.setAttribute('data-count', clickCount);
+            
+            output.innerHTML = '<p class="success">✓ 按钮点击成功!</p>' +
+                              '<p>点击次数: ' + clickCount + '</p>' +
+                              '<p>时间: ' + new Date().toLocaleString() + '</p>';
+            log('点击测试完成,次数: ' + clickCount);
+        }
+        
+        // 测试localStorage
+        function testLocalStorage() {
+            log('开始测试localStorage');
+            var output = document.getElementById('output');
+            
+            try {
+                // 测试写入
+                var testKey = 'hamgis_test';
+                var testValue = 'test_' + Date.now();
+                localStorage.setItem(testKey, testValue);
+                log('localStorage写入成功: ' + testValue);
+                
+                // 测试读取
+                var readValue = localStorage.getItem(testKey);
+                log('localStorage读取成功: ' + readValue);
+                
+                // 测试删除
+                localStorage.removeItem(testKey);
+                log('localStorage删除成功');
+                
+                output.innerHTML = '<p class="success">✓ localStorage测试成功!</p>' +
+                                  '<p>写入值: ' + testValue + '</p>' +
+                                  '<p>读取值: ' + readValue + '</p>' +
+                                  '<p>测试通过: ' + (testValue === readValue ? '是' : '否') + '</p>';
+            } catch (e) {
+                log('localStorage测试失败: ' + e.message);
+                output.innerHTML = '<p style="color: red;">✗ localStorage测试失败</p>' +
+                                  '<p>错误: ' + e.message + '</p>';
+            }
+        }
+        
+        log('页面脚本执行完成');
+        log('等待用户交互...');
+    </script>
+</body>
+</html>

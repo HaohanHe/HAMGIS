@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-20 10:51:00\n"
+"Language: en-US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# Settings app actual usage
+msgid "settings"
+msgstr "Settings"
+
+msgid "noData"
+msgstr "No Data"
+
+msgid "delete"
+msgstr "Delete"
+
+msgid "points"
+msgstr "Points"
+
+# Settings items
+msgid "primaryUnit"
+msgstr "Primary Unit"
+
+msgid "vibrationFeedback"
+msgstr "Vibration Feedback"
+
+msgid "autoSave"
+msgstr "Auto Save"
+
+msgid "keepScreenOn"
+msgstr "Keep Screen On"
+
+msgid "largeFont"
+msgstr "Large Font"
+
+# Units
+msgid "mu"
+msgstr "Mu"
+
+msgid "hectare"
+msgstr "Hectare"
+
+msgid "squareMeter"
+msgstr "Square Meter"
+
+# Status
+msgid "enabled"
+msgstr "Enabled"
+
+msgid "disabled"
+msgstr "Disabled"
+
+# Buttons
+msgid "resetSettings"
+msgstr "Reset Settings"
+
+msgid "storageInfo"
+msgstr "Storage Info"
+
+msgid "version"
+msgstr "Version"
+
+# Common
+msgid "confirm"
+msgstr "Confirm"
+
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "save"
+msgstr "Save"
+
+msgid "loading"
+msgstr "Loading..."
+
+msgid "error"
+msgstr "Error"
+
+msgid "success"
+msgstr "Success"

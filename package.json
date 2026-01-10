@@ -1,0 +1,32 @@
+{
+  "name": "hamgis-field-measurement",
+  "version": "1.0.1",
+  "description": "专业GIS土地面积测量应用 - 基于Zepp OS的测亩软件",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "zepp build",
+    "preview": "zepp preview"
+  },
+  "keywords": [
+    "GIS",
+    "土地测量",
+    "面积计算",
+    "GPS定位",
+    "测亩",
+    "Zepp OS"
+  ],
+  "author": "HAMGIS Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@zeppos/device-types": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hamgis/field-measurement"
+  },
+  "bugs": {
+    "url": "https://github.com/hamgis/field-measurement/issues"
+  },
+  "homepage": "https://github.com/hamgis/field-measurement#readme"
+}

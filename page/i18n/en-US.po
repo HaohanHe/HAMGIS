@@ -1,0 +1,241 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-20 10:51:00\n"
+"Language: en-US\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# Measurement page
+msgid "altitude"
+msgstr "Altitude"
+
+msgid "locating"
+msgstr "Locating..."
+
+msgid "weakSignal"
+msgstr "Weak Signal"
+
+msgid "points"
+msgstr "Points"
+
+msgid "area"
+msgstr "Area"
+
+msgid "perimeter"
+msgstr "Perimeter"
+
+msgid "history"
+msgstr "History"
+
+msgid "settings"
+msgstr "Settings"
+
+msgid "noGPS"
+msgstr "Waiting..."
+
+msgid "unnamed"
+msgstr "Unnamed"
+
+msgid "noData"
+msgstr "No Data"
+
+msgid "delete"
+msgstr "Delete"
+
+# Settings page
+msgid "primaryUnit"
+msgstr "Primary Unit"
+
+msgid "vibrationFeedback"
+msgstr "Vibration Feedback"
+
+msgid "autoSave"
+msgstr "Auto Save"
+
+msgid "keepScreenOn"
+msgstr "Keep Screen On"
+
+msgid "mu"
+msgstr "Mu"
+
+msgid "hectare"
+msgstr "Hectare"
+
+msgid "squareMeter"
+msgstr "Square Meter"
+
+msgid "enabled"
+msgstr "Enabled"
+
+msgid "disabled"
+msgstr "Disabled"
+
+msgid "resetSettings"
+msgstr "Reset Settings"
+
+msgid "storageInfo"
+msgstr "Storage Info"
+
+msgid "version"
+msgstr "Version"
+
+# Common
+msgid "confirm"
+msgstr "Confirm"
+
+msgid "cancel"
+msgstr "Cancel"
+
+msgid "save"
+msgstr "Save"
+
+msgid "loading"
+msgstr "Loading..."
+
+msgid "error"
+msgstr "Error"
+
+msgid "success"
+msgstr "Success"
+
+msgid "btn_view_details"
+msgstr "View Details & Map"
+
+msgid "accuracy"
+msgstr "Accuracy"
+
+msgid "addPoint"
+msgstr "Add Point"
+
+msgid "undo"
+msgstr "Undo"
+
+msgid "finishField"
+msgstr "Finish Field"
+
+msgid "startMeasure"
+msgstr "Start Measure"
+
+msgid "gpsReady"
+msgstr "GPS Ready"
+
+msgid "noPermission"
+msgstr "No Permission"
+
+msgid "msg_points_insufficient"
+msgstr "At least 3 points needed to complete"
+
+# Common
+msgid "field"
+msgstr "Field"
+
+# Project Detail page
+msgid "elevationData"
+msgstr "Elevation Data"
+
+msgid "noElevationData"
+msgstr "No Elevation Data"
+
+msgid "avgAltitude"
+msgstr "Avg Altitude"
+
+msgid "maxAltitude"
+msgstr "Max Altitude"
+
+msgid "minAltitude"
+msgstr "Min Altitude"
+
+msgid "coordDistribution"
+msgstr "Coordinate Distribution"
+
+msgid "recordedCompleteArea"
+msgstr "Recorded Complete Area"
+
+msgid "insufficientPoints"
+msgstr "Insufficient Points\nCannot Display Area"
+
+msgid "coordDetails"
+msgstr "Coordinate Details"
+
+msgid "noCoordData"
+msgstr "No Coordinate Data"
+
+# New entries
+msgid "elevationRange"
+msgstr "Elevation Range"
+
+msgid "startPoint"
+msgstr "Start Point"
+
+msgid "endPoint"
+msgstr "End Point"
+
+msgid "measurementTime"
+msgstr "Measurement Time"
+
+# Settings page new entries
+msgid "largeFont"
+msgstr "Large Font"
+
+msgid "miniMapEnabled"
+msgstr "Mini Map"
+
+# Measurement page new entries
+msgid "moveToOpenArea"
+msgstr "Please move to open area"
+
+# Project detail page new entries
+msgid "miniMap"
+msgstr "Mini Map"
+
+# Common
+msgid "recordsCount"
+msgstr "records"
+
+# Project detail page new
+msgid "completed"
+msgstr "Completed"
+
+msgid "draft"
+msgstr "Draft"
+
+msgid "viewMap"
+msgstr "View Full Map"
+
+msgid "individual"
+msgstr ""
+
+# Map page
+msgid "back"
+msgstr "Back"
+
+msgid "pointDetailsTable"
+msgstr "Point Details Table"
+
+msgid "serialNumber"
+msgstr "No."
+
+msgid "time"
+msgstr "Time"
+
+msgid "position"
+msgstr "Position"
+
+msgid "height"
+msgstr "Height"
+
+msgid "showingPoints"
+msgstr "Showing first %d of %d points"
+
+msgid "miniMapDisabled"
+msgstr "Mini Map Disabled\nPlease enable in settings"
+
+msgid "mapPageTitle"
+msgstr "Full Map"
+
+msgid "mapInfoPanel"
+msgstr "Map Info"
+
+msgid "scale"
+msgstr "Scale"

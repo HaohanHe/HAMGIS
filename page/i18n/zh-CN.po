@@ -1,0 +1,241 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: HAMGIS\n"
+"POT-Creation-Date: 2025-12-20 10:51:00\n"
+"PO-Revision-Date: 2025-12-20 10:51:00\n"
+"Language: zh-CN\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# 测量页面
+msgid "locating"
+msgstr "定位中..."
+
+msgid "weakSignal"
+msgstr "信号弱"
+
+msgid "points"
+msgstr "点位"
+
+msgid "area"
+msgstr "面积"
+
+msgid "perimeter"
+msgstr "周长"
+
+msgid "history"
+msgstr "历史"
+
+msgid "settings"
+msgstr "设置"
+
+msgid "noGPS"
+msgstr "等待定位..."
+
+msgid "unnamed"
+msgstr "未命名地块"
+
+msgid "noData"
+msgstr "无数据"
+
+msgid "delete"
+msgstr "删除"
+
+# 设置页面
+msgid "primaryUnit"
+msgstr "主要单位"
+
+msgid "vibrationFeedback"
+msgstr "震动反馈"
+
+msgid "autoSave"
+msgstr "自动保存"
+
+msgid "keepScreenOn"
+msgstr "保持亮屏"
+
+msgid "mu"
+msgstr "亩"
+
+msgid "hectare"
+msgstr "公顷"
+
+msgid "squareMeter"
+msgstr "平方米"
+
+msgid "enabled"
+msgstr "开启"
+
+msgid "disabled"
+msgstr "关闭"
+
+msgid "resetSettings"
+msgstr "重置设置"
+
+msgid "storageInfo"
+msgstr "存储信息"
+
+msgid "version"
+msgstr "版本"
+
+# 通用
+msgid "confirm"
+msgstr "确定"
+
+msgid "cancel"
+msgstr "取消"
+
+msgid "save"
+msgstr "保存"
+
+msgid "loading"
+msgstr "加载中..."
+
+msgid "error"
+msgstr "错误"
+
+msgid "success"
+msgstr "成功"
+
+msgid "btn_view_details"
+msgstr "查看详情"
+
+msgid "accuracy"
+msgstr "精度"
+
+msgid "addPoint"
+msgstr "采集点"
+
+msgid "undo"
+msgstr "撤销"
+
+msgid "finishField"
+msgstr "完成地块"
+
+msgid "startMeasure"
+msgstr "开始测量"
+
+msgid "gpsReady"
+msgstr "GPS就绪"
+
+msgid "noPermission"
+msgstr "无权限"
+
+msgid "msg_points_insufficient"
+msgstr "至少需要3个点才能完成地块"
+
+# 通用
+msgid "field"
+msgstr "地块"
+
+# 详情页面
+msgid "elevationData"
+msgstr "海拔数据"
+
+msgid "noElevationData"
+msgstr "暂无海拔数据"
+
+msgid "avgAltitude"
+msgstr "平均海拔"
+
+msgid "maxAltitude"
+msgstr "最高点"
+
+msgid "minAltitude"
+msgstr "最低点"
+
+msgid "coordDistribution"
+msgstr "坐标分布"
+
+msgid "recordedCompleteArea"
+msgstr "已记录完整区域"
+
+msgid "insufficientPoints"
+msgstr "坐标不足3个\n无法显示区域"
+
+msgid "coordDetails"
+msgstr "坐标详情"
+
+msgid "noCoordData"
+msgstr "暂无坐标数据"
+
+# 新增条目
+msgid "elevationRange"
+msgstr "海拔高差"
+
+msgid "startPoint"
+msgstr "起点"
+
+msgid "endPoint"
+msgstr "终点"
+
+msgid "measurementTime"
+msgstr "测量时间"
+
+# 设置页面新增条目
+msgid "largeFont"
+msgstr "大字模式"
+
+msgid "miniMapEnabled"
+msgstr "小地图"
+
+# 测量页面新增条目
+msgid "altitude"
+msgstr "海拔"
+
+msgid "moveToOpenArea"
+msgstr "请移动到开阔地带"
+
+# 项目详情页面新增条目
+msgid "miniMap"
+msgstr "小地图"
+
+# 通用
+msgid "recordsCount"
+msgstr "条记录"
+
+# 项目详情页面新增
+msgid "completed"
+msgstr "已完成"
+
+msgid "draft"
+msgstr "草稿"
+
+msgid "viewMap"
+msgstr "查看完整地图"
+
+msgid "individual"
+msgstr "个"
+
+msgid "pointDetailsTable"
+msgstr "点位详情表"
+
+msgid "serialNumber"
+msgstr "序号"
+
+msgid "time"
+msgstr "时间"
+
+msgid "position"
+msgstr "位置"
+
+msgid "height"
+msgstr "高度"
+
+msgid "showingPoints"
+msgstr "显示前%d个点，共%d个点"
+
+msgid "miniMapDisabled"
+msgstr "小地图已关闭\n请在设置中开启"
+
+msgid "mapPageTitle"
+msgstr "完整地图"
+
+msgid "mapInfoPanel"
+msgstr "地图信息"
+
+msgid "scale"
+msgstr "比例尺"
+
+# 地图页面
+msgid "back"
+msgstr "返回"
