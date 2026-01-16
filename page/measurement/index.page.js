@@ -7,6 +7,7 @@ import { Vibrator } from "@zos/sensor";
 import { localStorage } from '@zos/storage';
 import { push } from '@zos/router';
 import { getText } from '@zos/i18n';
+import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 import { barometerManager } from '../../utils/barometer.js';
 import { calculateElevationStats } from '../../utils/elevation.js';
 
@@ -74,7 +75,12 @@ Page({
     
     // 定时器
     locationTimer: null,
-    uiUpdateTimer: null
+    uiUpdateTimer: null,
+    
+    // 自动采集
+    isAutoCollecting: false,
+    autoCollectTimer: null,
+    settings: {}
   },
 
   // 初始化GPS定位
@@ -179,6 +185,58 @@ Page({
 
     logger.debug(`开始新地块: ${this.data.currentFieldName}`);
     this.updateUI();
+  },
+
+  // 开始自动采集
+  startAutoCollect() {
+    if (this.data.isAutoCollecting) return;
+    
+    this.data.isAutoCollecting = true;
+    
+    // 更新按钮状态
+    if (this.data.widgets.collectBtn) {
+      this.data.widgets.collectBtn.setProperty(prop.TEXT, getText('stopCollect') || "停止采集");
+      this.data.widgets.collectBtn.setProperty(prop.MORE, {
+        ...this.data.widgets.collectBtn.getProperty(prop.MORE),
+        normal_color: 0xb3261e, // Red
+        press_color: 0x8c1d18
+      });
+    }
+    
+    // 立即采集一次
+    this.collectPoint();
+    
+    // 启动定时器
+    const interval = (this.data.settings.collectionInterval || 3) * 1000;
+    this.data.autoCollectTimer = setInterval(() => {
+      this.collectPoint();
+    }, interval);
+    
+    logger.debug(`开始自动采集，间隔: ${interval}ms`);
+  },
+  
+  // 停止自动采集
+  stopAutoCollect() {
+    if (!this.data.isAutoCollecting) return;
+    
+    this.data.isAutoCollecting = false;
+    
+    if (this.data.autoCollectTimer) {
+      clearInterval(this.data.autoCollectTimer);
+      this.data.autoCollectTimer = null;
+    }
+    
+    // 更新按钮状态
+    if (this.data.widgets.collectBtn) {
+      this.data.widgets.collectBtn.setProperty(prop.TEXT, getText('startCollect') || "开始采集");
+      this.data.widgets.collectBtn.setProperty(prop.MORE, {
+        ...this.data.widgets.collectBtn.getProperty(prop.MORE),
+        normal_color: 0x0986d4, // Blue
+        press_color: 0x0061a4
+      });
+    }
+    
+    logger.debug("停止自动采集");
   },
 
   // 采集点 - 简化逻辑，直接采集
@@ -332,6 +390,11 @@ Page({
 
   // 完成地块 - 保存并自动开始下一个
   finishField() {
+    // 如果正在自动采集，先停止
+    if (this.data.isAutoCollecting) {
+      this.stopAutoCollect();
+    }
+
     if (this.data.points.length < 3) {
       logger.warn("点数不足3个，无法完成地块");
       // 显示提示
@@ -510,22 +573,6 @@ Page({
     return 'mu'; // 默认亩
   },
 
-  // 获取大字模式设置
-  getLargeFontMode() {
-    try {
-      const stored = localStorage.getItem('hamgis_settings');
-      if (stored) {
-        const settings = JSON.parse(stored);
-        const largeFont = settings.largeFont || false;
-        logger.debug(`读取大字模式设置: ${largeFont}`);
-        return largeFont;
-      }
-    } catch (e) {
-      logger.error(`读取大字模式设置失败: ${e}`);
-    }
-    return false; // 默认关闭
-  },
-
   // 加载所有设置
   loadSettings() {
     try {
@@ -537,7 +584,8 @@ Page({
           vibrationFeedback: settings.vibrationFeedback !== false,
           autoSave: settings.autoSave !== false,
           keepScreenOn: settings.keepScreenOn !== false,
-          largeFont: settings.largeFont !== false
+          autoCollect: settings.autoCollect || false,
+          collectionInterval: settings.collectionInterval || 3
         };
       }
     } catch (e) {
@@ -549,7 +597,8 @@ Page({
       vibrationFeedback: true,
       autoSave: true,
       keepScreenOn: true, // 默认开启屏幕常亮
-      largeFont: true     // 默认开启大字模式
+      autoCollect: false,
+      collectionInterval: 3
     };
   },
 
@@ -740,10 +789,12 @@ Page({
   onInit() {
     logger.debug("测量页面初始化");
     
+    // 加载设置
+    this.data.settings = this.loadSettings();
+    
     // 设置屏幕常亮和息屏后重启 - 根据设置决定是否启用
     try {
-      const settings = this.loadSettings();
-      if (settings.keepScreenOn) {
+      if (this.data.settings.keepScreenOn) {
         setPageBrightTime({ brightTime: 1200000 }); // 20分钟屏幕常亮（20 * 60 * 1000）
         setWakeUpRelaunch(true); // 息屏后自动重启应用，防止测量失效
         pauseDropWristScreenOff(); // 暂停抬腕息屏，保持屏幕常亮
@@ -819,18 +870,16 @@ Page({
     
     // 添加设置变化监听 - 每2秒检查一次设置是否变化
     this.data.lastSettingsCheck = JSON.stringify({
-      unit: this.getCurrentUnit(),
-      largeFont: this.getLargeFontMode()
+      unit: this.getCurrentUnit()
     });
     this.data.settingsCheckTimer = setInterval(() => {
       const currentSettings = JSON.stringify({
-        unit: this.getCurrentUnit(),
-        largeFont: this.getLargeFontMode()
+        unit: this.getCurrentUnit()
       });
       if (currentSettings !== this.data.lastSettingsCheck) {
         logger.debug('检测到设置变化，重新构建界面');
         this.data.lastSettingsCheck = currentSettings;
-        // 大字模式变化需要重新构建界面
+        // 重新构建界面
         this.onDestroy();
         this.onInit();
         this.build();
@@ -847,9 +896,6 @@ Page({
     // 检测屏幕类型：480px为圆屏，390px为方屏
     const isRoundScreen = width >= 480;
     
-    // 获取大字模式设置 - 统一在函数开头声明
-    const largeFontMode = this.getLargeFontMode();
-    
     // 背景 - 深色主题，适合户外使用
     createWidget(widget.FILL_RECT, {
       x: 0,
@@ -863,13 +909,13 @@ Page({
     // 设计文档：GPS状态栏 (信号强度、精度)
     const gpsBarHeight = px(50);
     
-    // GPS状态栏背景 - 液态玻璃效果
+    // GPS状态栏背景 - 液态玻璃效果 (Material 3 Expressive Shape)
     createWidget(widget.FILL_RECT, {
       x: 0,
       y: 0,
       w: width,
       h: gpsBarHeight,
-      color: 0x1a1a1a
+      color: 0x000000 // Keep background black for blend
     });
     
     createWidget(widget.FILL_RECT, {
@@ -877,14 +923,13 @@ Page({
       y: px(2),
       w: width - px(4),
       h: gpsBarHeight - px(4),
-      radius: px(10),
-      color: 0x0d1117
+      radius: px(24), // Increased radius for Expressive look
+      color: 0x1c1b1f // M3 Surface color
     });
 
-    // 获取大字模式设置
-    const gpsStatusFontSize = largeFontMode ? px(22) : px(18); // 大字模式下放大GPS状态字体
+    // GPS状态文本 (默认大字体)
+    const gpsStatusFontSize = px(22);
 
-    // GPS状态文本
     this.data.widgets.gpsStatus = createWidget(widget.TEXT, {
       x: 0,
       y: 0,
@@ -901,7 +946,7 @@ Page({
     // ===== 坐标显示区 =====
     const coordY = gpsBarHeight;
     const coordHeight = px(35);
-    const coordFontSize = largeFontMode ? px(20) : px(16); // 大字模式下放大坐标字体
+    const coordFontSize = px(20); // 默认大字体
     
     this.data.widgets.coordinates = createWidget(widget.TEXT, {
       x: 0,
@@ -918,7 +963,7 @@ Page({
     // ===== 海拔显示区 =====
     const altitudeY = coordY + coordHeight;
     const altitudeHeight = px(25);
-    const altitudeFontSize = largeFontMode ? px(18) : px(14); // 大字模式下放大海拔字体
+    const altitudeFontSize = px(18); // 默认大字体
     
     this.data.widgets.altitudeDisplay = createWidget(widget.TEXT, {
       x: 0,
@@ -937,14 +982,14 @@ Page({
     const progressY = altitudeY + altitudeHeight;
     const progressHeight = px(180);
     
-    // 进度区域背景 - 多层玻璃效果
+    // 进度区域背景 - 多层玻璃效果 (Material 3 Expressive Card)
     createWidget(widget.FILL_RECT, {
       x: px(10),
       y: progressY,
       w: width - px(20),
       h: progressHeight,
-      radius: px(15),
-      color: 0x1a1a1a
+      radius: px(32), // Large radius for Expressive Card
+      color: 0x1c1b1f // M3 Surface
     });
     
     createWidget(widget.FILL_RECT, {
@@ -952,24 +997,24 @@ Page({
       y: progressY + px(2),
       w: width - px(24),
       h: progressHeight - px(4),
-      radius: px(13),
-      color: 0x0d1117
+      radius: px(30),
+      color: 0x25232a // Slightly lighter surface container
     });
 
     if (isRoundScreen) {
       // 圆屏优化布局：面积放大，信息同行
       
-      // 面积显示 - 根据大字模式调整字体大小和位置
-      const areaFontSize = largeFontMode ? px(120) : px(80); // 大字模式下更大
-      const areaY = largeFontMode ? progressY + px(5) : progressY + px(10); // 大字模式下上移
-      const areaHeight = largeFontMode ? px(110) : px(100); // 大字模式下增加高度
+      // 面积显示 (默认大字模式)
+      const areaFontSize = px(120);
+      const areaY = progressY + px(5);
+      const areaHeight = px(110);
       
       this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
         x: 0,
         y: areaY,
         w: width,
         h: areaHeight,
-        color: 0x00ff88,
+        color: 0x80caff, // M3 Blue Accent
         text_size: areaFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -977,17 +1022,17 @@ Page({
         text: `0.00 ${getText('mu')}`
       });
 
-      // 地块名称、点数、周长 - 同一行显示，位置根据大字模式调整
-      const infoRowY = largeFontMode ? progressY + px(120) : progressY + px(155); // 大字模式下下移更多
-      const infoHeight = largeFontMode ? px(22) : px(18); // 大字模式下增加高度
-      const infoFontSize = largeFontMode ? px(16) : px(12); // 大字模式下放大字体
+      // 地块名称、点数、周长 - 同一行显示 (默认大字模式)
+      const infoRowY = progressY + px(120);
+      const infoHeight = px(22);
+      const infoFontSize = px(16);
       
       this.data.widgets.fieldName = createWidget(widget.TEXT, {
         x: px(40),
         y: infoRowY,
         w: px(60),
         h: infoHeight,
-        color: 0x00ff88,
+        color: 0x80caff, // M3 Blue Accent
         text_size: infoFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1020,18 +1065,18 @@ Page({
       });
       
     } else {
-      // 方屏优化布局 - 也根据大字模式调整面积字体
+      // 方屏优化布局 (默认大字模式)
       
-      // 地块名称 - 根据大字模式调整字体
-      const fieldNameFontSize = largeFontMode ? px(18) : px(13);
-      const fieldNameHeight = largeFontMode ? px(25) : px(20);
+      // 地块名称
+      const fieldNameFontSize = px(18);
+      const fieldNameHeight = px(25);
       
       this.data.widgets.fieldName = createWidget(widget.TEXT, {
         x: 0,
         y: progressY + px(5),
         w: width,
         h: fieldNameHeight,
-        color: 0x00ff88,
+        color: 0x80caff, // M3 Blue Accent
         text_size: fieldNameFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1039,10 +1084,10 @@ Page({
         text: TEXTS.unnamed
       });
 
-      // 点数显示 - 根据大字模式调整字体和位置
-      const pointsFontSize = largeFontMode ? px(18) : px(13);
-      const pointsHeight = largeFontMode ? px(25) : px(20);
-      const pointsY = largeFontMode ? progressY + px(30) : progressY + px(25);
+      // 点数显示
+      const pointsFontSize = px(18);
+      const pointsHeight = px(25);
+      const pointsY = progressY + px(30);
       
       this.data.widgets.pointCount = createWidget(widget.TEXT, {
         x: 0,
@@ -1056,17 +1101,17 @@ Page({
         text: `${TEXTS.points}: 0`
       });
 
-      // 面积显示 - 根据大字模式调整字体大小和位置
-      const areaFontSize = largeFontMode ? px(72) : px(48); // 大字模式下更大
-      const areaY = largeFontMode ? progressY + px(55) : progressY + px(50); // 大字模式下稍微下移
-      const areaHeight = largeFontMode ? px(80) : px(60); // 大字模式下增加高度
+      // 面积显示
+      const areaFontSize = px(72);
+      const areaY = progressY + px(55);
+      const areaHeight = px(80);
       
       this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
         x: 0,
         y: areaY,
         w: width,
         h: areaHeight,
-        color: 0x00ff88,
+        color: 0x80caff, // M3 Blue Accent
         text_size: areaFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1074,10 +1119,10 @@ Page({
         text: `0.00 ${getText('mu')}`
       });
 
-      // 周长显示 - 根据大字模式调整位置和字体
-      const perimeterY = largeFontMode ? progressY + px(140) : progressY + px(115);
-      const perimeterFontSize = largeFontMode ? px(18) : px(13);
-      const perimeterHeight = largeFontMode ? px(25) : px(20);
+      // 周长显示
+      const perimeterY = progressY + px(140);
+      const perimeterFontSize = px(18);
+      const perimeterHeight = px(25);
       
       this.data.widgets.perimeterDisplay = createWidget(widget.TEXT, {
         x: 0,
@@ -1096,7 +1141,7 @@ Page({
     const statusY = progressY + progressHeight;
     const statusHeight = px(30);
     
-    const statusFontSize = largeFontMode ? px(18) : px(14); // 大字模式下放大状态提示字体
+    const statusFontSize = px(18); // 默认大字模式
     
     this.data.widgets.statusTip = createWidget(widget.TEXT, {
       x: 0,
@@ -1116,39 +1161,49 @@ Page({
     
     // 按钮间距和尺寸 - 根据屏幕类型调整
     const btnWidth = width - px(20);
-    const btnHeight = px(38); // 统一按钮高度
-    const btnSpacing = px(5);
+    const btnHeight = px(60); // 统一按钮高度 (Increased for Material 3 Large Touch Target)
+    const btnSpacing = px(10); // Increased spacing
     const btnStartY = buttonAreaY + px(5);
 
-    // 采集点按钮 - 蓝色大按钮，始终可见
+    // 采集点按钮 - 蓝色大按钮，始终可见 (Material 3 High Emphasis)
     createWidget(widget.FILL_RECT, {
       x: (width - btnWidth) / 2,
       y: btnStartY,
       w: btnWidth,
       h: btnHeight,
-      radius: px(19),
-      color: 0x0088ff
+      radius: px(30), // Pill Shape (Height/2)
+      color: 0x0986d4 // User specified Blue
     });
     
     // 使用闭包保存页面实例引用
     const pageInstance = this;
     
-    const buttonFontSize = largeFontMode ? px(20) : px(16); // 大字模式下放大按钮字体
+    const buttonFontSize = px(24); // 默认大字模式
     
     this.data.widgets.collectBtn = createWidget(widget.BUTTON, {
       x: (width - btnWidth) / 2 + px(2),
       y: btnStartY + px(2),
       w: btnWidth - px(4),
       h: btnHeight - px(4),
-      radius: px(17),
-      normal_color: 0x00aaff,
-      press_color: 0x0066cc,
-      text: getText('addPoint') || "采集点",
+      radius: px(28),
+      normal_color: this.data.settings.autoCollect && this.data.isAutoCollecting ? 0xb3261e : 0x0986d4,
+      press_color: this.data.settings.autoCollect && this.data.isAutoCollecting ? 0x8c1d18 : 0x0061a4,
+      text: this.data.settings.autoCollect 
+            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "停止采集") : (getText('startCollect') || "开始采集"))
+            : (getText('addPoint') || "采集点"),
       text_size: buttonFontSize,
       color: 0xffffff,
       click_func: () => {
         try {
-          pageInstance.collectPoint();
+          if (pageInstance.data.settings.autoCollect) {
+            if (pageInstance.data.isAutoCollecting) {
+              pageInstance.stopAutoCollect();
+            } else {
+              pageInstance.startAutoCollect();
+            }
+          } else {
+            pageInstance.collectPoint();
+          }
         } catch (e) {
           logger.error(`采集点按钮点击失败: ${e}`);
         }
@@ -1159,29 +1214,29 @@ Page({
     const secondRowY = btnStartY + btnHeight + btnSpacing;
     const secondBtnWidth = (btnWidth - px(10)) / 2;
 
-    // 撤销按钮 (橙红色)
+    // 撤销按钮 (M3 Tonal Button - Unified Blue/Grey)
     createWidget(widget.FILL_RECT, {
       x: (width - btnWidth) / 2,
       y: secondRowY,
       w: secondBtnWidth,
       h: btnHeight,
-      radius: px(19),
-      color: 0xff3b30
+      radius: px(30),
+      color: 0x2b2d31 // Dark Surface Container
     });
     
-    const smallButtonFontSize = largeFontMode ? px(18) : px(15); // 大字模式下放大小按钮字体
+    const smallButtonFontSize = px(20); // 默认大字模式
     
     this.data.widgets.undoBtn = createWidget(widget.BUTTON, {
       x: (width - btnWidth) / 2 + px(2),
       y: secondRowY + px(2),
       w: secondBtnWidth - px(4),
       h: btnHeight - px(4),
-      radius: px(17),
-      normal_color: 0xff5e57,
-      press_color: 0xcc0000,
+      radius: px(28),
+      normal_color: 0x2b2d31, // M3 Surface Container
+      press_color: 0x3e4248,
       text: getText('undo') || "撤销",
       text_size: smallButtonFontSize,
-      color: 0xffffff,
+      color: 0x80caff, // Blue Text for Action
       click_func: () => {
         try {
           pageInstance.undoPoint();
@@ -1191,14 +1246,14 @@ Page({
       }
     });
 
-    // 完成地块按钮 (绿色)
+    // 完成地块按钮 (M3 Tonal Button - Unified Blue/Grey)
     createWidget(widget.FILL_RECT, {
       x: (width - btnWidth) / 2 + secondBtnWidth + px(10),
       y: secondRowY,
       w: secondBtnWidth,
       h: btnHeight,
-      radius: px(19),
-      color: 0x34c759
+      radius: px(30),
+      color: 0x2b2d31 // Dark Surface Container
     });
     
     this.data.widgets.finishBtn = createWidget(widget.BUTTON, {
@@ -1206,12 +1261,12 @@ Page({
       y: secondRowY + px(2),
       w: secondBtnWidth - px(4),
       h: btnHeight - px(4),
-      radius: px(17),
-      normal_color: 0x30d158,
-      press_color: 0x2daf4d,
+      radius: px(28),
+      normal_color: 0x2b2d31, // M3 Surface Container
+      press_color: 0x3e4248,
       text: getText('finishField') || "完成地块",
       text_size: smallButtonFontSize,
-      color: 0xffffff,
+      color: 0x80caff, // Blue Text for Action
       click_func: () => {
         try {
           pageInstance.finishField();
@@ -1226,7 +1281,7 @@ Page({
       const thirdRowY = secondRowY + btnHeight + btnSpacing;
       const fourthRowY = thirdRowY + btnHeight + btnSpacing;
       
-      const navButtonFontSize = largeFontMode ? px(18) : px(14); // 大字模式下放大导航按钮字体
+      const navButtonFontSize = px(18); // 默认大字模式
       
       // 历史按钮 - 独占一行
       createWidget(widget.FILL_RECT, {
@@ -1235,7 +1290,7 @@ Page({
         w: btnWidth,
         h: btnHeight,
         radius: px(19),
-        color: 0x5856d6
+        color: 0x2b2d31 // Material 3 Surface Container (Dark Grey)
       });
       
       createWidget(widget.BUTTON, {
@@ -1244,8 +1299,8 @@ Page({
         w: btnWidth - px(4),
         h: btnHeight - px(4),
         radius: px(17),
-        normal_color: 0x6a6ae6,
-        press_color: 0x3e3dbf,
+        normal_color: 0x2b2d31, // Material 3 Surface Container
+        press_color: 0x3e4248,  // Slightly lighter on press
         text: TEXTS.history,
         text_size: navButtonFontSize,
         color: 0xffffff,
@@ -1265,7 +1320,7 @@ Page({
         w: btnWidth,
         h: btnHeight,
         radius: px(19),
-        color: 0x5856d6
+        color: 0x2b2d31 // Material 3 Surface Container
       });
       
       createWidget(widget.BUTTON, {
@@ -1274,8 +1329,8 @@ Page({
         w: btnWidth - px(4),
         h: btnHeight - px(4),
         radius: px(17),
-        normal_color: 0x6a6ae6,
-        press_color: 0x3e3dbf,
+        normal_color: 0x2b2d31, // Material 3 Surface Container
+        press_color: 0x3e4248,
         text: TEXTS.settings,
         text_size: navButtonFontSize,
         color: 0xffffff,
@@ -1301,7 +1356,7 @@ Page({
       // 方屏：历史和设置共用一行
       const thirdRowY = secondRowY + btnHeight + btnSpacing;
       
-      const navButtonFontSize = largeFontMode ? px(18) : px(14); // 大字模式下放大导航按钮字体
+      const navButtonFontSize = px(18); // 默认大字模式
       
       // 历史按钮
       createWidget(widget.FILL_RECT, {
@@ -1310,7 +1365,7 @@ Page({
         w: secondBtnWidth,
         h: btnHeight,
         radius: px(19),
-        color: 0x5856d6
+        color: 0x2b2d31 // Material 3 Surface Container
       });
       
       createWidget(widget.BUTTON, {
@@ -1319,8 +1374,8 @@ Page({
         w: secondBtnWidth - px(4),
         h: btnHeight - px(4),
         radius: px(17),
-        normal_color: 0x6a6ae6,
-        press_color: 0x3e3dbf,
+        normal_color: 0x2b2d31,
+        press_color: 0x3e4248,
         text: TEXTS.history,
         text_size: navButtonFontSize,
         color: 0xffffff,
@@ -1340,7 +1395,7 @@ Page({
         w: secondBtnWidth,
         h: btnHeight,
         radius: px(19),
-        color: 0x5856d6
+        color: 0x2b2d31 // Material 3 Surface Container
       });
       
       createWidget(widget.BUTTON, {
@@ -1349,8 +1404,8 @@ Page({
         w: secondBtnWidth - px(4),
         h: btnHeight - px(4),
         radius: px(17),
-        normal_color: 0x6a6ae6,
-        press_color: 0x3e3dbf,
+        normal_color: 0x2b2d31,
+        press_color: 0x3e4248,
         text: TEXTS.settings,
         text_size: navButtonFontSize,
         color: 0xffffff,
@@ -1365,10 +1420,30 @@ Page({
     }
 
     // 移除底部提示文字
+
+    // 注册按键监听
+    onKey({
+      callback: (key, keyEvent) => {
+        if (keyEvent === KEY_EVENT_CLICK) {
+          if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            // 如果是手动采集模式，则将按键作为采集触发
+            if (!this.data.settings.autoCollect) {
+              logger.debug(`按键触发采集: ${key}`);
+              this.collectPoint();
+              return true; // 拦截按键事件
+            }
+          }
+        }
+        return false;
+      }
+    });
   },
 
   onDestroy() {
     logger.debug("测量页面销毁");
+    
+    // 停止自动采集
+    this.stopAutoCollect();
     
     // 恢复抬腕息屏功能
     try {

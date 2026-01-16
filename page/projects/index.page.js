@@ -232,14 +232,14 @@ Page({
         try {
           const data = listData[index];
           
-          // 主内容区域背景
+          // 主内容区域背景 (M3 Card Style)
           item.bg = createWidget(widget.FILL_RECT, {
             x: px(10),
             y: px(5),
             w: width - px(20),
             h: px(90),
-            color: 0x1a1a1a,
-            radius: px(10)
+            color: 0x1c1b1f, // M3 Surface
+            radius: px(24)   // Increased radius
           });
           
           // 项目名称
@@ -261,7 +261,7 @@ Page({
             y: px(40),
             w: px(120),
             h: px(20),
-            color: 0x00ff88,
+            color: 0x80caff, // Blue Accent
             text_size: px(16),
             align_h: align.LEFT,
             text: data.area
@@ -291,18 +291,18 @@ Page({
             text: data.date
           });
           
-          // 删除按钮（右侧）
+          // 删除按钮（右侧） - M3 Style
           item.deleteBtn = createWidget(widget.BUTTON, {
             x: width - px(90),
             y: px(25),
             w: px(70),
             h: px(50),
-            radius: px(10),
-            normal_color: 0xff3b30,
-            press_color: 0xcc0000,
+            radius: px(25),
+            normal_color: 0x2b2d31, // Dark Surface
+            press_color: 0x3e4248,
             text: "删除",
             text_size: px(14),
-            color: 0xffffff,
+            color: 0xffb4ab, // M3 Error Container Text (Light Red)
             click_func: () => {
               pageInstance.deleteProject(data.index);
             }

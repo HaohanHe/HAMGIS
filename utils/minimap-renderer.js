@@ -62,7 +62,7 @@ export class MiniMapRenderer {
       // 使用CANVAS的drawPoly方法绘制多边形
       this.canvas.drawPoly({
         data_array: points,
-        color: 0x00ff88
+        color: 0x80caff
       });
     } catch (e) {
       console.warn('绘制多边形失败:', e);
@@ -77,8 +77,8 @@ export class MiniMapRenderer {
     if (!points || points.length === 0) return;
     
     points.forEach((p, i) => {
-      // 起点用红色，其他用绿色
-      const color = i === 0 ? 0xff3b30 : 0x00ff88;
+      // 起点用红色，其他用蓝色
+      const color = i === 0 ? 0xff3b30 : 0x80caff;
       const radius = i === 0 ? 6 : 4;
       
       try {

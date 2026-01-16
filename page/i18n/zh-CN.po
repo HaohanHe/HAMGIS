@@ -239,3 +239,16 @@ msgstr "比例尺"
 # 地图页面
 msgid "back"
 msgstr "返回"
+
+# 自动采集相关
+msgid "autoCollect"
+msgstr "自动采集"
+
+msgid "collectionInterval"
+msgstr "采集间时"
+
+msgid "startCollect"
+msgstr "开始采集"
+
+msgid "stopCollect"
+msgstr "停止采集"

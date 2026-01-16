@@ -195,7 +195,7 @@ Page({
       y: startY + px(60),
       w: cardW - px(20),
       h: px(20),
-      color: 0x00ff88,
+      color: 0x80caff,
       text_size: px(14),
       align_h: align.LEFT,
       text: areaText
@@ -231,8 +231,8 @@ Page({
       w: px(120),
       h: px(30),
       radius: px(15),
-      normal_color: 0x007acc,
-      press_color: 0x005999,
+      normal_color: 0x0986d4,
+      press_color: 0x0061a4,
       text: `🗺️ ${getText('viewMap') || '查看地图'}`,
       text_size: px(12),
       color: 0xffffff,
@@ -327,8 +327,8 @@ Page({
         y: tableStartY + titleHeight + spacing,
         w: cardW,
         h: tableHeight,
-        radius: px(8),
-        color: 0x1a1a1a
+        radius: px(16), // Increased radius
+        color: 0x1c1b1f // M3 Surface
       });
       
       // 表头
@@ -350,8 +350,8 @@ Page({
         y: headerY - px(2),
         w: cardW - px(4),
         h: px(30),
-        radius: px(6),
-        color: 0x2a2a2a
+        radius: px(12),
+        color: 0x2b2d31 // Surface Container
       });
       
       // 表头文字
@@ -387,7 +387,7 @@ Page({
             y: rowY - px(1),
             w: cardW - px(4),
             h: rowHeight - px(2),
-            color: 0x151515
+            color: 0x25232a // Slightly lighter surface
           });
         }
         
@@ -397,7 +397,7 @@ Page({
           y: rowY,
           w: colWidths[0],
           h: rowHeight - px(4),
-          color: index === 0 ? 0xff3b30 : 0x00ff88,
+          color: index === 0 ? 0xffb4ab : 0x80caff, // Error color for first, Blue for others
           text_size: px(12),
           align_h: align.CENTER_H,
           align_v: align.CENTER_V,

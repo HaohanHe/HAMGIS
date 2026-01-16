@@ -13,7 +13,8 @@ Page({
       vibrationFeedback: true,  // 震动反馈
       autoSave: true,           // 自动保存
       keepScreenOn: true,       // 保持屏幕常亮
-      largeFont: true           // 大字模式 - 默认开启
+      autoCollect: false,       // 自动采集
+      collectionInterval: 3     // 采集间时 (秒)
     },
     widgets: {},
     currentSettingIndex: 0,   // 当前设置项索引
@@ -22,7 +23,8 @@ Page({
       { key: 'vibrationFeedback', type: 'boolean' },
       { key: 'autoSave', type: 'boolean' },
       { key: 'keepScreenOn', type: 'boolean' },
-      { key: 'largeFont', type: 'boolean' }
+      { key: 'autoCollect', type: 'boolean' },
+      { key: 'collectionInterval', type: 'number', min: 1, max: 20, unit: 's' }
     ]
   },
 
@@ -93,7 +95,8 @@ Page({
       'vibrationFeedback': getText('vibrationFeedback') || '震动反馈',
       'autoSave': getText('autoSave') || '自动保存',
       'keepScreenOn': getText('keepScreenOn') || '屏幕常亮',
-      'largeFont': getText('largeFont') || '大字模式'
+      'autoCollect': getText('autoCollect') || '自动采集',
+      'collectionInterval': getText('collectionInterval') || '采集间时'
     };
     return nameMap[setting.key] || setting.key;
   },
@@ -161,7 +164,8 @@ Page({
       vibrationFeedback: true,
       autoSave: true,
       keepScreenOn: true,
-      largeFont: true  // 默认开启大字模式
+      autoCollect: false,
+      collectionInterval: 3
     };
     
     this.saveSettings();
@@ -297,7 +301,7 @@ Page({
       y: px(180),
       w: width,
       h: px(80),
-      color: 0x00ff00,
+      color: 0x80caff, // M3 Blue Accent
       text_size: px(36),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
@@ -322,8 +326,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0x333333,
-        press_color: 0x555555,
+        normal_color: 0x2b2d31, // M3 Surface Container
+        press_color: 0x3e4248,
         text: "▲",
         text_size: px(24),
         click_func: () => {
@@ -337,8 +341,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0x333333,
-        press_color: 0x555555,
+        normal_color: 0x2b2d31, // M3 Surface Container
+        press_color: 0x3e4248,
         text: "▼",
         text_size: px(24),
         click_func: () => {
@@ -346,15 +350,15 @@ Page({
         }
       });
       
-      // 第二行：◀ ▶ (橙色按钮下移)
+      // 第二行：◀ ▶ (蓝色按钮下移)
       createWidget(widget.BUTTON, {
         x: (width - px(180)) / 2,
         y: secondRowY,
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0xff8800,
-        press_color: 0xcc6600,
+        normal_color: 0x0986d4, // Primary Blue
+        press_color: 0x0061a4,
         text: "◀",
         text_size: px(24),
         click_func: () => {
@@ -368,8 +372,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0xff8800,
-        press_color: 0xcc6600,
+        normal_color: 0x0986d4, // Primary Blue
+        press_color: 0x0061a4,
         text: "▶",
         text_size: px(24),
         click_func: () => {
@@ -384,9 +388,10 @@ Page({
         w: px(120),
         h: px(50),
         radius: px(25),
-        normal_color: 0xff3333,
-        press_color: 0xcc2222,
+        normal_color: 0x2b2d31, // Surface Container
+        press_color: 0x3e4248,
         text: getText('resetSettings'),
+        color: 0xffb4ab, // Error Text
         text_size: px(18),
         click_func: () => {
           this.resetSettings();
@@ -404,8 +409,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0x333333,
-        press_color: 0x555555,
+        normal_color: 0x2b2d31, // M3 Surface Container
+        press_color: 0x3e4248,
         text: "▲",
         text_size: px(24),
         click_func: () => {
@@ -420,8 +425,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0xff8800,
-        press_color: 0xcc6600,
+        normal_color: 0x0986d4, // Primary Blue
+        press_color: 0x0061a4,
         text: "◀",
         text_size: px(24),
         click_func: () => {
@@ -436,8 +441,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0xff8800,
-        press_color: 0xcc6600,
+        normal_color: 0x0986d4, // Primary Blue
+        press_color: 0x0061a4,
         text: "▶",
         text_size: px(24),
         click_func: () => {
@@ -452,8 +457,8 @@ Page({
         w: buttonW,
         h: buttonH,
         radius: px(25),
-        normal_color: 0x333333,
-        press_color: 0x555555,
+        normal_color: 0x2b2d31, // M3 Surface Container
+        press_color: 0x3e4248,
         text: "▼",
         text_size: px(24),
         click_func: () => {
@@ -468,9 +473,10 @@ Page({
         w: px(120),
         h: px(50),
         radius: px(25),
-        normal_color: 0xff3333,
-        press_color: 0xcc2222,
+        normal_color: 0x2b2d31, // Surface Container
+        press_color: 0x3e4248,
         text: getText('resetSettings'),
+        color: 0xffb4ab, // Error Text
         text_size: px(18),
         click_func: () => {
           this.resetSettings();

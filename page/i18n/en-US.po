@@ -239,3 +239,16 @@ msgstr "Map Info"
 
 msgid "scale"
 msgstr "Scale"
+
+# Auto Collect
+msgid "autoCollect"
+msgstr "Auto Collect"
+
+msgid "collectionInterval"
+msgstr "Collection Interval"
+
+msgid "startCollect"
+msgstr "Start Collect"
+
+msgid "stopCollect"
+msgstr "Stop Collect"

@@ -240,6 +240,15 @@ msgstr "スケール"
 msgid "back"
 msgstr "戻る"
 
-# 通用
-msgid "individual"
-msgstr "個"
+# 自動収集関連
+msgid "autoCollect"
+msgstr "自動収集"
+
+msgid "collectionInterval"
+msgstr "収集間隔"
+
+msgid "startCollect"
+msgstr "収集開始"
+
+msgid "stopCollect"
+msgstr "収集停止"

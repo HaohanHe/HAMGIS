@@ -202,24 +202,24 @@ Page({
     // 记录信息 (名称和时间)
     this.data.widgets.recordInfo = createWidget(widget.TEXT, {
       x: 0,
-      y: px(100),
+      y: px(90),
       w: width,
-      h: px(60),
+      h: px(70),
       color: 0xcccccc,
-      text_size: px(20),
+      text_size: px(24), // 增大字体
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: getText('noData')
     });
     
-    // 面积显示 (大字体)
+    // 面积显示 (大字体 - 默认大字模式)
     this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
       x: 0,
-      y: px(180),
+      y: px(170),
       w: width,
-      h: px(80),
-      color: 0x00ff00,
-      text_size: px(48),
+      h: px(100),
+      color: 0x80caff,
+      text_size: px(72), // 增大字体
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text_style: text_style.BOLD,
@@ -231,28 +231,28 @@ Page({
       x: 0,
       y: px(280),
       w: width,
-      h: px(80),
+      h: px(90),
       color: 0xffffff,
-      text_size: px(18),
+      text_size: px(22), // 增大字体
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text: "暂无测量记录"
     });
     
     // 导航按钮区域
-    const buttonY = px(380);
+    const buttonY = px(390);
     const buttonW = px(80);
-    const buttonH = px(50);
+    const buttonH = px(60); // 增大按钮高度 (60px)
     
     // 上一条按钮
     createWidget(widget.BUTTON, {
-      x: px(40),
+      x: px(20),
       y: buttonY,
       w: buttonW,
       h: buttonH,
-      radius: px(25),
-      normal_color: 0x333333,
-      press_color: 0x555555,
+      radius: px(30), // Pill Shape
+      normal_color: 0x2b2d31, // M3 Surface Container
+      press_color: 0x3e4248,
       text: "◀",
       text_size: px(24),
       click_func: () => {
@@ -262,15 +262,16 @@ Page({
     
     // 详情按钮
     createWidget(widget.BUTTON, {
-      x: px(40),
-      y: buttonY + buttonH + px(10),
-      w: width - px(80),
+      x: px(20) + buttonW + px(10),
+      y: buttonY, // 放在同一行，中间
+      w: width - px(60) - (buttonW * 2), // 自动计算宽度
       h: buttonH,
-      radius: px(25),
-      normal_color: 0x0088cc,
-      press_color: 0x0066aa,
-      text: "📊 " + (getText('btn_view_details') || "查看详情"),
-      text_size: px(16),
+      radius: px(30),
+      normal_color: 0x0986d4, // M3 Blue Primary
+      press_color: 0x0061a4,
+      text: (getText('btn_view_details') || "查看详情"),
+      text_size: px(20),
+      color: 0xffffff,
       click_func: () => {
         if (this.data.measurements.length > 0) {
           const current = this.data.measurements[this.data.currentIndex];
@@ -286,30 +287,34 @@ Page({
         }
       }
     });
-    
-    // 圆屏额外：在详情按钮下方增加空白区域，方便向上滑动
-    if (width >= 480) {
-      const extraSpaceY = buttonY + buttonH + px(10) + buttonH + px(10);
-      createWidget(widget.FILL_RECT, {
-        x: 0,
-        y: extraSpaceY,
-        w: width,
-        h: px(100), // 额外100px空白，方便滑动
-        color: 0x000000 // 与背景同色
-      });
-    }
-    
-    // 删除按钮
+
+    // 下一条按钮
     createWidget(widget.BUTTON, {
-      x: (width - buttonW) / 2,
+      x: width - px(20) - buttonW,
       y: buttonY,
       w: buttonW,
       h: buttonH,
-      radius: px(25),
-      normal_color: 0xff3333,
-      press_color: 0xcc2222,
+      radius: px(30),
+      normal_color: 0x2b2d31, // M3 Surface Container
+      press_color: 0x3e4248,
+      text: "▶",
+      text_size: px(24),
+      click_func: () => {
+        this.nextRecord();
+      }
+    });
+
+    // 删除按钮 (放在最下方)
+    createWidget(widget.BUTTON, {
+      x: px(40),
+      y: buttonY + buttonH + px(15),
+      w: width - px(80),
+      h: buttonH,
+      radius: px(30),
+      normal_color: 0xb3261e, // M3 Error Color
+      press_color: 0x8c1d18,
       text: getText('delete'),
-      text_size: px(18),
+      text_size: px(20),
       click_func: () => {
         if (this.data.measurements.length > 0) {
           this.deleteMeasurement(this.data.currentIndex);
@@ -317,21 +322,17 @@ Page({
       }
     });
     
-    // 下一条按钮
-    createWidget(widget.BUTTON, {
-      x: width - px(40) - buttonW,
-      y: buttonY,
-      w: buttonW,
-      h: buttonH,
-      radius: px(25),
-      normal_color: 0x333333,
-      press_color: 0x555555,
-      text: "▶",
-      text_size: px(24),
-      click_func: () => {
-        this.nextRecord();
-      }
-    });
+    // 圆屏额外：在删除按钮下方增加空白区域
+    if (width >= 480) {
+      const extraSpaceY = buttonY + buttonH + px(15) + buttonH + px(10);
+      createWidget(widget.FILL_RECT, {
+        x: 0,
+        y: extraSpaceY,
+        w: width,
+        h: px(100), 
+        color: 0x000000 
+      });
+    }
     
     // 初始化UI
     this.updateUI();

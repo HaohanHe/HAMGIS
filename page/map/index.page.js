@@ -68,15 +68,15 @@ Page({
   buildSimpleHeader(width, isRoundScreen) {
     const startY = isRoundScreen ? px(20) : px(10);
     
-    // 返回按钮 - 居中位置
+    // 返回按钮 - 居中位置 (Material 3 Expressive Style)
     createWidget(widget.BUTTON, {
       x: (width - px(80)) / 2,
       y: startY,
       w: px(80),
       h: px(35),
       radius: px(17),
-      normal_color: 0x333333,
-      press_color: 0x555555,
+      normal_color: 0x2b2d31, // M3 Surface Container
+      press_color: 0x3e4248,
       text: `← ${getText('back') || '返回'}`,
       text_size: px(16),
       color: 0xffffff,
@@ -130,14 +130,14 @@ Page({
     
     logger.debug(`地图容器: x=${mapX}, y=${mapY}, size=${mapSize}, 屏幕: ${width}x${height}`);
     
-    // 地图容器背景 - 先显示背景确认位置
+    // 地图容器背景 - 先显示背景确认位置 (M3 Card)
     createWidget(widget.FILL_RECT, {
       x: mapX,
       y: mapY,
       w: mapSize,
       h: mapSize,
-      radius: px(10),
-      color: 0x1a1a1a
+      radius: px(28), // Increased radius
+      color: 0x1c1b1f // M3 Surface
     });
     
     // 创建CANVAS widget用于地图渲染 - 直接传递给渲染器
