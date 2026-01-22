@@ -1,6 +1,6 @@
 {
   "name": "hamgis-field-measurement",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "专业GIS土地面积测量应用 - 基于Zepp OS的测亩软件",
   "main": "app.js",
   "scripts": {

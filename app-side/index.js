@@ -298,7 +298,7 @@ AppSideService({
       const exportData = {
         metadata: {
           exportTime: new Date().toISOString(),
-          version: '1.0.1',
+          version: '1.0.3',
           totalRecords: measurements.length
         },
         measurements: measurements

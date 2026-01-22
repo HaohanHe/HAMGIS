@@ -523,7 +523,7 @@ Page({
       text_size: px(14),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: `HAMGIS v1.0.1`
+      text: `HAMGIS v1.0.3`
     });
     
     // 初始化UI
