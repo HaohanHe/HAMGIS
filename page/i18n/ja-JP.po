@@ -252,3 +252,58 @@ msgstr "収集開始"
 
 msgid "stopCollect"
 msgstr "収集停止"
+
+# 衛星ページ
+msgid "satelliteStatus"
+msgstr "衛星ステータス"
+
+msgid "positioningMode"
+msgstr "測位モード"
+
+msgid "timeConsumed"
+msgstr "所要時間"
+
+msgid "seconds"
+msgstr "秒"
+
+msgid "signalQuality"
+msgstr "信号品質"
+
+msgid "visible"
+msgstr "可視"
+
+msgid "used"
+msgstr "使用"
+
+msgid "mode_precision"
+msgstr "高精度モード"
+
+msgid "mode_balanced"
+msgstr "バランスモード"
+
+msgid "mode_power_saving"
+msgstr "省電力モード"
+
+msgid "mode_super_power_saving"
+msgstr "超省電力"
+
+msgid "mode_custom"
+msgstr "カスタム"
+
+msgid "mode_unknown"
+msgstr "不明"
+
+msgid "weak"
+msgstr "弱い"
+
+msgid "good"
+msgstr "良好"
+
+msgid "excellent"
+msgstr "最高"
+
+msgid "singleBand"
+msgstr "シングルバンド"
+
+msgid "dualBand"
+msgstr "デュアルバンド (L1+L5)"

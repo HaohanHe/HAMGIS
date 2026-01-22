@@ -252,3 +252,58 @@ msgstr "Start Collect"
 
 msgid "stopCollect"
 msgstr "Stop Collect"
+
+# Satellite Page
+msgid "satelliteStatus"
+msgstr "Satellite Status"
+
+msgid "positioningMode"
+msgstr "Positioning Mode"
+
+msgid "timeConsumed"
+msgstr "Time Consumed"
+
+msgid "seconds"
+msgstr "seconds"
+
+msgid "signalQuality"
+msgstr "Signal Quality"
+
+msgid "visible"
+msgstr "Visible"
+
+msgid "used"
+msgstr "Used"
+
+msgid "mode_precision"
+msgstr "Precision Mode"
+
+msgid "mode_balanced"
+msgstr "Balanced Mode"
+
+msgid "mode_power_saving"
+msgstr "Power Saving Mode"
+
+msgid "mode_super_power_saving"
+msgstr "Super Power Saving"
+
+msgid "mode_custom"
+msgstr "Custom"
+
+msgid "mode_unknown"
+msgstr "Unknown"
+
+msgid "weak"
+msgstr "Weak"
+
+msgid "good"
+msgstr "Good"
+
+msgid "excellent"
+msgstr "Excellent"
+
+msgid "singleBand"
+msgstr "Single Band"
+
+msgid "dualBand"
+msgstr "Dual Band (L1+L5)"

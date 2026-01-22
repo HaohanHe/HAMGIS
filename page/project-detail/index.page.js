@@ -221,7 +221,7 @@ Page({
       color: 0x888888,
       text_size: px(12),
       align_h: align.RIGHT,
-      text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m`
+      text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m ${this.data.project.positioningMode === 'dual-band' ? '(L1+L5)' : ''}`
     });
     
     // 查看地图按钮 - 确保只创建一次，位置固定

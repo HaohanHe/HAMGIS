@@ -1,6 +1,6 @@
 import { log, px } from "@zos/utils";
 import { createWidget, widget, align, prop, text_style } from '@zos/ui';
-import { setPageBrightTime, setWakeUpRelaunch, pauseDropWristScreenOff, resumeDropWristScreenOff } from "@zos/display";
+import { setPageBrightTime, setWakeUpRelaunch, pauseDropWristScreenOff, resetDropWristScreenOff } from "@zos/display";
 import { getDeviceInfo } from "@zos/device";
 import { Geolocation } from "@zos/sensor";
 import { Vibrator } from "@zos/sensor";
@@ -57,6 +57,7 @@ Page({
     accuracy: 0,
     gpsStatus: 'locating',
     locateStartTime: 0,
+    firstFixDuration: null,
     
     // 海拔数据
     currentAltitude: null,  // 当前海拔
@@ -98,13 +99,14 @@ Page({
         }
       }
       
-      this.data.locationCallback = () => {
-        this.updateGPSLocation();
+      this.data.locationCallback = (event) => {
+        this.updateGPSLocation(event);
       };
       
       this.data.geolocation.start();
       this.data.geolocation.onChange(this.data.locationCallback);
       this.data.locateStartTime = Date.now();
+      this.data.firstFixDuration = null;
       
       // 监听权限变化 (API_LEVEL 4.0+)
       if (typeof this.data.geolocation.onEnableChange === 'function') {
@@ -130,10 +132,21 @@ Page({
   },
 
   // 更新GPS位置
-  updateGPSLocation() {
+  updateGPSLocation(event) {
     try {
       if (!this.data.geolocation) return;
       
+      // 检测双频支持 (L1+L5)
+      if (event && event.satellite_data) {
+        let isDualBand = false;
+        if (Array.isArray(event.satellite_data)) {
+            event.satellite_data.forEach(system => {
+                if (system.is_dualband === 1) isDualBand = true;
+            });
+        }
+        this.data.isDualBand = isDualBand;
+      }
+
       const status = this.data.geolocation.getStatus();
       const now = Date.now();
       const locateDuration = now - this.data.locateStartTime;
@@ -152,9 +165,15 @@ Page({
           this.data.currentLat = latitude;
           this.data.currentLon = longitude;
           this.data.gpsStatus = 'ready';
-          this.data.accuracy = 5;  // 假设精度为5米
+          // 动态精度: 双频(L1+L5)为1米，否则为5米
+          this.data.accuracy = this.data.isDualBand ? 1 : 5;
           
-          logger.debug(`GPS位置更新: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          if (this.data.firstFixDuration === null) {
+            this.data.firstFixDuration = Date.now() - this.data.locateStartTime;
+            logger.debug(`首次定位耗时: ${this.data.firstFixDuration}ms`);
+          }
+
+          logger.debug(`GPS位置更新: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}, 精度: ${this.data.accuracy}m`);
         } else {
           logger.warn(`无效的坐标数据: lat=${latitude}, lon=${longitude}`);
           this.data.gpsStatus = 'error';
@@ -467,6 +486,7 @@ Page({
         },
         perimeter: this.data.currentPerimeter,
         accuracy: this.data.accuracy,
+        positioningMode: this.data.isDualBand ? 'dual-band' : 'single-band',
         elevation: elevation,  // 添加海拔统计
         status: 'completed'
       };
@@ -797,8 +817,8 @@ Page({
       if (this.data.settings.keepScreenOn) {
         setPageBrightTime({ brightTime: 1200000 }); // 20分钟屏幕常亮（20 * 60 * 1000）
         setWakeUpRelaunch(true); // 息屏后自动重启应用，防止测量失效
-        pauseDropWristScreenOff(); // 暂停抬腕息屏，保持屏幕常亮
-        logger.debug("已启用屏幕常亮功能：20分钟");
+        pauseDropWristScreenOff({ duration: 0 }); // 持续暂停抬腕息屏
+        logger.debug("已启用屏幕常亮功能：20分钟，且禁止落腕息屏");
       } else {
         logger.debug("屏幕常亮功能已关闭");
       }
@@ -918,29 +938,30 @@ Page({
       color: 0x000000 // Keep background black for blend
     });
     
-    createWidget(widget.FILL_RECT, {
+    // GPS Status Bar Button (Background + Interaction)
+    this.data.widgets.gpsStatus = createWidget(widget.BUTTON, {
       x: px(2),
       y: px(2),
       w: width - px(4),
       h: gpsBarHeight - px(4),
-      radius: px(24), // Increased radius for Expressive look
-      color: 0x1c1b1f // M3 Surface color
-    });
-
-    // GPS状态文本 (默认大字体)
-    const gpsStatusFontSize = px(22);
-
-    this.data.widgets.gpsStatus = createWidget(widget.TEXT, {
-      x: 0,
-      y: 0,
-      w: width,
-      h: gpsBarHeight,
+      radius: px(24),
+      normal_color: 0x1c1b1f,
+      press_color: 0x2b2d31,
+      text: TEXTS.locating,
       color: 0x00ff88,
-      text_size: gpsStatusFontSize,
-      align_h: align.CENTER_H,
-      align_v: align.CENTER_V,
-      text_style: text_style.BOLD,
-      text: TEXTS.locating
+      text_size: px(22),
+      click_func: () => {
+        // Optional: Trigger immediate GPS update or show toast
+      },
+      longpress_func: () => {
+        push({ 
+          url: "page/satellite/index.page",
+          params: JSON.stringify({
+            startTime: this.data.locateStartTime,
+            fixDuration: this.data.firstFixDuration
+          })
+        });
+      }
     });
 
     // ===== 坐标显示区 =====
@@ -1447,7 +1468,7 @@ Page({
     
     // 恢复抬腕息屏功能
     try {
-      resumeDropWristScreenOff();
+      resetDropWristScreenOff();
       logger.debug("已恢复抬腕息屏功能");
     } catch (e) {
       logger.error(`恢复抬腕息屏失败: ${e}`);
