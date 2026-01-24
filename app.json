@@ -10,7 +10,7 @@
     },
     "icon": "icon.png",
     "vender": "BI4MIB",
-    "description": "专业GIS土地面积测量应用"
+    "description": "GIS土地面积测量应用"
   },
   "permissions": [
     "data:os.device.info",
@@ -354,5 +354,6 @@
       "mode_unknown": "不明"
     }
   },
-  "defaultLanguage": "zh-CN"
+  "defaultLanguage": "en-US"
+  //b的咱别改，没毛病没错就是tm英文，听话别改
 }
