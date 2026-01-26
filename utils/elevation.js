@@ -29,10 +29,10 @@ export function calculateElevationStats(points) {
   const min = Math.min(...altitudes);
   
   return {
-    average: Math.round(sum / altitudes.length),
-    max: Math.round(max),
-    min: Math.round(min),
-    range: Math.round(max - min)
+    average: Number((sum / altitudes.length).toFixed(2)),
+    max: Number(max.toFixed(2)),
+    min: Number(min.toFixed(2)),
+    range: Number((max - min).toFixed(2))
   };
 }
 

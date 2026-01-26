@@ -1,5 +1,6 @@
 import { log, px } from "@zos/utils";
 import { createWidget, widget, align, prop, text_style } from '@zos/ui';
+import { setScrollMode, SCROLL_MODE_VERTICAL } from '@zos/page';
 import { getDeviceInfo } from "@zos/device";
 import { getText } from '@zos/i18n';
 import { localStorage } from '@zos/storage';
@@ -13,33 +14,73 @@ Page({
     currentIndex: 0,   // 当前显示的记录索引
     widgets: {},
     scrollY: 0,        // 滚动位置
-    itemHeight: px(120) // 每个记录项的高度
+    itemHeight: px(120), // 每个记录项的高度
+    debugInfo: ""      // 调试信息
   },
 
   // 加载历史记录
   loadMeasurements() {
+    this.data.debugInfo = "Init...";
     try {
       const stored = localStorage.getItem('hamgis_measurements');
       if (stored) {
-        const measurements = JSON.parse(stored);
+        this.data.debugInfo = `Len:${stored.length}`;
+        let measurements = [];
+        try {
+          measurements = JSON.parse(stored);
+        } catch (e) {
+          logger.error('JSON解析失败:', e);
+          this.data.debugInfo = `E2:JSON Err`;
+          measurements = [];
+        }
+        
         // 验证数据格式
         if (Array.isArray(measurements)) {
-          this.data.measurements = measurements;
-          // 按时间倒序排列
-          this.data.measurements.sort((a, b) => b.timestamp - a.timestamp);
+          // 数据迁移：为旧数据添加recordType标识
+          this.data.measurements = measurements.map(m => {
+            if (!m.recordType) {
+              // 旧数据：根据是否有features字段判断
+              if (m.features && Array.isArray(m.features)) {
+                m.recordType = 'gis_project';
+              } else {
+                m.recordType = 'area_measurement';
+              }
+            }
+            return m;
+          });
+          
+          this.data.debugInfo = `OK:${this.data.measurements.length}`;
+          
+          // 安全排序
+          try {
+            this.data.measurements.sort((a, b) => {
+              const ta = a.timestamp || 0;
+              const tb = b.timestamp || 0;
+              return tb - ta;
+            });
+          } catch (sortErr) {
+            logger.error('排序失败:', sortErr);
+            this.data.debugInfo += "|SortErr";
+          }
         } else {
           logger.warn('历史记录数据格式无效');
+          this.data.debugInfo = `E3:NotArr`;
           this.data.measurements = [];
         }
       } else {
+        this.data.debugInfo = "E1:NoData";
         this.data.measurements = [];
       }
       
       logger.debug(`加载了 ${this.data.measurements.length} 条历史记录`);
     } catch (e) {
       logger.error(`加载历史记录失败: ${e}`);
+      this.data.debugInfo = `E4:${e.message}`;
       this.data.measurements = [];
     }
+    
+    // 强制刷新UI以显示调试信息
+    this.updateUI();
   },
 
   // 删除记录
@@ -70,9 +111,34 @@ Page({
   },
 
   // 格式化面积显示
-  formatArea(area) {
-    if (!area) return `0.00 ${getText('mu')}`;
+  formatArea(measurement) {
+    if (!measurement) return `0.00 ${getText('mu')}`;
+    
+    // GIS项目显示要素统计
+    if (measurement.recordType === 'gis_project') {
+      const c = measurement.featureCount || { point: 0, line: 0, polygon: 0 };
+      return `点×${c.point} 线×${c.line} 面×${c.polygon}`;
+    }
+    
+    // 如果是线模式，显示长度
+    if (measurement.type === 'line') {
+       const len = measurement.perimeter || 0;
+       return `${len.toFixed(1)}m`;
+    }
+    
+    // 如果是点模式，显示点数
+    if (measurement.type === 'point') {
+       const count = measurement.pointCount || (measurement.points ? measurement.points.length : 0);
+       return `${count} ${getText('individual') || '个'}`;
+    }
 
+    // 面模式 (兼容旧数据)
+    // 确保area对象存在
+    if (!measurement.area && measurement.currentArea) {
+        measurement.area = { squareMeters: measurement.currentArea };
+    }
+    
+    const area = measurement.area || { squareMeters: 0 };
     const mu = area.mu || (area.squareMeters * 0.0015);
     return `${mu.toFixed(2)} ${getText('mu')}`;
   },
@@ -110,7 +176,9 @@ Page({
         this.data.widgets.areaDisplay.setProperty(prop.TEXT, `0.00 ${getText('mu')}`);
       }
       if (this.data.widgets.detailsText) {
-        this.data.widgets.detailsText.setProperty(prop.TEXT, getText('noData'));
+        // 在无数据时显示调试信息
+        const noDataText = getText('noData') || '暂无数据';
+        this.data.widgets.detailsText.setProperty(prop.TEXT, `${noDataText}\n${this.data.debugInfo}`);
       }
       if (this.data.widgets.statusText) {
         this.data.widgets.statusText.setProperty(prop.TEXT, `0/0`);
@@ -127,32 +195,48 @@ Page({
       this.data.widgets.recordInfo.setProperty(prop.TEXT, recordText);
     }
     
-    // 更新面积显示
+    // 更新面积显示 (复用为主要数值显示)
     if (this.data.widgets.areaDisplay) {
-      this.data.widgets.areaDisplay.setProperty(prop.TEXT, this.formatArea(current.area));
+      this.data.widgets.areaDisplay.setProperty(prop.TEXT, this.formatArea(current));
     }
     
     // 更新详细信息
     if (this.data.widgets.detailsText) {
-      const points = current.points ? current.points.length : 0;
-      const perimeter = current.perimeter ? (current.perimeter / 1000).toFixed(2) : '0.00';
-      const accuracy = current.accuracy || 5;
+      let detailsText = '';
       
-      const detailsText = `${getText('points')}: ${points}\n${getText('perimeter')}: ${perimeter} km\n${getText('accuracy')}: ±${accuracy}m`;
+      if (current.recordType === 'gis_project') {
+        // GIS项目
+        const c = current.featureCount || { point: 0, line: 0, polygon: 0 };
+        const totalFeatures = c.point + c.line + c.polygon;
+        const totalPoints = current.totalPoints || 0;
+        detailsText = `${getText('type') || '类型'}: ${getText('gisProject') || 'GIS项目'}\n${getText('featureCount') || '要素数'}: ${totalFeatures}\n${getText('points')}: ${totalPoints}`;
+      } else {
+        const points = current.points ? current.points.length : 0;
+        const perimeter = current.perimeter ? (current.perimeter / 1000).toFixed(2) : '0.00';
+        const accuracy = current.accuracy || 5;
+        const type = current.type || 'polygon';
+        
+        if (type === 'point') {
+           detailsText = `${getText('type') || '类型'}: ${getText('mode_point') || '点'}\n${getText('points')}: ${points}\n${getText('accuracy')}: ±${accuracy}m`;
+        } else if (type === 'line') {
+           detailsText = `${getText('type') || '类型'}: ${getText('mode_line') || '线'}\n${getText('points')}: ${points}\n${getText('length')}: ${current.perimeter.toFixed(1)}m`;
+        } else {
+           detailsText = `${getText('points')}: ${points}\n${getText('perimeter')}: ${perimeter} km\n${getText('accuracy')}: ±${accuracy}m`;
+        }
+      }
+      
       this.data.widgets.detailsText.setProperty(prop.TEXT, detailsText);
     }
     
-    // 更新状态文字
-    if (this.data.widgets.statusText) {
-      const statusText = `${this.data.currentIndex + 1}/${this.data.measurements.length}`;
-      this.data.widgets.statusText.setProperty(prop.TEXT, statusText);
-      this.data.widgets.statusText.setProperty(prop.COLOR, 0xffffff);
-    }
+    // 更新状态文字 - 已在开头处理，这里移除重复逻辑
   },
 
   onInit() {
     logger.debug("历史记录页面初始化");
     
+    // 修复：移除不存在的 loadSettings 调用，避免 crash
+    // this.loadSettings();
+
     // 加载数据
     this.loadMeasurements();
   },
@@ -178,7 +262,7 @@ Page({
       y: px(40),
       w: width,
       h: px(40),
-      color: 0xffffff,
+      color: 0x00ff00, // 绿色标题，确认新代码已生效
       text_size: px(28),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
@@ -236,7 +320,7 @@ Page({
       text_size: px(22), // 增大字体
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: "暂无测量记录"
+      text: this.data.debugInfo || "暂无测量记录" // 默认显示调试信息
     });
     
     // 导航按钮区域

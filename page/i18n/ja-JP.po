@@ -307,3 +307,147 @@ msgstr "シングルバンド"
 
 msgid "dualBand"
 msgstr "デュアルバンド (L1+L5)"
+
+msgid "highContrast"
+msgstr "ハイコントラスト"
+
+msgid "exportToAndroid"
+msgstr "Androidへエクスポート"
+
+msgid "start"
+msgstr "開始"
+
+# 収集モード
+msgid "collectionMode"
+msgstr "収集モード"
+
+msgid "mode_point"
+msgstr "点"
+
+msgid "mode_line"
+msgstr "線"
+
+msgid "mode_polygon"
+msgstr "面"
+
+msgid "type"
+msgstr "タイプ"
+
+msgid "length"
+msgstr "長さ"
+
+msgid "pointCount"
+msgstr "点数"
+
+# エクスポートページ
+msgid "export"
+msgstr "スマホへエクスポート"
+
+msgid "ready"
+msgstr "準備完了"
+
+msgid "sending"
+msgstr "送信中..."
+
+msgid "exportSuccess"
+msgstr "エクスポート成功！"
+
+msgid "exportFailed"
+msgstr "エクスポート失敗"
+
+msgid "connectionError"
+msgstr "接続エラー。Zeppアプリを確認してください"
+
+msgid "noDataToExport"
+msgstr "エクスポートするデータなし"
+
+msgid "dataReady"
+msgstr "データ準備完了：%d点"
+
+# プロジェクト詳細ページ
+msgid "loadProjectFailed"
+msgstr "プロジェクト読み込み失敗\n戻って再試行してください"
+
+# 設定ページ
+msgid "settingsItem"
+msgstr "設定項目"
+
+msgid "settingsValue"
+msgstr "設定値"
+
+# プロジェクト一覧ページ
+msgid "noProjects"
+msgstr "プロジェクトなし\n測量を開始して最初のプロジェクトを作成してください"
+
+msgid "projectManagement"
+msgstr "プロジェクト管理"
+
+# 地図ページ
+msgid "mapRenderFailed"
+msgstr "地図レンダリング失敗\n戻って再試行してください"
+
+msgid "loadProjectDataFailed"
+msgstr "プロジェクトデータ読み込み失敗\n戻って再試行してください"
+
+# データ表示ページ
+msgid "measurementData"
+msgstr "測量データ"
+
+msgid "dataSavedHint"
+msgstr "データは時計に保存されています\n\nスマホのZeppアプリで\nアプリ設定を開いて\nデータを確認・エクスポートしてください"
+
+msgid "exportFormatsHint"
+msgstr "ヒント:\nスマホでCSV、JSON、\nGeoJSON形式にエクスポートできます"
+
+# アプリモード
+msgid "appMode"
+msgstr "アプリモード"
+
+msgid "mode_area_measurement"
+msgstr "面積測定"
+
+msgid "mode_gis_collection"
+msgstr "GIS収集"
+
+# GIS収集モード
+msgid "featureType"
+msgstr "要素タイプ"
+
+msgid "currentFeature"
+msgstr "現在の要素"
+
+msgid "featureCount"
+msgstr "要素統計"
+
+msgid "finishFeature"
+msgstr "要素完了"
+
+msgid "finishProject"
+msgstr "プロジェクト完了"
+
+msgid "featureList"
+msgstr "要素リスト"
+
+msgid "pointFeature"
+msgstr "点要素"
+
+msgid "lineFeature"
+msgstr "線要素"
+
+msgid "polygonFeature"
+msgstr "面要素"
+
+msgid "gisProject"
+msgstr "GISプロジェクト"
+
+msgid "featureSaved"
+msgstr "要素を保存しました"
+
+msgid "projectSaved"
+msgstr "プロジェクトを保存しました"
+
+msgid "noFeatures"
+msgstr "要素なし"
+
+msgid "longPressToFinishProject"
+msgstr "長押しでプロジェクト完了"

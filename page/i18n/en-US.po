@@ -307,3 +307,87 @@ msgstr "Single Band"
 
 msgid "dualBand"
 msgstr "Dual Band (L1+L5)"
+
+msgid "highContrast"
+msgstr "High Contrast"
+
+msgid "exportToAndroid"
+msgstr "Export to Android"
+
+msgid "start"
+msgstr "Start"
+
+# Collection Mode
+msgid "collectionMode"
+msgstr "Collection Mode"
+
+msgid "mode_point"
+msgstr "Point"
+
+msgid "mode_line"
+msgstr "Line"
+
+msgid "mode_polygon"
+msgstr "Polygon"
+
+msgid "type"
+msgstr "Type"
+
+msgid "length"
+msgstr "Length"
+
+msgid "pointCount"
+msgstr "Point Count"
+
+# App Mode
+msgid "appMode"
+msgstr "App Mode"
+
+msgid "mode_area_measurement"
+msgstr "Area Measurement"
+
+msgid "mode_gis_collection"
+msgstr "GIS Collection"
+
+# GIS Collection Mode
+msgid "featureType"
+msgstr "Feature Type"
+
+msgid "currentFeature"
+msgstr "Current Feature"
+
+msgid "featureCount"
+msgstr "Feature Count"
+
+msgid "finishFeature"
+msgstr "Finish Feature"
+
+msgid "finishProject"
+msgstr "Finish Project"
+
+msgid "featureList"
+msgstr "Feature List"
+
+msgid "pointFeature"
+msgstr "Point Feature"
+
+msgid "lineFeature"
+msgstr "Line Feature"
+
+msgid "polygonFeature"
+msgstr "Polygon Feature"
+
+msgid "gisProject"
+msgstr "GIS Project"
+
+msgid "featureSaved"
+msgstr "Feature Saved"
+
+msgid "projectSaved"
+msgstr "Project Saved"
+
+msgid "noFeatures"
+msgstr "No Features"
+
+msgid "longPressToFinishProject"
+msgstr "Long Press to Finish Project"

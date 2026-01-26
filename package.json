@@ -28,5 +28,8 @@
   "bugs": {
     "url": "https://github.com/hamgis/field-measurement/issues"
   },
-  "homepage": "https://github.com/hamgis/field-measurement#readme"
+  "homepage": "https://github.com/hamgis/field-measurement#readme",
+  "dependencies": {
+    "@zeppos/zml": "^0.0.43"
+  }
 }

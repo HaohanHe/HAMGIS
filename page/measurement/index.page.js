@@ -70,6 +70,12 @@ Page({
     currentFieldName: '',  // 当前地块名称（地块A、地块B...）
     todayFieldCount: 0,    // 今天已完成的地块数
     
+    // GIS采集模式数据
+    currentFeatureType: 'polygon',  // GIS模式当前要素类型 ('point'|'line'|'polygon')
+    gisFeatures: [],                // GIS模式已采集要素列表
+    gisProjectName: '',             // GIS模式项目名称
+    gisFeatureIndex: 0,             // GIS模式当前要素序号
+    
     // UI组件
     widgets: {},
     vibrator: null,
@@ -82,6 +88,16 @@ Page({
     isAutoCollecting: false,
     autoCollectTimer: null,
     settings: {}
+  },
+
+  // 获取应用模式
+  getAppMode() {
+    return this.data.settings.appMode || 0;
+  },
+
+  // 判断是否为GIS采集模式
+  isGISMode() {
+    return this.getAppMode() === 1;
   },
 
   // 初始化GPS定位
@@ -272,6 +288,12 @@ Page({
       return;
     }
     
+    // 点模式：每次采集都是独立的，或者是集合中的一个点
+    // 这里我们保持统一逻辑：一个“项目”包含多个点
+    // 点模式：不计算面积周长
+    // 线模式：计算长度（周长），不计算面积
+    // 面模式：计算面积和周长
+    
     if (!this.data.currentLat || !this.data.currentLon) {
       logger.warn("GPS位置无效，无法采集点");
       return;
@@ -284,13 +306,6 @@ Page({
       timestamp: Date.now()
     };
     
-    this.data.points.push(point);
-    
-    // 更新状态为采集中
-    if (this.data.measureState === MEASURE_STATE.READY) {
-      this.data.measureState = MEASURE_STATE.COLLECTING;
-    }
-    
     // 震动反馈
     if (this.data.vibrator) {
       this.data.vibrator.stop();
@@ -302,15 +317,75 @@ Page({
       }, 100);
     }
     
-    // 如果有3个或以上点，计算面积
-    if (this.data.points.length >= 3) {
-      this.calculateArea();
+    if (this.isGISMode()) {
+      // GIS采集模式
+      const featureType = this.data.currentFeatureType;
+      
+      if (featureType === 'point') {
+        // 点要素：立即保存到 gisFeatures
+        this.data.gisFeatureIndex++;
+        const pointFeature = {
+          featureId: `f${Date.now()}`,
+          featureType: 'point',
+          featureName: `${getText('pointFeature') || '点要素'}${this.data.gisFeatureIndex}`,
+          coords: point,
+          properties: {
+            accuracy: this.data.accuracy,
+            positioningMode: this.data.isDualBand ? 'dual-band' : 'single-band'
+          }
+        };
+        this.data.gisFeatures.push(pointFeature);
+        
+        // 显示提示
+        if (this.data.widgets.statusTip) {
+          this.data.widgets.statusTip.setProperty(prop.TEXT, `${getText('featureSaved') || '要素已保存'}: ${pointFeature.featureName}`);
+          this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+        }
+        
+        logger.debug(`GIS点要素已保存: ${pointFeature.featureName}`);
+      } else {
+        // 线/面要素：添加到临时 points 数组
+        this.data.points.push(point);
+        
+        // 更新状态为采集中
+        if (this.data.measureState === MEASURE_STATE.READY) {
+          this.data.measureState = MEASURE_STATE.COLLECTING;
+        }
+        
+        // 计算周长/长度 (线和面都需要)
+        if (this.data.points.length >= 2) {
+          this.calculatePerimeter();
+        }
+        
+        // 面要素计算面积
+        if (featureType === 'polygon' && this.data.points.length >= 3) {
+          this.calculateArea();
+        }
+        
+        logger.debug(`GIS${featureType}要素采集点${this.data.points.length}: ${point.lat}, ${point.lon}`);
+      }
+    } else {
+      // 测面积模式（保持原有逻辑）
+      this.data.points.push(point);
+      
+      // 更新状态为采集中
+      if (this.data.measureState === MEASURE_STATE.READY) {
+        this.data.measureState = MEASURE_STATE.COLLECTING;
+      }
+      
+      // 如果有3个或以上点，计算面积
+      if (this.data.points.length >= 3) {
+        this.calculateArea();
+      }
+      
+      // 计算周长
+      if (this.data.points.length >= 2) {
+        this.calculatePerimeter();
+      }
+      
+      logger.debug(`采集点${this.data.points.length}: ${point.lat}, ${point.lon}, 海拔: ${point.altitude}m`);
     }
     
-    // 计算周长
-    this.calculatePerimeter();
-    
-    logger.debug(`采集点${this.data.points.length}: ${point.lat}, ${point.lon}, 海拔: ${point.altitude}m`);
     this.updateUI();
   },
   
@@ -329,13 +404,32 @@ Page({
       this.data.currentArea = 0;
       this.data.currentPerimeter = 0;
     } else {
-      // 重新计算面积和周长
-      if (this.data.points.length >= 3) {
-        this.calculateArea();
+      if (this.isGISMode()) {
+        // GIS模式：根据当前要素类型计算
+        const featureType = this.data.currentFeatureType;
+        if (featureType === 'polygon' && this.data.points.length >= 3) {
+          this.calculateArea();
+        } else {
+          this.data.currentArea = 0;
+        }
+        if (this.data.points.length >= 2) {
+          this.calculatePerimeter();
+        } else {
+          this.data.currentPerimeter = 0;
+        }
       } else {
-        this.data.currentArea = 0;
+        // 测面积模式：重新计算面积和周长
+        if (this.data.points.length >= 3) {
+          this.calculateArea();
+        } else {
+          this.data.currentArea = 0;
+        }
+        if (this.data.points.length >= 2) {
+          this.calculatePerimeter();
+        } else {
+          this.data.currentPerimeter = 0;
+        }
       }
-      this.calculatePerimeter();
     }
     
     logger.debug(`撤销点，剩余${this.data.points.length}个点`);
@@ -373,7 +467,7 @@ Page({
     logger.debug(`计算面积: ${area} 平方米`);
   },
 
-  // 计算周长
+  // 计算周长 (线模式时即为长度，不闭合)
   calculatePerimeter() {
     if (this.data.points.length < 2) {
       this.data.currentPerimeter = 0;
@@ -382,9 +476,19 @@ Page({
     
     let perimeter = 0;
     const R = 6371000; // 地球半径(米)
+    const mode = this.data.settings.collectionMode;
+    const isPolygon = (mode === 2); // 只有面模式闭合
     
-    for (let i = 0; i < this.data.points.length; i++) {
-      const j = (i + 1) % this.data.points.length;
+    // 线模式：计算所有线段长度之和
+    // 面模式：计算多边形周长（包括最后一点到起点的距离）
+    
+    const count = this.data.points.length;
+    // 如果是线模式，只计算 N-1 段
+    // 如果是面模式，计算 N 段（闭合）
+    const segments = isPolygon ? count : (count - 1);
+    
+    for (let i = 0; i < segments; i++) {
+      const j = (i + 1) % count;
       const p1 = this.data.points[i];
       const p2 = this.data.points[j];
       
@@ -404,21 +508,29 @@ Page({
     }
     
     this.data.currentPerimeter = perimeter;
-    logger.debug(`计算周长: ${perimeter} 米`);
+    logger.debug(`计算周长/长度: ${perimeter} 米 (模式: ${mode})`);
   },
 
-  // 完成地块 - 保存并自动开始下一个
+  // 完成地块/要素 - 保存并自动开始下一个
   finishField() {
     // 如果正在自动采集，先停止
     if (this.data.isAutoCollecting) {
       this.stopAutoCollect();
     }
 
+    if (this.isGISMode()) {
+      // GIS模式：完成当前要素
+      this.finishGISFeature();
+      return;
+    }
+
+    // 测面积模式（保持原有逻辑）
     if (this.data.points.length < 3) {
-      logger.warn("点数不足3个，无法完成地块");
+      logger.warn(`点数不足3个，无法完成地块`);
       // 显示提示
       if (this.data.widgets.statusTip) {
-        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('msg_points_insufficient'));
+        const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
+        this.data.widgets.statusTip.setProperty(prop.TEXT, msg.replace('%d', '3'));
         this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
       }
       return;
@@ -428,12 +540,14 @@ Page({
     this.saveField();
     
     // 显示完成提示
-    const units = getAreaUnits();
-    const areaInMu = (this.data.currentArea * units.MU.factor).toFixed(2);
     if (this.data.widgets.statusTip) {
       const savedText = getText('save') || '已保存';
+      const units = getAreaUnits();
+      const areaInMu = (this.data.currentArea * units.MU.factor).toFixed(2);
       const unitText = getText('mu') || '亩';
-      this.data.widgets.statusTip.setProperty(prop.TEXT, `${this.data.currentFieldName}${savedText} ${areaInMu}${unitText}`);
+      const infoText = ` ${areaInMu}${unitText}`;
+      
+      this.data.widgets.statusTip.setProperty(prop.TEXT, `${this.data.currentFieldName}${savedText}${infoText}`);
       this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
     }
     
@@ -456,7 +570,7 @@ Page({
       }, 100);
     }
     
-    logger.debug(`地块完成: ${this.data.currentFieldName}, 面积: ${areaInMu}${getText('mu')}`);
+    logger.debug(`地块完成: ${this.data.currentFieldName}, 面积: ${this.data.currentArea.toFixed(2)}㎡`);
     
     // 1.5秒后自动开始下一个地块
     setTimeout(() => {
@@ -465,7 +579,238 @@ Page({
     }, 1500);
   },
 
-  // 保存地块数据
+  // GIS模式：完成当前要素
+  finishGISFeature() {
+    const featureType = this.data.currentFeatureType;
+    let minPoints = 1;
+    if (featureType === 'line') minPoints = 2;
+    if (featureType === 'polygon') minPoints = 3;
+
+    // 点要素在采集时就已保存，这里只处理线/面
+    if (featureType === 'point') {
+      if (this.data.widgets.statusTip) {
+        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('pointFeature') || '点要素已自动保存');
+        this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+      }
+      return;
+    }
+
+    if (this.data.points.length < minPoints) {
+      logger.warn(`点数不足${minPoints}个，无法完成要素`);
+      if (this.data.widgets.statusTip) {
+        const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
+        this.data.widgets.statusTip.setProperty(prop.TEXT, msg.replace('%d', minPoints));
+        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+      }
+      return;
+    }
+
+    // 构建要素对象
+    this.data.gisFeatureIndex++;
+    const featureNameKey = featureType === 'line' ? 'lineFeature' : 'polygonFeature';
+    const featureName = `${getText(featureNameKey) || (featureType === 'line' ? '线要素' : '面要素')}${this.data.gisFeatureIndex}`;
+    
+    const feature = {
+      featureId: `f${Date.now()}`,
+      featureType: featureType,
+      featureName: featureName,
+      coords: [...this.data.points],
+      pointCount: this.data.points.length,
+      properties: {
+        accuracy: this.data.accuracy,
+        positioningMode: this.data.isDualBand ? 'dual-band' : 'single-band'
+      }
+    };
+
+    // 添加特定属性
+    if (featureType === 'line') {
+      feature.length = this.data.currentPerimeter;
+    } else if (featureType === 'polygon') {
+      const units = getAreaUnits();
+      feature.area = {
+        squareMeters: this.data.currentArea,
+        mu: this.data.currentArea * units.MU.factor,
+        hectares: this.data.currentArea * units.HECTARE.factor
+      };
+      feature.perimeter = this.data.currentPerimeter;
+      feature.elevation = calculateElevationStats(this.data.points);
+    }
+
+    this.data.gisFeatures.push(feature);
+
+    // 显示提示
+    if (this.data.widgets.statusTip) {
+      let infoText = '';
+      if (featureType === 'polygon') {
+        const units = getAreaUnits();
+        const areaInMu = (this.data.currentArea * units.MU.factor).toFixed(2);
+        infoText = ` ${areaInMu}${getText('mu') || '亩'}`;
+      } else {
+        infoText = ` ${this.data.currentPerimeter.toFixed(1)}m`;
+      }
+      this.data.widgets.statusTip.setProperty(prop.TEXT, `${featureName}${getText('save') || '已保存'}${infoText}`);
+      this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+    }
+
+    // 震动反馈
+    if (this.data.vibrator) {
+      this.data.vibrator.stop();
+      this.data.vibrator.start();
+      setTimeout(() => {
+        if (this.data.vibrator) {
+          this.data.vibrator.stop();
+        }
+      }, 100);
+    }
+
+    logger.debug(`GIS要素完成: ${featureName}, 类型: ${featureType}`);
+
+    // 重置临时数据，准备采集下一个同类型要素
+    this.data.points = [];
+    this.data.currentArea = 0;
+    this.data.currentPerimeter = 0;
+    this.data.measureState = MEASURE_STATE.READY;
+    
+    this.updateUI();
+  },
+
+  // GIS模式：完成整个项目
+  finishGISProject() {
+    if (this.data.gisFeatures.length === 0) {
+      logger.warn("没有要素可保存");
+      if (this.data.widgets.statusTip) {
+        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('noFeatures') || '暂无要素');
+        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+      }
+      return;
+    }
+
+    // 如果当前有未完成的线/面要素，先完成它
+    if (this.data.points.length > 0) {
+      const featureType = this.data.currentFeatureType;
+      let minPoints = featureType === 'line' ? 2 : 3;
+      if (this.data.points.length >= minPoints) {
+        this.finishGISFeature();
+      }
+    }
+
+    // 统计要素数量
+    const featureCount = {
+      point: this.data.gisFeatures.filter(f => f.featureType === 'point').length,
+      line: this.data.gisFeatures.filter(f => f.featureType === 'line').length,
+      polygon: this.data.gisFeatures.filter(f => f.featureType === 'polygon').length
+    };
+
+    // 计算总点数
+    let totalPoints = 0;
+    this.data.gisFeatures.forEach(f => {
+      if (f.featureType === 'point') {
+        totalPoints += 1;
+      } else {
+        totalPoints += f.coords.length;
+      }
+    });
+
+    // 构建项目数据
+    const project = {
+      id: Date.now().toString(),
+      name: this.data.gisProjectName || `${getText('gisProject') || 'GIS项目'}${this.data.todayFieldCount + 1}`,
+      recordType: 'gis_project',
+      timestamp: Date.now(),
+      date: new Date().toISOString().split('T')[0],
+      features: [...this.data.gisFeatures],
+      featureCount: featureCount,
+      totalPoints: totalPoints,
+      status: 'completed'
+    };
+
+    // 保存到 localStorage
+    try {
+      let measurements = [];
+      const stored = localStorage.getItem('hamgis_measurements');
+      if (stored) {
+        measurements = JSON.parse(stored);
+        if (!Array.isArray(measurements)) {
+          measurements = [];
+        }
+      }
+      measurements.push(project);
+      localStorage.setItem('hamgis_measurements', JSON.stringify(measurements));
+      logger.debug(`GIS项目已保存: ${project.name}, 要素数: ${this.data.gisFeatures.length}`);
+    } catch (e) {
+      logger.error(`保存GIS项目失败: ${e}`);
+    }
+
+    // 显示提示
+    if (this.data.widgets.statusTip) {
+      const countText = `点×${featureCount.point} 线×${featureCount.line} 面×${featureCount.polygon}`;
+      this.data.widgets.statusTip.setProperty(prop.TEXT, `${project.name} ${getText('save') || '已保存'} (${countText})`);
+      this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+    }
+
+    // 震动反馈（长震动表示完成）
+    if (this.data.vibrator) {
+      this.data.vibrator.stop();
+      this.data.vibrator.start();
+      setTimeout(() => {
+        if (this.data.vibrator) {
+          this.data.vibrator.stop();
+          setTimeout(() => {
+            this.data.vibrator.start();
+            setTimeout(() => {
+              if (this.data.vibrator) {
+                this.data.vibrator.stop();
+              }
+            }, 100);
+          }, 50);
+        }
+      }, 100);
+    }
+
+    // 重置状态，开始新项目
+    setTimeout(() => {
+      this.data.todayFieldCount++;
+      this.startNewGISProject();
+    }, 1500);
+  },
+
+  // 开始新的GIS项目
+  startNewGISProject() {
+    this.data.gisFeatures = [];
+    this.data.gisFeatureIndex = 0;
+    this.data.gisProjectName = `${getText('gisProject') || 'GIS项目'}${this.generateProjectLetter()}`;
+    this.data.points = [];
+    this.data.currentArea = 0;
+    this.data.currentPerimeter = 0;
+    this.data.measureState = MEASURE_STATE.READY;
+    this.data.currentFeatureType = 'polygon'; // 默认面要素
+    
+    logger.debug(`开始新GIS项目: ${this.data.gisProjectName}`);
+    this.updateUI();
+  },
+
+  // 生成项目字母
+  generateProjectLetter() {
+    try {
+      const stored = localStorage.getItem('hamgis_measurements');
+      let todayCount = 0;
+      
+      if (stored) {
+        const measurements = JSON.parse(stored);
+        if (Array.isArray(measurements)) {
+          const today = new Date().toISOString().split('T')[0];
+          todayCount = measurements.filter(m => m.date === today && m.recordType === 'gis_project').length;
+        }
+      }
+      
+      return this.numberToLetter(todayCount);
+    } catch (e) {
+      logger.error(`生成项目字母失败: ${e}`);
+      return 'A';
+    }
+  },
+
+  // 保存地块数据（测面积模式）
   saveField() {
     try {
       // 计算海拔统计
@@ -475,8 +820,10 @@ Page({
       const field = {
         id: Date.now().toString(),
         name: this.data.currentFieldName,
+        recordType: 'area_measurement',  // 标识为测面积模式
         timestamp: Date.now(),
         date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        type: 'polygon',  // 测面积模式固定为面
         points: this.data.points,
         pointCount: this.data.points.length,
         area: {
@@ -493,7 +840,7 @@ Page({
       
       // 验证数据完整性
       if (!this.data.points || this.data.points.length < 3) {
-        logger.warn('点数不足，无法保存');
+        logger.warn(`点数不足3个，无法保存`);
         return;
       }
       
@@ -507,10 +854,15 @@ Page({
       try {
         const stored = localStorage.getItem('hamgis_measurements');
         if (stored) {
-          fields = JSON.parse(stored);
-          if (!Array.isArray(fields)) {
-            logger.warn('数据格式无效，重置');
-            fields = [];
+          try {
+            fields = JSON.parse(stored);
+            if (!Array.isArray(fields)) {
+              logger.warn('数据格式无效，重置');
+              fields = [];
+            }
+          } catch (jsonError) {
+             logger.warn('JSON解析失败，重置数据');
+             fields = [];
           }
         }
       } catch (e) {
@@ -522,9 +874,25 @@ Page({
       fields.push(field);
       
       // 保存
-      localStorage.setItem('hamgis_measurements', JSON.stringify(fields));
-      
-      logger.debug(`地块已保存: ${field.name}, 总记录: ${fields.length}, 海拔: ${elevation ? elevation.average + 'm' : getText('noData')}`);
+      try {
+        localStorage.setItem('hamgis_measurements', JSON.stringify(fields));
+        logger.debug(`地块已保存: ${field.name}, 总记录: ${fields.length}, 类型: ${field.type}`);
+      } catch (saveError) {
+        logger.error(`写入Storage失败: ${saveError}`);
+        // 尝试只保存最后一条，或者提示存储空间不足
+        if (fields.length > 1) {
+             // 简单的清理策略：如果保存失败，尝试删除最旧的一条再试
+             logger.warn('尝试清理旧数据并重试...');
+             fields.shift(); // 移除第一条
+             fields.push(field); // 重新加入当前
+             try {
+                localStorage.setItem('hamgis_measurements', JSON.stringify(fields));
+                logger.debug('清理后保存成功');
+             } catch (retryError) {
+                logger.error(`清理后仍保存失败: ${retryError}`);
+             }
+        }
+      }
     } catch (e) {
       logger.error(`保存地块失败: ${e}`);
     }
@@ -600,12 +968,14 @@ Page({
       if (stored) {
         const settings = JSON.parse(stored);
         return {
+          appMode: settings.appMode !== undefined ? settings.appMode : 0, // 0=测面积, 1=GIS采集
           primaryUnit: settings.primaryUnit || 'mu',
           vibrationFeedback: settings.vibrationFeedback !== false,
           autoSave: settings.autoSave !== false,
           keepScreenOn: settings.keepScreenOn !== false,
           autoCollect: settings.autoCollect || false,
-          collectionInterval: settings.collectionInterval || 3
+          collectionInterval: settings.collectionInterval || 3,
+          highContrast: settings.highContrast || false
         };
       }
     } catch (e) {
@@ -613,12 +983,14 @@ Page({
     }
     // 返回默认设置
     return {
+      appMode: 0,  // 默认测面积模式
       primaryUnit: 'mu',
       vibrationFeedback: true,
       autoSave: true,
       keepScreenOn: true, // 默认开启屏幕常亮
       autoCollect: false,
-      collectionInterval: 3
+      collectionInterval: 3,
+      highContrast: false
     };
   },
 
@@ -667,19 +1039,68 @@ Page({
 
   // 获取测量状态文本
   getMeasureStatusText() {
-    if (this.data.points.length === 0) {
-      return `${getText('startMeasure')}: ${this.data.currentFieldName}`;
-    } else if (this.data.points.length < 3) {
-      const individualText = getText('individual') || '个点';
-      const needPointsText = getText('atLeastNeedPoints') || '至少需要%d个点';
-      return `${getText('addPoint')}${this.data.points.length}${individualText}，${needPointsText.replace('%d', '3')}`;
+    if (this.isGISMode()) {
+      // GIS模式
+      const featureType = this.data.currentFeatureType;
+      const featureCount = this.data.gisFeatures.length;
+      
+      if (featureType === 'point') {
+        return `${getText('pointFeature') || '点要素'} | ${getText('featureCount') || '已采集'}: ${featureCount}`;
+      } else {
+        const minPoints = featureType === 'line' ? 2 : 3;
+        if (this.data.points.length === 0) {
+          return `${getText('currentFeature') || '当前'}: ${featureType === 'line' ? getText('lineFeature') || '线要素' : getText('polygonFeature') || '面要素'}`;
+        } else if (this.data.points.length < minPoints) {
+          const needPointsText = getText('atLeastNeedPoints') || '至少需要%d个点';
+          return `${this.data.points.length}点 | ${needPointsText.replace('%d', minPoints)}`;
+        } else {
+          return `${getText('finishFeature') || '完成要素'} | ${getText('longPressToFinishProject') || '长按完成项目'}`;
+        }
+      }
     } else {
-      return `${getText('finishField')}`;
+      // 测面积模式
+      if (this.data.points.length === 0) {
+        return `${getText('startMeasure')}: ${this.data.currentFieldName}`;
+      } else if (this.data.points.length < 3) {
+        const individualText = getText('individual') || '个点';
+        const needPointsText = getText('atLeastNeedPoints') || '至少需要%d个点';
+        return `${getText('addPoint')}${this.data.points.length}${individualText}，${needPointsText.replace('%d', '3')}`;
+      } else {
+        return `${getText('finishField')}`;
+      }
+    }
+  },
+
+  // 更新要素类型按钮状态（GIS模式）
+  updateFeatureTypeButtons() {
+    if (!this.isGISMode()) return;
+    
+    const activeColor = 0x0986d4;
+    const inactiveColor = 0x2b2d31;
+    
+    if (this.data.widgets.featureTypePoint) {
+      this.data.widgets.featureTypePoint.setProperty(prop.MORE, {
+        normal_color: this.data.currentFeatureType === 'point' ? activeColor : inactiveColor
+      });
+    }
+    if (this.data.widgets.featureTypeLine) {
+      this.data.widgets.featureTypeLine.setProperty(prop.MORE, {
+        normal_color: this.data.currentFeatureType === 'line' ? activeColor : inactiveColor
+      });
+    }
+    if (this.data.widgets.featureTypePolygon) {
+      this.data.widgets.featureTypePolygon.setProperty(prop.MORE, {
+        normal_color: this.data.currentFeatureType === 'polygon' ? activeColor : inactiveColor
+      });
     }
   },
 
   // 更新UI显示
   updateUI() {
+    const isHighContrast = this.data.settings.highContrast;
+    const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
+    const altColor = isHighContrast ? 0xffffff : 0x88ccff;
+    
     // 更新GPS状态
     if (this.data.widgets.gpsStatus) {
       const statusText = this.getGPSText();
@@ -702,7 +1123,7 @@ Page({
       if (this.data.currentAltitude !== null) {
         const altitudeText = `${getText('altitude')}: ${Math.round(this.data.currentAltitude)}m`;
         this.data.widgets.altitudeDisplay.setProperty(prop.TEXT, altitudeText);
-        this.data.widgets.altitudeDisplay.setProperty(prop.COLOR, 0x88ccff);
+        this.data.widgets.altitudeDisplay.setProperty(prop.COLOR, altColor);
       } else {
         this.data.widgets.altitudeDisplay.setProperty(prop.TEXT, `${getText('altitude')}: --`);
         this.data.widgets.altitudeDisplay.setProperty(prop.COLOR, 0x666666);
@@ -711,28 +1132,64 @@ Page({
     
     // 更新地块名称
     if (this.data.widgets.fieldName) {
-      const name = this.data.currentFieldName || TEXTS.unnamed;
+      let name;
+      if (this.isGISMode()) {
+        name = this.data.gisProjectName || getText('gisProject') || 'GIS项目';
+      } else {
+        name = this.data.currentFieldName || TEXTS.unnamed;
+      }
       this.data.widgets.fieldName.setProperty(prop.TEXT, name);
+      this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
     }
     
     // 更新点数 - 圆屏需要简化显示
     if (this.data.widgets.pointCount) {
       const deviceInfo = getDeviceInfo();
       const isRoundScreen = deviceInfo.width >= 480;
-      const pointText = isRoundScreen ? `${this.data.points.length}` : `${TEXTS.points}: ${this.data.points.length}`;
-      this.data.widgets.pointCount.setProperty(prop.TEXT, pointText);
+      
+      if (this.isGISMode()) {
+        // GIS模式：显示要素统计
+        const counts = {
+          point: this.data.gisFeatures.filter(f => f.featureType === 'point').length,
+          line: this.data.gisFeatures.filter(f => f.featureType === 'line').length,
+          polygon: this.data.gisFeatures.filter(f => f.featureType === 'polygon').length
+        };
+        const countText = `点×${counts.point} 线×${counts.line} 面×${counts.polygon}`;
+        this.data.widgets.pointCount.setProperty(prop.TEXT, countText);
+      } else {
+        const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || '点数'}: ${this.data.points.length}`;
+        this.data.widgets.pointCount.setProperty(prop.TEXT, pointText);
+      }
     }
     
-    // 更新周长 - 圆屏需要简化显示
+    // 更新周长/长度 - 根据模式显示不同文本
     if (this.data.widgets.perimeterDisplay) {
-      const perimeter = this.data.currentPerimeter > 0 
-        ? `${this.data.currentPerimeter.toFixed(1)}m` 
-        : '0.0m';
-      // 圆屏显示简化版本
-      const deviceInfo = getDeviceInfo();
-      const isRoundScreen = deviceInfo.width >= 480;
-      const perimeterText = isRoundScreen ? perimeter : `${TEXTS.perimeter}: ${perimeter}`;
-      this.data.widgets.perimeterDisplay.setProperty(prop.TEXT, perimeterText);
+      let showPerimeter = true;
+      let label = getText('perimeter') || '周长';
+      
+      if (this.isGISMode()) {
+        // GIS模式：根据当前要素类型
+        if (this.data.currentFeatureType === 'point') {
+          showPerimeter = false;
+        } else if (this.data.currentFeatureType === 'line') {
+          label = getText('length') || '长度';
+        }
+      }
+      
+      if (showPerimeter) {
+        const perimeter = this.data.currentPerimeter > 0 
+          ? `${this.data.currentPerimeter.toFixed(1)}m` 
+          : '0.0m';
+        const deviceInfo = getDeviceInfo();
+        const isRoundScreen = deviceInfo.width >= 480;
+        const perimeterText = isRoundScreen ? perimeter : `${label}: ${perimeter}`;
+        
+        this.data.widgets.perimeterDisplay.setProperty(prop.TEXT, perimeterText);
+        this.data.widgets.perimeterDisplay.setProperty(prop.COLOR, altColor);
+        this.data.widgets.perimeterDisplay.setProperty(prop.VISIBLE, true);
+      } else {
+        this.data.widgets.perimeterDisplay.setProperty(prop.VISIBLE, false);
+      }
     }
     
     // 更新面积显示 - 使用当前设置的单位
@@ -740,13 +1197,25 @@ Page({
       const currentUnit = this.getCurrentUnit();
       const unitInfo = this.getUnitInfo(currentUnit);
       
-      if (this.data.currentArea > 0) {
-        const areaValue = (this.data.currentArea * unitInfo.factor).toFixed(2);
-        const displayText = `${areaValue} ${unitInfo.symbol}`;
-        this.data.widgets.areaDisplay.setProperty(prop.TEXT, displayText);
-        logger.debug(`面积显示更新: 单位=${currentUnit}, 因子=${unitInfo.factor}, 符号=${unitInfo.symbol}, 原始=${this.data.currentArea}m² -> ${displayText}`);
+      let showArea = true;
+      if (this.isGISMode()) {
+        // GIS模式：只有面要素显示面积
+        showArea = this.data.currentFeatureType === 'polygon';
+      }
+      
+      if (!showArea) {
+        this.data.widgets.areaDisplay.setProperty(prop.VISIBLE, false);
       } else {
-        this.data.widgets.areaDisplay.setProperty(prop.TEXT, `0.00 ${unitInfo.symbol}`);
+        this.data.widgets.areaDisplay.setProperty(prop.VISIBLE, true);
+        if (this.data.currentArea > 0) {
+          const areaValue = (this.data.currentArea * unitInfo.factor).toFixed(2);
+          const displayText = `${areaValue} ${unitInfo.symbol}`;
+          this.data.widgets.areaDisplay.setProperty(prop.TEXT, displayText);
+          this.data.widgets.areaDisplay.setProperty(prop.COLOR, highlightColor);
+        } else {
+          this.data.widgets.areaDisplay.setProperty(prop.TEXT, `0.00 ${unitInfo.symbol}`);
+          this.data.widgets.areaDisplay.setProperty(prop.COLOR, highlightColor);
+        }
       }
     }
     
@@ -768,6 +1237,17 @@ Page({
     // 采集点按钮：GPS就绪时可用
     if (this.data.widgets.collectBtn) {
       const canCollect = this.data.gpsStatus === 'ready';
+      
+      // 点模式下修改按钮文字
+      let btnText = this.data.settings.autoCollect 
+            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "停止采集") : (getText('startCollect') || "开始采集"))
+            : (getText('addPoint') || "采集点");
+            
+      // 如果是点模式且不是自动采集，显示“记录点位”可能更合适，但保持一致性也行
+      // 这里不做特殊文字修改，保持“采集点”
+      
+      this.data.widgets.collectBtn.setProperty(prop.TEXT, btnText);
+      
       this.data.widgets.collectBtn.setProperty(prop.MORE, {
         ...this.data.widgets.collectBtn.getProperty(prop.MORE),
         normal_color: canCollect ? 0x00aaff : 0x333333,
@@ -775,9 +1255,38 @@ Page({
       });
     }
     
-    // 完成地块按钮：3点以上可用
+    // 完成按钮状态
     if (this.data.widgets.finishBtn) {
-      const canFinish = this.data.points.length >= 3;
+      let canFinish = false;
+      let btnText = '';
+      
+      if (this.isGISMode()) {
+        // GIS模式：根据当前要素类型判断
+        const featureType = this.data.currentFeatureType;
+        if (featureType === 'point') {
+          // 点要素已自动保存，始终可点击（用于提示）
+          canFinish = true;
+          btnText = getText('finishFeature') || '完成要素';
+        } else if (featureType === 'line') {
+          canFinish = this.data.points.length >= 2;
+          btnText = getText('finishFeature') || '完成要素';
+        } else {
+          canFinish = this.data.points.length >= 3;
+          btnText = getText('finishFeature') || '完成要素';
+        }
+        // 如果有已保存的要素，按钮也应该高亮（可以长按完成项目）
+        if (this.data.gisFeatures.length > 0) {
+          canFinish = true;
+        }
+      } else {
+        // 测面积模式
+        canFinish = this.data.points.length >= 3;
+        btnText = getText('finishField') || '完成地块';
+      }
+      
+      // 更新按钮文本
+      this.data.widgets.finishBtn.setProperty(prop.TEXT, btnText);
+      
       try {
         this.data.widgets.finishBtn.setEnable(canFinish);
       } catch (e) {
@@ -803,6 +1312,13 @@ Page({
           press_color: canUndo ? 0xcc0000 : 0x222222
         });
       }
+      // Update text color for undo btn based on high contrast
+      this.data.widgets.undoBtn.setProperty(prop.COLOR, highlightColor);
+    }
+    
+    // Finish btn color
+    if (this.data.widgets.finishBtn) {
+        this.data.widgets.finishBtn.setProperty(prop.COLOR, highlightColor);
     }
   },
 
@@ -868,8 +1384,12 @@ Page({
       this.data.todayFieldCount = 0;
     }
     
-    // 自动开始第一个地块
-    this.startNewField();
+    // 根据模式初始化
+    if (this.isGISMode()) {
+      this.startNewGISProject();
+    } else {
+      this.startNewField();
+    }
     
     // 初始化GPS
     this.initGPS();
@@ -890,15 +1410,20 @@ Page({
     
     // 添加设置变化监听 - 每2秒检查一次设置是否变化
     this.data.lastSettingsCheck = JSON.stringify({
-      unit: this.getCurrentUnit()
+      unit: this.getCurrentUnit(),
+      hc: this.loadSettings().highContrast,
+      appMode: this.loadSettings().appMode // 检查应用模式变化
     });
     this.data.settingsCheckTimer = setInterval(() => {
       const currentSettings = JSON.stringify({
-        unit: this.getCurrentUnit()
+        unit: this.getCurrentUnit(),
+        hc: this.loadSettings().highContrast,
+        appMode: this.loadSettings().appMode
       });
       if (currentSettings !== this.data.lastSettingsCheck) {
         logger.debug('检测到设置变化，重新构建界面');
         this.data.lastSettingsCheck = currentSettings;
+        this.data.settings = this.loadSettings(); // Reload settings
         // 重新构建界面
         this.onDestroy();
         this.onInit();
@@ -912,6 +1437,9 @@ Page({
     
     const deviceInfo = getDeviceInfo();
     const { width, height } = deviceInfo;
+    const isHighContrast = this.data.settings.highContrast;
+    const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
+    const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
     // 检测屏幕类型：480px为圆屏，390px为方屏
     const isRoundScreen = width >= 480;
@@ -981,8 +1509,79 @@ Page({
       text: TEXTS.noGPS
     });
 
+    // ===== GIS模式：要素类型切换按钮 =====
+    let featureTypeBtnY = coordY + coordHeight;
+    const featureTypeBtnHeight = px(35);
+    
+    if (this.isGISMode()) {
+      const pageInstance = this;
+      const btnWidth = px(70);
+      const btnSpacing = px(5);
+      const totalBtnWidth = btnWidth * 3 + btnSpacing * 2;
+      const startX = (width - totalBtnWidth) / 2;
+      
+      // 点按钮
+      this.data.widgets.featureTypePoint = createWidget(widget.BUTTON, {
+        x: startX,
+        y: featureTypeBtnY,
+        w: btnWidth,
+        h: featureTypeBtnHeight,
+        radius: px(17),
+        normal_color: this.data.currentFeatureType === 'point' ? 0x0986d4 : 0x2b2d31,
+        press_color: 0x0061a4,
+        text: getText('mode_point') || '点',
+        text_size: px(16),
+        color: 0xffffff,
+        click_func: () => {
+          pageInstance.data.currentFeatureType = 'point';
+          pageInstance.updateFeatureTypeButtons();
+          pageInstance.updateUI();
+        }
+      });
+      
+      // 线按钮
+      this.data.widgets.featureTypeLine = createWidget(widget.BUTTON, {
+        x: startX + btnWidth + btnSpacing,
+        y: featureTypeBtnY,
+        w: btnWidth,
+        h: featureTypeBtnHeight,
+        radius: px(17),
+        normal_color: this.data.currentFeatureType === 'line' ? 0x0986d4 : 0x2b2d31,
+        press_color: 0x0061a4,
+        text: getText('mode_line') || '线',
+        text_size: px(16),
+        color: 0xffffff,
+        click_func: () => {
+          pageInstance.data.currentFeatureType = 'line';
+          pageInstance.updateFeatureTypeButtons();
+          pageInstance.updateUI();
+        }
+      });
+      
+      // 面按钮
+      this.data.widgets.featureTypePolygon = createWidget(widget.BUTTON, {
+        x: startX + (btnWidth + btnSpacing) * 2,
+        y: featureTypeBtnY,
+        w: btnWidth,
+        h: featureTypeBtnHeight,
+        radius: px(17),
+        normal_color: this.data.currentFeatureType === 'polygon' ? 0x0986d4 : 0x2b2d31,
+        press_color: 0x0061a4,
+        text: getText('mode_polygon') || '面',
+        text_size: px(16),
+        color: 0xffffff,
+        click_func: () => {
+          pageInstance.data.currentFeatureType = 'polygon';
+          pageInstance.updateFeatureTypeButtons();
+          pageInstance.updateUI();
+        }
+      });
+      
+      featureTypeBtnY += featureTypeBtnHeight;
+    }
+
     // ===== 海拔显示区 =====
-    const altitudeY = coordY + coordHeight;
+    const altitudeY = featureTypeBtnY;
     const altitudeHeight = px(25);
     const altitudeFontSize = px(18); // 默认大字体
     
@@ -991,7 +1590,7 @@ Page({
       y: altitudeY,
       w: width,
       h: altitudeHeight,
-      color: 0x88ccff,
+      color: altColor,
       text_size: altitudeFontSize,
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
@@ -1035,7 +1634,7 @@ Page({
         y: areaY,
         w: width,
         h: areaHeight,
-        color: 0x80caff, // M3 Blue Accent
+        color: highlightColor,
         text_size: areaFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1053,7 +1652,7 @@ Page({
         y: infoRowY,
         w: px(60),
         h: infoHeight,
-        color: 0x80caff, // M3 Blue Accent
+        color: highlightColor,
         text_size: infoFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1078,7 +1677,7 @@ Page({
         y: infoRowY,
         w: px(60),
         h: infoHeight,
-        color: 0x88ccff,
+        color: altColor,
         text_size: infoFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1097,7 +1696,7 @@ Page({
         y: progressY + px(5),
         w: width,
         h: fieldNameHeight,
-        color: 0x80caff, // M3 Blue Accent
+        color: highlightColor,
         text_size: fieldNameFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1132,7 +1731,7 @@ Page({
         y: areaY,
         w: width,
         h: areaHeight,
-        color: 0x80caff, // M3 Blue Accent
+        color: highlightColor,
         text_size: areaFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1150,7 +1749,7 @@ Page({
         y: perimeterY,
         w: width,
         h: perimeterHeight,
-        color: 0x88ccff,
+        color: altColor,
         text_size: perimeterFontSize,
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
@@ -1257,7 +1856,7 @@ Page({
       press_color: 0x3e4248,
       text: getText('undo') || "撤销",
       text_size: smallButtonFontSize,
-      color: 0x80caff, // Blue Text for Action
+      color: highlightColor, // Blue/White Text for Action
       click_func: () => {
         try {
           pageInstance.undoPoint();
@@ -1285,14 +1884,24 @@ Page({
       radius: px(28),
       normal_color: 0x2b2d31, // M3 Surface Container
       press_color: 0x3e4248,
-      text: getText('finishField') || "完成地块",
+      text: this.isGISMode() ? (getText('finishFeature') || "完成要素") : (getText('finishField') || "完成地块"),
       text_size: smallButtonFontSize,
-      color: 0x80caff, // Blue Text for Action
+      color: highlightColor, // Blue/White Text for Action
       click_func: () => {
         try {
           pageInstance.finishField();
         } catch (e) {
-          logger.error(`完成地块按钮点击失败: ${e}`);
+          logger.error(`完成按钮点击失败: ${e}`);
+        }
+      },
+      longpress_func: () => {
+        // GIS模式下长按完成整个项目
+        if (pageInstance.isGISMode()) {
+          try {
+            pageInstance.finishGISProject();
+          } catch (e) {
+            logger.error(`完成项目失败: ${e}`);
+          }
         }
       }
     });

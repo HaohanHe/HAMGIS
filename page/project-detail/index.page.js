@@ -3,6 +3,7 @@ import { createWidget, widget, align, text_style } from '@zos/ui';
 import { getDeviceInfo } from "@zos/device";
 import { back } from '@zos/router';
 import { getText } from '@zos/i18n';
+import { localStorage } from '@zos/storage';
 import { formatDate, formatTime } from '../../utils/formatters.js';
 
 const logger = log.getLogger("hamgis-project-detail");
@@ -11,6 +12,7 @@ Page({
   data: {
     project: null,         // 当前项目数据
     isBuilt: false,        // 防止重复构建
+    highContrast: false    // 高对比度模式
   },
   
   /**
@@ -18,17 +20,42 @@ Page({
    */
   onInit(params) {
     logger.debug("项目详情页初始化");
+    logger.debug(`接收到的params: ${params}`);
+    
+    // 加载设置
+    try {
+      const stored = localStorage.getItem('hamgis_settings');
+      if (stored) {
+        const settings = JSON.parse(stored);
+        if (settings && settings.highContrast) {
+          this.data.highContrast = true;
+        }
+      }
+    } catch (e) {
+      logger.error(`加载设置失败: ${e}`);
+    }
     
     try {
       // 从路由参数获取项目数据
       if (params) {
         this.data.project = JSON.parse(params);
-        logger.debug(`加载项目: ${this.data.project.name}`);
+        logger.debug(`加载项目成功: ${this.data.project.name}, 点数: ${this.data.project.pointCount}`);
+        
+        // 验证数据完整性
+        if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
+          logger.error("项目数据缺少 points 数组");
+          this.data.project = null;
+        } else if (this.data.project.points.length === 0) {
+          logger.error("项目 points 数组为空");
+          this.data.project = null;
+        }
       } else {
         logger.error("未接收到项目数据");
+        this.data.project = null;
       }
     } catch (e) {
-      logger.error(`解析项目数据失败: ${e}`);
+      logger.error(`解析项目数据失败: ${e}, params: ${params}`);
+      this.data.project = null;
     }
   },
   
@@ -131,31 +158,31 @@ Page({
    */
   buildProjectSummary(width, isRoundScreen) {
     const startY = isRoundScreen ? px(100) : px(70);
-    const cardHeight = px(150);
+    const cardHeight = px(250); // Increased height for better spacing
     const cardX = isRoundScreen ? px(40) : px(10);
     const cardW = isRoundScreen ? width - px(80) : width - px(20);
     
-    // 卡片背景
+    // Card Background
     createWidget(widget.FILL_RECT, {
       x: cardX,
       y: startY,
       w: cardW,
       h: cardHeight,
-      radius: px(10),
+      radius: px(15),
       color: 0x1a1a1a
     });
     
-    // 项目信息
+    // Project Info
     const dateStr = formatDate(this.data.project.timestamp);
     const statusText = this.data.project.status === 'completed' ?
       `✓ ${getText('completed') || '已完成'}` :
       getText('draft') || '草稿';
     const statusColor = this.data.project.status === 'completed' ? 0x00ff88 : 0xffaa00;
     
-    // 第一行：日期和状态
+    // Row 1: Date & Status
     createWidget(widget.TEXT, {
-      x: cardX + px(10),
-      y: startY + px(10),
+      x: cardX + px(15),
+      y: startY + px(15),
       w: (cardW - px(30)) / 2,
       h: px(20),
       color: 0x888888,
@@ -166,8 +193,8 @@ Page({
     
     createWidget(widget.TEXT, {
       x: cardX + px(10) + (cardW - px(30)) / 2,
-      y: startY + px(10),
-      w: (cardW - px(30)) / 2,
+      y: startY + px(15),
+      w: (cardW - px(25)),
       h: px(20),
       color: statusColor,
       text_size: px(12),
@@ -175,11 +202,11 @@ Page({
       text: statusText
     });
     
-    // 第二行：点数和面积
+    // Row 2: Points & Area
     createWidget(widget.TEXT, {
-      x: cardX + px(10),
-      y: startY + px(35),
-      w: cardW - px(20),
+      x: cardX + px(15),
+      y: startY + px(45),
+      w: cardW - px(30),
       h: px(20),
       color: 0xcccccc,
       text_size: px(14),
@@ -187,13 +214,13 @@ Page({
       text: `📍 ${getText('points') || '点数'}: ${this.data.project.pointCount}${getText('individual') || '个'}`
     });
     
-    // 第三行：面积
+    // Row 3: Area
     const area = this.data.project.area;
     const areaText = `📐 ${getText('area') || '面积'}: ${area.mu.toFixed(2)}${getText('mu') || '亩'} (${area.squareMeters.toFixed(0)}㎡)`;
     createWidget(widget.TEXT, {
-      x: cardX + px(10),
-      y: startY + px(60),
-      w: cardW - px(20),
+      x: cardX + px(15),
+      y: startY + px(70),
+      w: cardW - px(30),
       h: px(20),
       color: 0x80caff,
       text_size: px(14),
@@ -201,40 +228,45 @@ Page({
       text: areaText
     });
     
-    // 第四行：周长和精度
+    // Row 4: Perimeter & Accuracy
     createWidget(widget.TEXT, {
-      x: cardX + px(10),
-      y: startY + px(85),
-      w: (cardW - px(30)) / 2,
+      x: cardX + px(15),
+      y: startY + px(95),
+      w: cardW - px(30),
       h: px(20),
       color: 0x88ccff,
       text_size: px(12),
       align_h: align.LEFT,
       text: `${getText('perimeter') || '周长'}: ${this.data.project.perimeter.toFixed(1)}m`
     });
-    
+
     createWidget(widget.TEXT, {
-      x: cardX + px(10) + (cardW - px(30)) / 2,
-      y: startY + px(85),
-      w: (cardW - px(30)) / 2,
+      x: cardX + px(15),
+      y: startY + px(115),
+      w: cardW - px(30),
       h: px(20),
-      color: 0x888888,
-      text_size: px(12),
-      align_h: align.RIGHT,
-      text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m ${this.data.project.positioningMode === 'dual-band' ? '(L1+L5)' : ''}`
+      color: 0x666666,
+      text_size: px(11),
+      align_h: align.LEFT,
+      text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m`
     });
     
-    // 查看地图按钮 - 确保只创建一次，位置固定
+    // Buttons Area
+    const btnWidth = px(140);
+    const btnHeight = px(36);
+    const btnRadius = px(18);
+    
+    // View Map Button
     createWidget(widget.BUTTON, {
-      x: cardX + (cardW - px(120)) / 2,
-      y: startY + px(115),
-      w: px(120),
-      h: px(30),
-      radius: px(15),
+      x: cardX + (cardW - btnWidth) / 2,
+      y: startY + px(150),
+      w: btnWidth,
+      h: btnHeight,
+      radius: btnRadius,
       normal_color: 0x0986d4,
       press_color: 0x0061a4,
       text: `🗺️ ${getText('viewMap') || '查看地图'}`,
-      text_size: px(12),
+      text_size: px(14),
       color: 0xffffff,
       click_func: () => {
         try {
@@ -245,6 +277,62 @@ Page({
           });
         } catch (e) {
           logger.error(`跳转地图页面失败: ${e}`);
+        }
+      }
+    });
+
+    // Export Button
+    createWidget(widget.BUTTON, {
+      x: cardX + (cardW - btnWidth) / 2,
+      y: startY + px(195), // More spacing
+      w: btnWidth,
+      h: btnHeight,
+      radius: btnRadius,
+      normal_color: 0x4caf50,
+      press_color: 0x2e7d32,
+      text: `📤 ${getText('exportToAndroid') || '导出APP'}`,
+      text_size: px(14),
+      color: 0xffffff,
+      click_func: () => {
+        try {
+          const { push } = require('@zos/router');
+          
+          if (this.data.project) {
+            // 验证数据完整性
+            if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
+              logger.error("项目数据缺少 points 数组，无法导出");
+              return;
+            }
+            
+            if (this.data.project.points.length === 0) {
+              logger.error("项目 points 数组为空，无法导出");
+              return;
+            }
+            
+            const dataStr = JSON.stringify(this.data.project);
+            logger.info(`Saving project to storage, length: ${dataStr.length}, points: ${this.data.project.points.length}`);
+            logger.info(`Project name: ${this.data.project.name}, timestamp: ${this.data.project.timestamp}`);
+            localStorage.setItem('hamgis_export_data', dataStr);
+            
+            // 验证保存是否成功
+            const saved = localStorage.getItem('hamgis_export_data');
+            if (saved && saved.length === dataStr.length) {
+              logger.info("数据保存成功，跳转到导出页面");
+            } else {
+              logger.error("数据保存失败或长度不匹配");
+              return;
+            }
+          } else {
+            logger.error("Project data is null!");
+            return;
+          }
+          
+          push({
+            url: 'page/export/index.page',
+            params: '' 
+          });
+        } catch (e) {
+          logger.error(`跳转导出页面失败: ${e}`);
         }
       }
     });
@@ -288,7 +376,9 @@ Page({
     }
     
     // 计算页面总高度（从项目摘要结束位置开始）
-    const startY = isRoundScreen ? px(240) : px(200);
+    // Summary Card: Y = 100/70, Height = 250
+    const summaryEndY = (isRoundScreen ? px(100) : px(70)) + px(250);
+    const startY = summaryEndY + px(20);
     const totalHeight = startY + titleHeight + spacing + tableHeight + spacing + px(20);
     
     // 表格起始位置
@@ -426,7 +516,7 @@ Page({
           y: rowY,
           w: colWidths[2],
           h: rowHeight - px(4),
-          color: 0x88ccff,
+          color: this.data.highContrast ? 0xffffff : 0x88ccff,
           text_size: px(9),
           align_h: align.CENTER_H,
           align_v: align.CENTER_V,
@@ -467,18 +557,14 @@ Page({
     }
     
     // 底部空白区域 - 确保页面可以滚动
-    const bottomSpace = totalHeight;
-    if (bottomSpace < height) {
-      // 如果总高度小于屏幕高度，增加空白让页面可以滚动
-      const extraSpace = height - bottomSpace + px(20);
-      createWidget(widget.FILL_RECT, {
-        x: 0,
-        y: totalHeight,
-        w: width,
-        h: extraSpace,
-        color: 0x0a0a0a
-      });
-    }
+    // 强制增加底部额外空间，适应圆屏底部
+    createWidget(widget.FILL_RECT, {
+      x: 0,
+      y: totalHeight,
+      w: width,
+      h: px(150), // 无条件增加 150px 高度
+      color: 0x0a0a0a
+    });
     
     logger.debug(`点详情表格创建完成，显示${visiblePoints.length}/${points.length}个点，总高度: ${totalHeight}px`);
   },
@@ -507,7 +593,7 @@ Page({
       text_size: px(20),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: "加载项目失败\n请返回重试"
+      text: getText('loadProjectFailed') || "加载项目失败\n请返回重试"
     });
     
     // 返回按钮

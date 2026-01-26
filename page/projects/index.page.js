@@ -193,7 +193,7 @@ Page({
         text_size: px(24),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
-        text: "暂无项目\n开始测量创建第一个项目"
+        text: getText('noProjects') || "暂无项目\n开始测量创建第一个项目"
       });
       return;
     }
@@ -300,7 +300,7 @@ Page({
             radius: px(25),
             normal_color: 0x2b2d31, // Dark Surface
             press_color: 0x3e4248,
-            text: "删除",
+            text: getText('delete') || "删除",
             text_size: px(14),
             color: 0xffb4ab, // M3 Error Container Text (Light Red)
             click_func: () => {
@@ -354,7 +354,7 @@ Page({
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text_style: text_style.BOLD,
-      text: "项目管理"
+      text: getText('projectManagement') || "项目管理"
     });
     
     // 项目统计

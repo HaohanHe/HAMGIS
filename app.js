@@ -1,8 +1,9 @@
 import { log } from "@zos/utils";
+import { BaseApp } from '@zeppos/zml/base-app'
 
 const logger = log.getLogger("hamgis-app");
 
-App({
+App(BaseApp({
   globalData: {
     // 全局应用数据
     appVersion: "1.0.3",
@@ -84,4 +85,4 @@ App({
     this.globalData.settings = { ...this.globalData.settings, ...newSettings };
     this.saveSettings();
   }
-});
+}));

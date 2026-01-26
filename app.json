@@ -39,7 +39,8 @@
             "page/projects/index.page",
             "page/project-detail/index.page",
             "page/map/index.page",
-            "page/satellite/index.page"
+            "page/satellite/index.page",
+            "page/export/index.page"
           ]
         },
         "app-side": {
@@ -155,7 +156,14 @@
       "mode_power_saving": "Power Saving",
       "mode_super_power_saving": "Super Power Saving",
       "mode_custom": "Custom",
-      "mode_unknown": "Unknown"
+      "mode_unknown": "Unknown",
+      "collectionMode": "Collection Mode",
+      "mode_point": "Point",
+      "mode_line": "Line",
+      "mode_polygon": "Polygon",
+      "type": "Type",
+      "length": "Length",
+      "pointCount": "Point Count"
     },
     "zh-CN": {
       "appName": "HAMGIS测亩",
@@ -253,7 +261,14 @@
       "mode_power_saving": "省电",
       "mode_super_power_saving": "超级省电",
       "mode_custom": "自定义",
-      "mode_unknown": "未知"
+      "mode_unknown": "未知",
+      "collectionMode": "采集模式",
+      "mode_point": "点",
+      "mode_line": "线",
+      "mode_polygon": "面",
+      "type": "类型",
+      "length": "长度",
+      "pointCount": "点数"
     },
     "ja-JP": {
       "appName": "HAMGIS",
@@ -351,7 +366,14 @@
       "mode_power_saving": "省電力",
       "mode_super_power_saving": "超省電力",
       "mode_custom": "カスタム",
-      "mode_unknown": "不明"
+      "mode_unknown": "不明",
+      "collectionMode": "収集モード",
+      "mode_point": "点",
+      "mode_line": "線",
+      "mode_polygon": "面",
+      "type": "タイプ",
+      "length": "長さ",
+      "pointCount": "点数"
     }
   },
   "defaultLanguage": "en-US"

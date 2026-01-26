@@ -307,3 +307,147 @@ msgstr "单频模式"
 
 msgid "dualBand"
 msgstr "双频模式 (L1+L5)"
+
+msgid "highContrast"
+msgstr "高对比度"
+
+msgid "exportToAndroid"
+msgstr "导出到 Android"
+
+msgid "start"
+msgstr "开始"
+
+# 采集模式
+msgid "collectionMode"
+msgstr "采集模式"
+
+msgid "mode_point"
+msgstr "点"
+
+msgid "mode_line"
+msgstr "线"
+
+msgid "mode_polygon"
+msgstr "面"
+
+msgid "type"
+msgstr "类型"
+
+msgid "length"
+msgstr "长度"
+
+msgid "pointCount"
+msgstr "点数"
+
+# 导出页面
+msgid "export"
+msgstr "导出到手机"
+
+msgid "ready"
+msgstr "准备就绪"
+
+msgid "sending"
+msgstr "发送中..."
+
+msgid "exportSuccess"
+msgstr "导出成功！"
+
+msgid "exportFailed"
+msgstr "导出失败"
+
+msgid "connectionError"
+msgstr "连接错误，请检查Zepp应用"
+
+msgid "noDataToExport"
+msgstr "无数据可导出"
+
+msgid "dataReady"
+msgstr "数据就绪：%d个点"
+
+# 项目详情页面
+msgid "loadProjectFailed"
+msgstr "加载项目失败\n请返回重试"
+
+# 设置页面
+msgid "settingsItem"
+msgstr "设置项"
+
+msgid "settingsValue"
+msgstr "设置值"
+
+# 项目列表页面
+msgid "noProjects"
+msgstr "暂无项目\n开始测量创建第一个项目"
+
+msgid "projectManagement"
+msgstr "项目管理"
+
+# 地图页面
+msgid "mapRenderFailed"
+msgstr "地图渲染失败\n请返回重试"
+
+msgid "loadProjectDataFailed"
+msgstr "无法加载项目数据\n请返回重试"
+
+# 数据查看页面
+msgid "measurementData"
+msgstr "测量数据"
+
+msgid "dataSavedHint"
+msgstr "数据已保存在手表中\n\n请在手机端Zepp App中\n打开应用设置\n查看和导出数据"
+
+msgid "exportFormatsHint"
+msgstr "提示:\n手机端可以导出为\nCSV、JSON、GeoJSON格式"
+
+# 应用模式
+msgid "appMode"
+msgstr "应用模式"
+
+msgid "mode_area_measurement"
+msgstr "测面积"
+
+msgid "mode_gis_collection"
+msgstr "GIS采集"
+
+# GIS采集模式
+msgid "featureType"
+msgstr "要素类型"
+
+msgid "currentFeature"
+msgstr "当前要素"
+
+msgid "featureCount"
+msgstr "要素统计"
+
+msgid "finishFeature"
+msgstr "完成要素"
+
+msgid "finishProject"
+msgstr "完成项目"
+
+msgid "featureList"
+msgstr "要素列表"
+
+msgid "pointFeature"
+msgstr "点要素"
+
+msgid "lineFeature"
+msgstr "线要素"
+
+msgid "polygonFeature"
+msgstr "面要素"
+
+msgid "gisProject"
+msgstr "GIS项目"
+
+msgid "featureSaved"
+msgstr "要素已保存"
+
+msgid "projectSaved"
+msgstr "项目已保存"
+
+msgid "noFeatures"
+msgstr "暂无要素"
+
+msgid "longPressToFinishProject"
+msgstr "长按完成项目"

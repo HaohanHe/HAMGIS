@@ -167,7 +167,7 @@ Page({
         text_size: px(16),
         align_h: align.CENTER_H,
         align_v: align.CENTER_V,
-        text: '地图渲染失败\n请返回重试'
+        text: getText('mapRenderFailed') || '地图渲染失败\n请返回重试'
       });
     }
     
@@ -203,7 +203,7 @@ Page({
       text_size: px(18),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: "无法加载项目数据\n请返回重试"
+      text: getText('loadProjectDataFailed') || "无法加载项目数据\n请返回重试"
     });
     
     // 返回按钮

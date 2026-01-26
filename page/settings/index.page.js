@@ -9,22 +9,26 @@ const logger = log.getLogger("hamgis-settings");
 Page({
   data: {
     settings: {
+      appMode: 0,               // 应用模式: 0=测面积, 1=GIS采集
       primaryUnit: 'mu',        // 主要单位: 'mu', 'hectare', 'squareMeter'
       vibrationFeedback: true,  // 震动反馈
       autoSave: true,           // 自动保存
       keepScreenOn: true,       // 保持屏幕常亮
-      autoCollect: false,       // 自动采集
-      collectionInterval: 3     // 采集间时 (秒)
+      autoCollect: false,       // 自动采集 (仅测面积模式)
+      collectionInterval: 3,     // 采集间时 (秒)
+      highContrast: false       // 高对比度模式
     },
     widgets: {},
     currentSettingIndex: 0,   // 当前设置项索引
     settingItems: [
+      { key: 'appMode', type: 'select', options: [0, 1] }, // 应用模式
       { key: 'primaryUnit', type: 'select', options: ['mu', 'hectare'] },
       { key: 'vibrationFeedback', type: 'boolean' },
       { key: 'autoSave', type: 'boolean' },
       { key: 'keepScreenOn', type: 'boolean' },
       { key: 'autoCollect', type: 'boolean' },
-      { key: 'collectionInterval', type: 'number', min: 1, max: 20, unit: 's' }
+      { key: 'collectionInterval', type: 'number', min: 1, max: 20, unit: 's' },
+      { key: 'highContrast', type: 'boolean' }
     ]
   },
 
@@ -68,10 +72,19 @@ Page({
     
     switch (setting.type) {
       case 'select':
+        if (setting.key === 'appMode') {
+          // 应用模式映射
+          const modeTextMap = {
+            0: (getText('mode_area_measurement') || '测面积'),
+            1: (getText('mode_gis_collection') || 'GIS采集')
+          };
+          return modeTextMap[value];
+        }
+        
         // 单位映射：内部值 -> 显示文本
         const unitTextMap = {
-          'mu': getText('mu') || '亩',
-          'hectare': getText('hectare') || '公顷'
+          'mu': (getText('mu') || '亩'),
+          'hectare': (getText('hectare') || '公顷')
         };
         const displayValue = unitTextMap[value] || value;
         logger.debug(`单位显示: ${value} -> ${displayValue}`);
@@ -90,13 +103,16 @@ Page({
 
   // 获取设置项名称
   getSettingName(setting) {
+    // 动态获取最新语言包
     const nameMap = {
-      'primaryUnit': getText('primaryUnit') || '面积单位',
-      'vibrationFeedback': getText('vibrationFeedback') || '震动反馈',
-      'autoSave': getText('autoSave') || '自动保存',
-      'keepScreenOn': getText('keepScreenOn') || '屏幕常亮',
-      'autoCollect': getText('autoCollect') || '自动采集',
-      'collectionInterval': getText('collectionInterval') || '采集间时'
+      'appMode': (getText('appMode') || '应用模式'),
+      'primaryUnit': (getText('primaryUnit') || '面积单位'),
+      'vibrationFeedback': (getText('vibrationFeedback') || '震动反馈'),
+      'autoSave': (getText('autoSave') || '自动保存'),
+      'keepScreenOn': (getText('keepScreenOn') || '屏幕常亮'),
+      'autoCollect': (getText('autoCollect') || '自动采集'),
+      'collectionInterval': (getText('collectionInterval') || '采集间时'),
+      'highContrast': (getText('highContrast') || '高对比度')
     };
     return nameMap[setting.key] || setting.key;
   },
@@ -123,9 +139,9 @@ Page({
     
     switch (setting.type) {
       case 'select':
-        const unitMap = { 'mu': 0, 'hectare': 1 };
-        const reverseMap = ['mu', 'hectare'];
-        let currentIndex = unitMap[currentValue] || 0;
+        // 通用 select 处理：支持数字和字符串选项
+        let currentIndex = setting.options.indexOf(currentValue);
+        if (currentIndex === -1) currentIndex = 0;
         
         if (increase) {
           currentIndex = (currentIndex + 1) % setting.options.length;
@@ -133,9 +149,9 @@ Page({
           currentIndex = (currentIndex - 1 + setting.options.length) % setting.options.length;
         }
         
-        const newValue = reverseMap[currentIndex];
+        const newValue = setting.options[currentIndex];
         this.data.settings[setting.key] = newValue;
-        logger.debug(`单位修改: ${currentValue} -> ${newValue} (索引: ${currentIndex})`);
+        logger.debug(`设置修改: ${setting.key}: ${currentValue} -> ${newValue} (索引: ${currentIndex})`);
         break;
         
       case 'number':
@@ -160,12 +176,14 @@ Page({
   // 重置所有设置
   resetSettings() {
     this.data.settings = {
+      appMode: 0, // 默认为测面积模式
       primaryUnit: 'mu',
       vibrationFeedback: true,
       autoSave: true,
       keepScreenOn: true,
       autoCollect: false,
-      collectionInterval: 3
+      collectionInterval: 3,
+      highContrast: false
     };
     
     this.saveSettings();
@@ -212,6 +230,8 @@ Page({
   // 更新UI显示
   updateUI() {
     const setting = this.getCurrentSetting();
+    const isHighContrast = this.data.settings.highContrast;
+    const highlightColor = isHighContrast ? 0xffffff : 0x80caff; // 白 或 蓝
     
     // 更新设置名称
     if (this.data.widgets.settingName) {
@@ -223,6 +243,7 @@ Page({
     if (this.data.widgets.settingValue) {
       const displayValue = this.getSettingDisplayValue(setting);
       this.data.widgets.settingValue.setProperty(prop.TEXT, displayValue);
+      this.data.widgets.settingValue.setProperty(prop.COLOR, highlightColor); // 动态颜色
       logger.debug(`更新设置值显示: ${setting.key} = ${displayValue}`);
     }
     
@@ -292,7 +313,7 @@ Page({
       text_size: px(24),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
-      text: "设置项"
+      text: getText('settingsItem') || "设置项"
     });
     
     // 设置值显示 (大字体)
@@ -301,12 +322,12 @@ Page({
       y: px(180),
       w: width,
       h: px(80),
-      color: 0x80caff, // M3 Blue Accent
+      color: this.data.settings.highContrast ? 0xffffff : 0x80caff, // 初始颜色
       text_size: px(36),
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text_style: text_style.BOLD,
-      text: "设置值"
+      text: getText('settingsValue') || "设置值"
     });
     
     // 按钮配置
@@ -367,7 +388,7 @@ Page({
       });
       
       createWidget(widget.BUTTON, {
-        x: (width - px(180)) / 2 + px(100),
+        x: (width - px(180)) / 2 + px(100),  // 右侧按钮
         y: secondRowY,
         w: buttonW,
         h: buttonH,
