@@ -214,9 +214,30 @@ Page({
       text: `📍 ${getText('points') || '点数'}: ${this.data.project.pointCount}${getText('individual') || '个'}`
     });
     
-    // Row 3: Area
+    // Row 3: Area - 根据保存的单位显示
     const area = this.data.project.area;
-    const areaText = `📐 ${getText('area') || '面积'}: ${area.mu.toFixed(2)}${getText('mu') || '亩'} (${area.squareMeters.toFixed(0)}㎡)`;
+    const primaryUnit = this.data.project.primaryUnit || 'mu'; // 默认使用亩
+    let areaValue, areaUnit;
+    
+    switch (primaryUnit) {
+      case 'hectare':
+        areaValue = area.hectares !== undefined ? area.hectares : (area.squareMeters * 0.0001);
+        areaUnit = getText('hectare') || '公顷';
+        break;
+      case 'acre':
+        areaValue = area.acres !== undefined ? area.acres : (area.squareMeters * 0.000247105);
+        areaUnit = getText('acre') || '英亩';
+        break;
+      case 'squareMile':
+        areaValue = area.squareMiles !== undefined ? area.squareMiles : (area.squareMeters * 3.861e-7);
+        areaUnit = getText('squareMile') || '平方英里';
+        break;
+      default: // 'mu'
+        areaValue = area.mu !== undefined ? area.mu : (area.squareMeters * 0.0015);
+        areaUnit = getText('mu') || '亩';
+    }
+    
+    const areaText = `📐 ${getText('area') || '面积'}: ${areaValue.toFixed(2)}${areaUnit} (${area.squareMeters.toFixed(0)}㎡)`;
     createWidget(widget.TEXT, {
       x: cardX + px(15),
       y: startY + px(70),

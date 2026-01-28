@@ -10,7 +10,7 @@ Page({
   data: {
     settings: {
       appMode: 0,               // 应用模式: 0=测面积, 1=GIS采集
-      primaryUnit: 'mu',        // 主要单位: 'mu', 'hectare', 'squareMeter'
+      primaryUnit: 'mu',        // 主要单位: 'mu', 'hectare', 'acre', 'squareMile'
       vibrationFeedback: true,  // 震动反馈
       autoSave: true,           // 自动保存
       keepScreenOn: true,       // 保持屏幕常亮
@@ -22,7 +22,7 @@ Page({
     currentSettingIndex: 0,   // 当前设置项索引
     settingItems: [
       { key: 'appMode', type: 'select', options: [0, 1] }, // 应用模式
-      { key: 'primaryUnit', type: 'select', options: ['mu', 'hectare'] },
+      { key: 'primaryUnit', type: 'select', options: ['mu', 'hectare', 'acre', 'squareMile'] },
       { key: 'vibrationFeedback', type: 'boolean' },
       { key: 'autoSave', type: 'boolean' },
       { key: 'keepScreenOn', type: 'boolean' },
@@ -84,7 +84,9 @@ Page({
         // 单位映射：内部值 -> 显示文本
         const unitTextMap = {
           'mu': (getText('mu') || '亩'),
-          'hectare': (getText('hectare') || '公顷')
+          'hectare': (getText('hectare') || '公顷'),
+          'acre': (getText('acre') || '英亩'),
+          'squareMile': (getText('squareMile') || '平方英里')
         };
         const displayValue = unitTextMap[value] || value;
         logger.debug(`单位显示: ${value} -> ${displayValue}`);
