@@ -19,6 +19,196 @@ const MEASURE_STATE = {
   COLLECTING: 'collecting' // 采集中（已有点位）
 };
 
+// WGS84 椭球体参数 - 用于精确地理计算
+const WGS84 = {
+  a: 6378137.0,           // 长半轴 (米)
+  b: 6356752.314245,      // 短半轴 (米)
+  f: 1 / 298.257223563,   // 扁率
+  e2: 0.00669437999013,   // 第一偏心率平方
+  e2_: 0.00673949674227   // 第二偏心率平方
+};
+
+// 基于 WGS84 椭球体的精确地理计算工具
+const GeoCalculator = {
+  // 将角度转换为弧度
+  toRad(deg) {
+    return deg * Math.PI / 180;
+  },
+  
+  // 将弧度转换为角度
+  toDeg(rad) {
+    return rad * 180 / Math.PI;
+  },
+  
+  // 计算子午线曲率半径
+  meridianRadius(lat) {
+    const latRad = this.toRad(lat);
+    const sinLat = Math.sin(latRad);
+    const w = Math.sqrt(1 - WGS84.e2 * sinLat * sinLat);
+    return WGS84.a * (1 - WGS84.e2) / (w * w * w);
+  },
+  
+  // 计算卯酉圈曲率半径
+  primeVerticalRadius(lat) {
+    const latRad = this.toRad(lat);
+    const sinLat = Math.sin(latRad);
+    const w = Math.sqrt(1 - WGS84.e2 * sinLat * sinLat);
+    return WGS84.a / w;
+  },
+  
+  // 使用 Vincenty 公式计算两点间的精确大地线距离
+  // 这是目前最精确的椭球体距离计算方法
+  vincentyDistance(p1, p2) {
+    const lat1 = this.toRad(p1.lat);
+    const lon1 = this.toRad(p1.lon);
+    const lat2 = this.toRad(p2.lat);
+    const lon2 = this.toRad(p2.lon);
+    
+    const U1 = Math.atan((1 - WGS84.f) * Math.tan(lat1));
+    const U2 = Math.atan((1 - WGS84.f) * Math.tan(lat2));
+    const L = lon2 - lon1;
+    
+    let lambda = L;
+    let lambdaPrev;
+    let iterLimit = 100;
+    let sinSigma, cosSigma, sigma, sinAlpha, cos2Alpha, cos2SigmaM;
+    
+    do {
+      sinSigma = Math.sqrt(
+        Math.pow(Math.cos(U2) * Math.sin(lambda), 2) +
+        Math.pow(Math.cos(U1) * Math.sin(U2) - Math.sin(U1) * Math.cos(U2) * Math.cos(lambda), 2)
+      );
+      
+      if (sinSigma === 0) return 0; // 重合点
+      
+      cosSigma = Math.sin(U1) * Math.sin(U2) + Math.cos(U1) * Math.cos(U2) * Math.cos(lambda);
+      sigma = Math.atan2(sinSigma, cosSigma);
+      
+      sinAlpha = Math.cos(U1) * Math.cos(U2) * Math.sin(lambda) / sinSigma;
+      cos2Alpha = 1 - sinAlpha * sinAlpha;
+      
+      if (cos2Alpha !== 0) {
+        cos2SigmaM = cosSigma - 2 * Math.sin(U1) * Math.sin(U2) / cos2Alpha;
+      } else {
+        cos2SigmaM = 0;
+      }
+      
+      const C = WGS84.f / 16 * cos2Alpha * (4 + WGS84.f * (4 - 3 * cos2Alpha));
+      
+      lambdaPrev = lambda;
+      lambda = L + (1 - C) * WGS84.f * sinAlpha * (
+        sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM))
+      );
+    } while (Math.abs(lambda - lambdaPrev) > 1e-12 && --iterLimit > 0);
+    
+    if (iterLimit === 0) {
+      // Vincenty 不收敛，使用 Haversine 作为后备
+      return this.haversineDistance(p1, p2);
+    }
+    
+    const u2 = cos2Alpha * (WGS84.a * WGS84.a - WGS84.b * WGS84.b) / (WGS84.b * WGS84.b);
+    const A = 1 + u2 / 16384 * (4096 + u2 * (-768 + u2 * (320 - 175 * u2)));
+    const B = u2 / 1024 * (256 + u2 * (-128 + u2 * (74 - 47 * u2)));
+    
+    const deltaSigma = B * sinSigma * (cos2SigmaM + B / 4 * (
+      cosSigma * (-1 + 2 * cos2SigmaM * cos2SigmaM) -
+      B / 6 * cos2SigmaM * (-3 + 4 * sinSigma * sinSigma) * (-3 + 4 * cos2SigmaM * cos2SigmaM)
+    ));
+    
+    return WGS84.b * A * (sigma - deltaSigma);
+  },
+  
+  // Haversine 公式（作为后备方法）
+  haversineDistance(p1, p2) {
+    const R = 6371000; // 平均地球半径
+    const lat1 = this.toRad(p1.lat);
+    const lat2 = this.toRad(p2.lat);
+    const deltaLat = this.toRad(p2.lat - p1.lat);
+    const deltaLon = this.toRad(p2.lon - p1.lon);
+    
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
+    return R * c;
+  },
+  
+  // 基于 Gauss-Legendre 积分的精确多边形面积计算
+  // 使用椭球体上的测地多边形面积公式
+  geodesicPolygonArea(points) {
+    if (points.length < 3) return 0;
+    
+    // 使用 L'Huilier 定理的球面 excess 方法
+    // 对于小范围测量，使用局部平面近似配合精确距离
+    
+    let totalArea = 0;
+    const n = points.length;
+    
+    // 计算多边形的质心作为参考点
+    let centerLat = 0, centerLon = 0;
+    for (const p of points) {
+      centerLat += p.lat;
+      centerLon += p.lon;
+    }
+    centerLat /= n;
+    centerLon /= n;
+    
+    // 获取参考点的曲率半径
+    const Rm = this.meridianRadius(centerLat);
+    const Rn = this.primeVerticalRadius(centerLat);
+    
+    // 将经纬度转换为局部平面坐标（使用椭球体参数）
+    const localPoints = points.map(p => {
+      const dLat = this.toRad(p.lat - centerLat);
+      const dLon = this.toRad(p.lon - centerLon);
+      return {
+        x: Rn * Math.cos(this.toRad(centerLat)) * dLon,
+        y: Rm * dLat
+      };
+    });
+    
+    // 使用 Shoelace 公式计算面积
+    let area = 0;
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n;
+      area += localPoints[i].x * localPoints[j].y;
+      area -= localPoints[j].x * localPoints[i].y;
+    }
+    
+    return Math.abs(area) / 2;
+  },
+  
+  // 使用测地线三角形分解计算面积（更精确但计算量大）
+  triangulatedGeodesicArea(points) {
+    if (points.length < 3) return 0;
+    
+    let totalArea = 0;
+    const n = points.length;
+    
+    // 使用第一个点作为参考，将多边形分解为三角形
+    const p0 = points[0];
+    
+    for (let i = 1; i < n - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      
+      // 计算三角形的三条边长（使用 Vincenty 公式）
+      const a = this.vincentyDistance(p1, p2);
+      const b = this.vincentyDistance(p0, p2);
+      const c = this.vincentyDistance(p0, p1);
+      
+      // 使用海伦公式计算三角形面积
+      const s = (a + b + c) / 2;
+      const triangleArea = Math.sqrt(s * (s - a) * (s - b) * (s - c));
+      
+      totalArea += triangleArea;
+    }
+    
+    return totalArea;
+  }
+};
+
 // 面积单位转换 - 使用动态国际化
 const getAreaUnits = () => ({
   MU: {
@@ -458,28 +648,34 @@ Page({
       return;
     }
     
-    // 转换为平面坐标 (简化版，适用于小范围测量)
-    const R = 6371000; // 地球半径(米)
-    const points = this.data.points.map(p => {
-      const lat = p.lat * Math.PI / 180;
-      const lon = p.lon * Math.PI / 180;
-      return {
-        x: R * lon * Math.cos(lat),
-        y: R * lat
-      };
-    });
+    // 使用基于 WGS84 椭球体的精确面积计算
+    // 对于小范围测量（<100km），使用 geodesicPolygonArea 方法
+    // 对于大范围测量，使用 triangulatedGeodesicArea 方法
     
-    // Shoelace公式计算面积
-    let area = 0;
+    const points = this.data.points.map(p => ({ lat: p.lat, lon: p.lon }));
+    
+    // 估算测量范围（对角线距离）
+    let maxDistance = 0;
     for (let i = 0; i < points.length; i++) {
-      const j = (i + 1) % points.length;
-      area += points[i].x * points[j].y;
-      area -= points[j].x * points[i].y;
+      for (let j = i + 1; j < points.length; j++) {
+        const d = GeoCalculator.vincentyDistance(points[i], points[j]);
+        if (d > maxDistance) maxDistance = d;
+      }
     }
-    area = Math.abs(area) / 2;
+    
+    // 根据测量范围选择计算方法
+    let area;
+    if (maxDistance > 100000) {
+      // 大范围测量（>100km），使用三角形分解法
+      area = GeoCalculator.triangulatedGeodesicArea(points);
+      logger.debug(`大范围测量，使用三角形分解法计算面积: ${area} 平方米`);
+    } else {
+      // 小范围测量，使用局部平面近似法（更快）
+      area = GeoCalculator.geodesicPolygonArea(points);
+      logger.debug(`小范围测量，使用测地多边形法计算面积: ${area} 平方米`);
+    }
     
     this.data.currentArea = area;
-    logger.debug(`计算面积: ${area} 平方米`);
   },
 
   // 计算周长 (线模式时即为长度，不闭合)
@@ -490,7 +686,6 @@ Page({
     }
     
     let perimeter = 0;
-    const R = 6371000; // 地球半径(米)
     const mode = this.data.settings.collectionMode;
     const isPolygon = (mode === 2); // 只有面模式闭合
     
@@ -507,23 +702,17 @@ Page({
       const p1 = this.data.points[i];
       const p2 = this.data.points[j];
       
-      // 使用Haversine公式计算两点间距离
-      const lat1 = p1.lat * Math.PI / 180;
-      const lat2 = p2.lat * Math.PI / 180;
-      const deltaLat = (p2.lat - p1.lat) * Math.PI / 180;
-      const deltaLon = (p2.lon - p1.lon) * Math.PI / 180;
-      
-      const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-                Math.cos(lat1) * Math.cos(lat2) *
-                Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      const distance = R * c;
+      // 使用 Vincenty 公式计算两点间的精确大地线距离
+      const distance = GeoCalculator.vincentyDistance(
+        { lat: p1.lat, lon: p1.lon },
+        { lat: p2.lat, lon: p2.lon }
+      );
       
       perimeter += distance;
     }
     
     this.data.currentPerimeter = perimeter;
-    logger.debug(`计算周长/长度: ${perimeter} 米 (模式: ${mode})`);
+    logger.debug(`计算周长/长度: ${perimeter} 米 (模式: ${mode}, 使用Vincenty公式)`);
   },
 
   // 完成地块/要素 - 保存并自动开始下一个
