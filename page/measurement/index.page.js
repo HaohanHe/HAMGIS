@@ -1276,6 +1276,24 @@ Page({
       this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
     }
     
+    // 更新GIS要素类型按钮颜色
+    if (this.isGISMode()) {
+      const featureType = this.data.currentFeatureType;
+      const pointColor = featureType === 'point' ? 0x0986d4 : 0x2b2d31;
+      const lineColor = featureType === 'line' ? 0x0986d4 : 0x2b2d31;
+      const polygonColor = featureType === 'polygon' ? 0x0986d4 : 0x2b2d31;
+      
+      if (this.data.widgets.featureTypePoint) {
+        this.data.widgets.featureTypePoint.setProperty(prop.COLOR, pointColor);
+      }
+      if (this.data.widgets.featureTypeLine) {
+        this.data.widgets.featureTypeLine.setProperty(prop.COLOR, lineColor);
+      }
+      if (this.data.widgets.featureTypePolygon) {
+        this.data.widgets.featureTypePolygon.setProperty(prop.COLOR, polygonColor);
+      }
+    }
+    
     // 更新点数 - 圆屏需要简化显示
     if (this.data.widgets.pointCount) {
       const deviceInfo = getDeviceInfo();
@@ -1441,9 +1459,10 @@ Page({
         const featureType = this.data.currentFeatureType;
         
         // 检查是否有混合要素（点、线、面都有）
-        const hasPoint = this.data.features.some(f => f.type === 'point');
-        const hasLine = this.data.features.some(f => f.type === 'line');
-        const hasPolygon = this.data.features.some(f => f.type === 'polygon');
+        const gisFeatures = this.data.gisFeatures || [];
+        const hasPoint = gisFeatures.some(f => f.featureType === 'point');
+        const hasLine = gisFeatures.some(f => f.featureType === 'line');
+        const hasPolygon = gisFeatures.some(f => f.featureType === 'polygon');
         const hasMixedFeatures = (hasPoint && hasLine) || (hasPoint && hasPolygon) || (hasLine && hasPolygon);
         
         if (hasMixedFeatures) {
@@ -2081,9 +2100,10 @@ Page({
         try {
           if (pageInstance.isGISMode()) {
             // GIS模式：检查是否有混合要素
-            const hasPoint = pageInstance.data.features.some(f => f.type === 'point');
-            const hasLine = pageInstance.data.features.some(f => f.type === 'line');
-            const hasPolygon = pageInstance.data.features.some(f => f.type === 'polygon');
+            const gisFeatures = pageInstance.data.gisFeatures || [];
+            const hasPoint = gisFeatures.some(f => f.featureType === 'point');
+            const hasLine = gisFeatures.some(f => f.featureType === 'line');
+            const hasPolygon = gisFeatures.some(f => f.featureType === 'polygon');
             const hasMixedFeatures = (hasPoint && hasLine) || (hasPoint && hasPolygon) || (hasLine && hasPolygon);
             
             if (hasMixedFeatures) {

@@ -41,13 +41,30 @@ Page({
         this.data.project = JSON.parse(params);
         logger.debug(`加载项目成功: ${this.data.project.name}, 点数: ${this.data.project.pointCount}`);
         
-        // 验证数据完整性
-        if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
-          logger.error("项目数据缺少 points 数组");
-          this.data.project = null;
-        } else if (this.data.project.points.length === 0) {
-          logger.error("项目 points 数组为空");
-          this.data.project = null;
+        // 验证数据完整性 - 支持测面积项目(points)和GIS项目(features)
+        const isGISProject = this.data.project.recordType === 'gis_project' || 
+                            (this.data.project.features && Array.isArray(this.data.project.features));
+        
+        if (isGISProject) {
+          // GIS项目验证 features 数组
+          if (!this.data.project.features || !Array.isArray(this.data.project.features)) {
+            logger.error("GIS项目数据缺少 features 数组");
+            this.data.project = null;
+          } else if (this.data.project.features.length === 0) {
+            logger.error("GIS项目 features 数组为空");
+            this.data.project = null;
+          } else {
+            logger.debug(`加载GIS项目成功: ${this.data.project.name}, 要素数: ${this.data.project.features.length}`);
+          }
+        } else {
+          // 测面积项目验证 points 数组
+          if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
+            logger.error("项目数据缺少 points 数组");
+            this.data.project = null;
+          } else if (this.data.project.points.length === 0) {
+            logger.error("项目 points 数组为空");
+            this.data.project = null;
+          }
         }
       } else {
         logger.error("未接收到项目数据");
