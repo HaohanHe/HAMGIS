@@ -710,15 +710,16 @@ Page({
     }
 
     // 统计要素数量
+    const gisFeatures = this.data.gisFeatures || [];
     const featureCount = {
-      point: this.data.gisFeatures.filter(f => f.featureType === 'point').length,
-      line: this.data.gisFeatures.filter(f => f.featureType === 'line').length,
-      polygon: this.data.gisFeatures.filter(f => f.featureType === 'polygon').length
+      point: gisFeatures.filter(f => f.featureType === 'point').length,
+      line: gisFeatures.filter(f => f.featureType === 'line').length,
+      polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
     };
 
     // 计算总点数
     let totalPoints = 0;
-    this.data.gisFeatures.forEach(f => {
+    gisFeatures.forEach(f => {
       if (f.featureType === 'point') {
         totalPoints += 1;
       } else {
@@ -776,15 +777,16 @@ Page({
     }
 
     // 统计要素数量
+    const gisFeatures = this.data.gisFeatures || [];
     const featureCount = {
-      point: this.data.gisFeatures.filter(f => f.featureType === 'point').length,
-      line: this.data.gisFeatures.filter(f => f.featureType === 'line').length,
-      polygon: this.data.gisFeatures.filter(f => f.featureType === 'polygon').length
+      point: gisFeatures.filter(f => f.featureType === 'point').length,
+      line: gisFeatures.filter(f => f.featureType === 'line').length,
+      polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
     };
 
     // 计算总点数
     let totalPoints = 0;
-    this.data.gisFeatures.forEach(f => {
+    gisFeatures.forEach(f => {
       if (f.featureType === 'point') {
         totalPoints += 1;
       } else {
@@ -1301,10 +1303,11 @@ Page({
       
       if (this.isGISMode()) {
         // GIS模式：显示要素统计
+        const gisFeatures = this.data.gisFeatures || [];
         const counts = {
-          point: this.data.gisFeatures.filter(f => f.featureType === 'point').length,
-          line: this.data.gisFeatures.filter(f => f.featureType === 'line').length,
-          polygon: this.data.gisFeatures.filter(f => f.featureType === 'polygon').length
+          point: gisFeatures.filter(f => f.featureType === 'point').length,
+          line: gisFeatures.filter(f => f.featureType === 'line').length,
+          polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
         };
         const countText = `点×${counts.point} 线×${counts.line} 面×${counts.polygon}`;
         this.data.widgets.pointCount.setProperty(prop.TEXT, countText);
@@ -1354,9 +1357,11 @@ Page({
         
         let displayText = '';
         
+        const gisFeatures = this.data.gisFeatures || [];
+        
         if (featureType === 'point') {
           // 点要素：显示已采集的点数
-          const pointCount = this.data.features.filter(f => f.type === 'point').length;
+          const pointCount = gisFeatures.filter(f => f.featureType === 'point').length;
           const lang = this.getLanguage();
           
           if (lang === 'zh-CN') {
@@ -1369,7 +1374,7 @@ Page({
           }
         } else if (featureType === 'line') {
           // 线要素：显示已采集的线数
-          const lineCount = this.data.features.filter(f => f.type === 'line').length;
+          const lineCount = gisFeatures.filter(f => f.featureType === 'line').length;
           const lang = this.getLanguage();
           
           if (lang === 'zh-CN') {
