@@ -33,16 +33,41 @@ Page(
           
           try {
             const parsed = JSON.parse(storedData);
-            logger.info(`Parsed data - Name: ${parsed.name}, Points: ${parsed.points ? parsed.points.length : 0}`);
-            if (!parsed.points || !Array.isArray(parsed.points)) {
-              logger.error("数据缺少 points 数组");
-              this.updateLog(getText('exportFailed') || "Invalid Data: No points array");
-            } else if (parsed.points.length === 0) {
-              logger.error("数据 points 数组为空");
-              this.updateLog(getText('exportFailed') || "Invalid Data: Empty points");
+            
+            // 检测项目类型 - GIS项目使用features，测面积项目使用points
+            const isGISProject = parsed.recordType === 'gis_project' || 
+                                (parsed.features && Array.isArray(parsed.features));
+            
+            if (isGISProject) {
+              // GIS项目验证
+              logger.info(`Parsed GIS data - Name: ${parsed.name}, Features: ${parsed.features ? parsed.features.length : 0}`);
+              if (!parsed.features || !Array.isArray(parsed.features)) {
+                logger.error("GIS数据缺少 features 数组");
+                this.updateLog(getText('exportFailed') || "Invalid Data: No features array");
+              } else if (parsed.features.length === 0) {
+                logger.error("GIS数据 features 数组为空");
+                this.updateLog(getText('exportFailed') || "Invalid Data: Empty features");
+              } else {
+                const totalPoints = parsed.totalPoints || parsed.features.reduce((sum, f) => {
+                  if (f.featureType === 'point') return sum + 1;
+                  return sum + (f.coords ? f.coords.length : 0);
+                }, 0);
+                const msg = (getText('gisDataReady') || "GIS Data Ready: %d features, %d points").replace('%d', parsed.features.length).replace('%d', totalPoints);
+                this.updateLog(msg);
+              }
             } else {
-              const msg = (getText('dataReady') || "Data Ready: %d points").replace('%d', parsed.points.length);
-              this.updateLog(msg);
+              // 测面积项目验证
+              logger.info(`Parsed data - Name: ${parsed.name}, Points: ${parsed.points ? parsed.points.length : 0}`);
+              if (!parsed.points || !Array.isArray(parsed.points)) {
+                logger.error("数据缺少 points 数组");
+                this.updateLog(getText('exportFailed') || "Invalid Data: No points array");
+              } else if (parsed.points.length === 0) {
+                logger.error("数据 points 数组为空");
+                this.updateLog(getText('exportFailed') || "Invalid Data: Empty points");
+              } else {
+                const msg = (getText('dataReady') || "Data Ready: %d points").replace('%d', parsed.points.length);
+                this.updateLog(msg);
+              }
             }
           } catch (parseError) {
             logger.error(`JSON解析失败: ${parseError}`);
@@ -86,28 +111,40 @@ Page(
         text_style: text_style.WRAP
       });
 
-      // 二维码 - 居中显示，尺寸适中
+      // 二维码 - 减小尺寸，紧凑显示
       const qrcodeUrl = 'https://github.com/HaohanHe/HAMGIS-drop/releases';
-      const qrcodeSize = px(120);
+      const qrcodeSize = px(100); // 减小二维码尺寸
       const qrcodeX = centerX - qrcodeSize / 2;
-      const qrcodeY = px(130); // 标题和文本下方合适位置
+      const qrcodeY = px(140); // 调整位置
+      
+      // 二维码白色背景 - 只包裹二维码本身
+      const padding = px(8);
+      createWidget(widget.FILL_RECT, {
+        x: qrcodeX - padding,
+        y: qrcodeY - padding,
+        w: qrcodeSize + padding * 2,
+        h: qrcodeSize + padding * 2,
+        color: 0xffffff
+      });
       
       createWidget(widget.QRCODE, {
         x: qrcodeX,
         y: qrcodeY,
         w: qrcodeSize,
         h: qrcodeSize,
-        content: qrcodeUrl
+        content: qrcodeUrl,
+        bg_color: 0xffffff, // 设置二维码背景为白色
+        fg_color: 0x000000  // 设置二维码前景为黑色
       });
       
-      // 按钮 - 居中显示，在二维码下方合适位置
-      const buttonWidth = px(140);
-      const buttonHeight = px(50);
+      // 按钮 - 居中显示，在二维码下方
+      const buttonWidth = px(120); // 减小按钮宽度
+      const buttonHeight = px(44); // 减小按钮高度
       createWidget(widget.BUTTON, {
         x: centerX - buttonWidth / 2,
-        y: qrcodeY + qrcodeSize + px(30), // 二维码下方 30px，增加间距
+        y: qrcodeY + qrcodeSize + px(40), // 调整间距
         w: buttonWidth, h: buttonHeight,
-        radius: px(25),
+        radius: px(22),
         normal_color: 0x0077cc,
         press_color: 0x0055aa,
         text: getText('start') || "Start",
