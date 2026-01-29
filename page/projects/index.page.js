@@ -25,14 +25,26 @@ Page({
       if (stored) {
         const measurements = JSON.parse(stored);
         if (Array.isArray(measurements)) {
-          // 数据迁移：为旧数据添加elevation字段
+          // 数据迁移：为旧数据添加recordType和elevation字段
           this.data.measurements = measurements.map(project => {
-            if (project.elevation === undefined) {
-              // 计算海拔统计
-              const elevation = this.calculateElevationFromPoints(project.points);
-              return { ...project, elevation };
+            let updatedProject = { ...project };
+            
+            // 添加recordType标识
+            if (!updatedProject.recordType) {
+              if (updatedProject.features && Array.isArray(updatedProject.features)) {
+                updatedProject.recordType = 'gis_project';
+              } else {
+                updatedProject.recordType = 'area_measurement';
+              }
             }
-            return project;
+            
+            // 添加elevation字段
+            if (updatedProject.elevation === undefined) {
+              const elevation = this.calculateElevationFromPoints(updatedProject.points);
+              updatedProject.elevation = elevation;
+            }
+            
+            return updatedProject;
           });
           
           // 保存迁移后的数据
@@ -139,8 +151,16 @@ Page({
     }
   },
 
-  // 格式化面积
-  formatArea(area) {
+  // 格式化面积或要素统计
+  formatArea(project) {
+    // GIS项目显示要素统计
+    if (project.recordType === 'gis_project') {
+      const c = project.featureCount || { point: 0, line: 0, polygon: 0 };
+      return `点×${c.point} 线×${c.line} 面×${c.polygon}`;
+    }
+    
+    // 测面积项目显示面积
+    const area = project.area;
     if (!area) return `0.00${getText('mu')}`;
     const mu = area.mu || (area.squareMeters * 0.0015);
     return `${mu.toFixed(2)}${getText('mu')}`;
@@ -200,8 +220,9 @@ Page({
     
     // 创建滚动列表
     const listData = pageInstance.data.measurements.map((project, index) => {
-      const points = project.points ? project.points.length : 0;
-      const area = pageInstance.formatArea(project.area);
+      const points = project.points ? project.points.length : 
+                    (project.totalPoints || 0);
+      const area = pageInstance.formatArea(project);
       const date = pageInstance.formatDate(project.timestamp);
       
       return {

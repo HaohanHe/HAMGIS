@@ -1667,7 +1667,7 @@ Page({
       press_color: 0x2b2d31,
       text: TEXTS.locating,
       color: 0x00ff88,
-      text_size: px(22),
+      text_size: px(24),
       click_func: () => {
         // Optional: Trigger immediate GPS update or show toast
       },
@@ -1685,7 +1685,7 @@ Page({
     // ===== 坐标显示区 =====
     const coordY = gpsBarHeight;
     const coordHeight = px(35);
-    const coordFontSize = px(20); // 默认大字体
+    const coordFontSize = px(22); // 增大字体，提高户外可读性
     
     this.data.widgets.coordinates = createWidget(widget.TEXT, {
       x: 0,
@@ -1951,7 +1951,7 @@ Page({
     const statusY = progressY + progressHeight;
     const statusHeight = px(30);
     
-    const statusFontSize = px(18); // 默认大字模式
+    const statusFontSize = px(20); // 增大字体，提高户外可读性
     
     this.data.widgets.statusTip = createWidget(widget.TEXT, {
       x: 0,
