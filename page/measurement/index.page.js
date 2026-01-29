@@ -1278,7 +1278,7 @@ Page({
       this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
     }
     
-    // 更新GIS要素类型按钮颜色
+    // 更新GIS要素类型按钮颜色 - 使用NORMAL_COLOR更新背景色
     if (this.isGISMode()) {
       const featureType = this.data.currentFeatureType;
       const pointColor = featureType === 'point' ? 0x0986d4 : 0x2b2d31;
@@ -1286,13 +1286,13 @@ Page({
       const polygonColor = featureType === 'polygon' ? 0x0986d4 : 0x2b2d31;
       
       if (this.data.widgets.featureTypePoint) {
-        this.data.widgets.featureTypePoint.setProperty(prop.COLOR, pointColor);
+        this.data.widgets.featureTypePoint.setProperty(prop.NORMAL_COLOR, pointColor);
       }
       if (this.data.widgets.featureTypeLine) {
-        this.data.widgets.featureTypeLine.setProperty(prop.COLOR, lineColor);
+        this.data.widgets.featureTypeLine.setProperty(prop.NORMAL_COLOR, lineColor);
       }
       if (this.data.widgets.featureTypePolygon) {
-        this.data.widgets.featureTypePolygon.setProperty(prop.COLOR, polygonColor);
+        this.data.widgets.featureTypePolygon.setProperty(prop.NORMAL_COLOR, polygonColor);
       }
     }
     
@@ -1725,12 +1725,12 @@ Page({
 
     // ===== GIS模式：要素类型切换按钮 =====
     let featureTypeBtnY = coordY + coordHeight;
-    const featureTypeBtnHeight = px(35);
+    const featureTypeBtnHeight = px(42); // 增大按钮高度
     
     if (this.isGISMode()) {
       const pageInstance = this;
-      const btnWidth = px(70);
-      const btnSpacing = px(5);
+      const btnWidth = px(85); // 增大按钮宽度
+      const btnSpacing = px(8); // 增大按钮间距
       const totalBtnWidth = btnWidth * 3 + btnSpacing * 2;
       const startX = (width - totalBtnWidth) / 2;
       
@@ -1740,11 +1740,11 @@ Page({
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
-        radius: px(17),
+        radius: px(21), // 增大圆角
         normal_color: this.data.currentFeatureType === 'point' ? 0x0986d4 : 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_point') || '点',
-        text_size: px(16),
+        text_size: px(18), // 增大字体
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'point';
@@ -1758,11 +1758,11 @@ Page({
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
-        radius: px(17),
+        radius: px(21),
         normal_color: this.data.currentFeatureType === 'line' ? 0x0986d4 : 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_line') || '线',
-        text_size: px(16),
+        text_size: px(18),
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'line';
@@ -1776,11 +1776,11 @@ Page({
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
-        radius: px(17),
+        radius: px(21),
         normal_color: this.data.currentFeatureType === 'polygon' ? 0x0986d4 : 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_polygon') || '面',
-        text_size: px(16),
+        text_size: px(18),
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'polygon';
