@@ -111,14 +111,14 @@ Page(
         text_style: text_style.WRAP
       });
 
-      // 二维码 - 减小尺寸，紧凑显示
+      // 二维码 - 紧凑显示，白色背景只包裹二维码
       const qrcodeUrl = 'https://github.com/HaohanHe/HAMGIS-drop/releases';
-      const qrcodeSize = px(90); // 进一步减小二维码尺寸
+      const qrcodeSize = px(85);
       const qrcodeX = centerX - qrcodeSize / 2;
-      const qrcodeY = px(145); // 调整位置
+      const qrcodeY = px(135);
+      const padding = px(3);
       
-      // 二维码白色背景 - 只包裹二维码本身，很小的内边距
-      const padding = px(4);
+      // 白色背景 - 只包裹二维码
       createWidget(widget.FILL_RECT, {
         x: qrcodeX - padding,
         y: qrcodeY - padding,
@@ -127,7 +127,7 @@ Page(
         color: 0xffffff
       });
       
-      // 二维码组件 - 不设置bg_color，使用上面的FILL_RECT作为背景
+      // 二维码
       createWidget(widget.QRCODE, {
         x: qrcodeX,
         y: qrcodeY,
@@ -136,17 +136,18 @@ Page(
         content: qrcodeUrl
       });
       
-      // 按钮 - 居中显示，在二维码下方
-      const buttonWidth = px(120); // 减小按钮宽度
-      const buttonHeight = px(44); // 减小按钮高度
+      // 按钮 - 在白色区域外
+      const buttonWidth = px(110);
+      const buttonHeight = px(42);
+      const buttonY = qrcodeY + qrcodeSize + px(25); // 白色区域下方
       createWidget(widget.BUTTON, {
         x: centerX - buttonWidth / 2,
-        y: qrcodeY + qrcodeSize + px(40), // 调整间距
+        y: buttonY,
         w: buttonWidth, h: buttonHeight,
-        radius: px(22),
+        radius: px(21),
         normal_color: 0x0077cc,
         press_color: 0x0055aa,
-        text: getText('start') || "Start",
+        text: getText('start') || "开始",
         color: 0xffffff,
         click_func: () => {
           this.startExport();

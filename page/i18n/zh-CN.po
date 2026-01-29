@@ -451,3 +451,14 @@ msgstr "暂无要素"
 
 msgid "longPressToFinishProject"
 msgstr "长按完成项目"
+
+# 导出页面 - GIS数据
+msgid "gisDataReady"
+msgstr "GIS数据就绪：%d个要素，%d个点"
+
+# 面积单位
+msgid "squareMile"
+msgstr "平方英里"
+
+msgid "acre"
+msgstr "英亩"
