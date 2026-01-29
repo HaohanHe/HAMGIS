@@ -158,7 +158,8 @@ Page({
    */
   buildProjectSummary(width, isRoundScreen) {
     const startY = isRoundScreen ? px(100) : px(70);
-    const cardHeight = px(250); // Increased height for better spacing
+    const isGISProject = this.data.project.recordType === 'gis_project';
+    const cardHeight = isGISProject ? px(200) : px(250); // GIS项目卡片稍矮
     const cardX = isRoundScreen ? px(40) : px(10);
     const cardW = isRoundScreen ? width - px(80) : width - px(20);
     
@@ -202,85 +203,121 @@ Page({
       text: statusText
     });
     
-    // Row 2: Points & Area
-    createWidget(widget.TEXT, {
-      x: cardX + px(15),
-      y: startY + px(45),
-      w: cardW - px(30),
-      h: px(20),
-      color: 0xcccccc,
-      text_size: px(14),
-      align_h: align.LEFT,
-      text: `📍 ${getText('points') || '点数'}: ${this.data.project.pointCount}${getText('individual') || '个'}`
-    });
-    
-    // Row 3: Area - 根据保存的单位显示
-    const area = this.data.project.area;
-    const primaryUnit = this.data.project.primaryUnit || 'mu'; // 默认使用亩
-    let areaValue, areaUnit;
-    
-    switch (primaryUnit) {
-      case 'hectare':
-        areaValue = area.hectares !== undefined ? area.hectares : (area.squareMeters * 0.0001);
-        areaUnit = getText('hectare') || '公顷';
-        break;
-      case 'acre':
-        areaValue = area.acres !== undefined ? area.acres : (area.squareMeters * 0.000247105);
-        areaUnit = getText('acre') || '英亩';
-        break;
-      case 'squareMile':
-        areaValue = area.squareMiles !== undefined ? area.squareMiles : (area.squareMeters * 3.861e-7);
-        areaUnit = getText('squareMile') || '平方英里';
-        break;
-      default: // 'mu'
-        areaValue = area.mu !== undefined ? area.mu : (area.squareMeters * 0.0015);
-        areaUnit = getText('mu') || '亩';
-    }
-    
-    const areaText = `📐 ${getText('area') || '面积'}: ${areaValue.toFixed(2)}${areaUnit} (${area.squareMeters.toFixed(0)}㎡)`;
-    createWidget(widget.TEXT, {
-      x: cardX + px(15),
-      y: startY + px(70),
-      w: cardW - px(30),
-      h: px(20),
-      color: 0x80caff,
-      text_size: px(14),
-      align_h: align.LEFT,
-      text: areaText
-    });
-    
-    // Row 4: Perimeter & Accuracy
-    createWidget(widget.TEXT, {
-      x: cardX + px(15),
-      y: startY + px(95),
-      w: cardW - px(30),
-      h: px(20),
-      color: 0x88ccff,
-      text_size: px(12),
-      align_h: align.LEFT,
-      text: `${getText('perimeter') || '周长'}: ${this.data.project.perimeter.toFixed(1)}m`
-    });
+    if (isGISProject) {
+      // GIS项目显示要素统计
+      const fc = this.data.project.featureCount || { point: 0, line: 0, polygon: 0 };
+      const totalPoints = this.data.project.totalPoints || 0;
+      
+      // Row 2: 要素统计
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(45),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0xcccccc,
+        text_size: px(14),
+        align_h: align.LEFT,
+        text: `📊 要素: 点×${fc.point} 线×${fc.line} 面×${fc.polygon}`
+      });
+      
+      // Row 3: 总点数
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(70),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0x80caff,
+        text_size: px(14),
+        align_h: align.LEFT,
+        text: `📍 总点数: ${totalPoints}${getText('individual') || '个'}`
+      });
+      
+    } else {
+      // 测面积项目显示面积信息
+      // Row 2: Points & Area
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(45),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0xcccccc,
+        text_size: px(14),
+        align_h: align.LEFT,
+        text: `📍 ${getText('points') || '点数'}: ${this.data.project.pointCount}${getText('individual') || '个'}`
+      });
+      
+      // Row 3: Area - 根据保存的单位显示
+      const area = this.data.project.area;
+      const primaryUnit = this.data.project.primaryUnit || 'mu'; // 默认使用亩
+      let areaValue, areaUnit;
+      
+      switch (primaryUnit) {
+        case 'hectare':
+          areaValue = area.hectares !== undefined ? area.hectares : (area.squareMeters * 0.0001);
+          areaUnit = getText('hectare') || '公顷';
+          break;
+        case 'acre':
+          areaValue = area.acres !== undefined ? area.acres : (area.squareMeters * 0.000247105);
+          areaUnit = getText('acre') || '英亩';
+          break;
+        case 'squareMile':
+          areaValue = area.squareMiles !== undefined ? area.squareMiles : (area.squareMeters * 3.861e-7);
+          areaUnit = getText('squareMile') || '平方英里';
+          break;
+        default: // 'mu'
+          areaValue = area.mu !== undefined ? area.mu : (area.squareMeters * 0.0015);
+          areaUnit = getText('mu') || '亩';
+      }
+      
+      const areaText = `📐 ${getText('area') || '面积'}: ${areaValue.toFixed(2)}${areaUnit} (${area.squareMeters.toFixed(0)}㎡)`;
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(70),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0x80caff,
+        text_size: px(14),
+        align_h: align.LEFT,
+        text: areaText
+      });
+      
+      // Row 4: Perimeter & Accuracy
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(95),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0x88ccff,
+        text_size: px(12),
+        align_h: align.LEFT,
+        text: `${getText('perimeter') || '周长'}: ${this.data.project.perimeter.toFixed(1)}m`
+      });
 
-    createWidget(widget.TEXT, {
-      x: cardX + px(15),
-      y: startY + px(115),
-      w: cardW - px(30),
-      h: px(20),
-      color: 0x666666,
-      text_size: px(11),
-      align_h: align.LEFT,
-      text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m`
-    });
+      createWidget(widget.TEXT, {
+        x: cardX + px(15),
+        y: startY + px(115),
+        w: cardW - px(30),
+        h: px(20),
+        color: 0x666666,
+        text_size: px(11),
+        align_h: align.LEFT,
+        text: `${getText('accuracy') || '精度'}: ±${this.data.project.accuracy}m`
+      });
+    }
     
     // Buttons Area
     const btnWidth = px(140);
     const btnHeight = px(36);
     const btnRadius = px(18);
     
+    // 根据项目类型调整按钮位置
+    const viewMapBtnY = isGISProject ? startY + px(100) : startY + px(150);
+    const exportBtnY = isGISProject ? startY + px(145) : startY + px(195);
+    
     // View Map Button
     createWidget(widget.BUTTON, {
       x: cardX + (cardW - btnWidth) / 2,
-      y: startY + px(150),
+      y: viewMapBtnY,
       w: btnWidth,
       h: btnHeight,
       radius: btnRadius,
@@ -305,7 +342,7 @@ Page({
     // Export Button
     createWidget(widget.BUTTON, {
       x: cardX + (cardW - btnWidth) / 2,
-      y: startY + px(195), // More spacing
+      y: exportBtnY,
       w: btnWidth,
       h: btnHeight,
       radius: btnRadius,
@@ -319,19 +356,36 @@ Page({
           const { push } = require('@zos/router');
           
           if (this.data.project) {
-            // 验证数据完整性
-            if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
-              logger.error("项目数据缺少 points 数组，无法导出");
-              return;
-            }
+            // 验证数据完整性 - 根据项目类型验证
+            const isGISProject = this.data.project.recordType === 'gis_project';
             
-            if (this.data.project.points.length === 0) {
-              logger.error("项目 points 数组为空，无法导出");
-              return;
+            if (isGISProject) {
+              // GIS项目验证 features 数组
+              if (!this.data.project.features || !Array.isArray(this.data.project.features)) {
+                logger.error("GIS项目数据缺少 features 数组，无法导出");
+                return;
+              }
+              if (this.data.project.features.length === 0) {
+                logger.error("GIS项目 features 数组为空，无法导出");
+                return;
+              }
+            } else {
+              // 测面积项目验证 points 数组
+              if (!this.data.project.points || !Array.isArray(this.data.project.points)) {
+                logger.error("项目数据缺少 points 数组，无法导出");
+                return;
+              }
+              if (this.data.project.points.length === 0) {
+                logger.error("项目 points 数组为空，无法导出");
+                return;
+              }
             }
             
             const dataStr = JSON.stringify(this.data.project);
-            logger.info(`Saving project to storage, length: ${dataStr.length}, points: ${this.data.project.points.length}`);
+            const dataCount = isGISProject ? 
+              this.data.project.features.length : 
+              this.data.project.points.length;
+            logger.info(`Saving project to storage, length: ${dataStr.length}, ${isGISProject ? 'features' : 'points'}: ${dataCount}`);
             logger.info(`Project name: ${this.data.project.name}, timestamp: ${this.data.project.timestamp}`);
             localStorage.setItem('hamgis_export_data', dataStr);
             
@@ -366,6 +420,16 @@ Page({
     const cardX = isRoundScreen ? px(40) : px(10);
     const cardW = isRoundScreen ? width - px(80) : width - px(20);
     
+    // 判断是否为GIS项目
+    const isGISProject = this.data.project?.recordType === 'gis_project';
+    
+    if (isGISProject) {
+      // GIS项目显示要素列表
+      this.buildGISFeaturesTable(width, height, isRoundScreen, cardX, cardW);
+      return;
+    }
+    
+    // 测面积项目显示点位列表
     const points = this.data.project?.points || [];
     
     // 计算表格所需高度
@@ -397,8 +461,10 @@ Page({
     }
     
     // 计算页面总高度（从项目摘要结束位置开始）
-    // Summary Card: Y = 100/70, Height = 250
-    const summaryEndY = (isRoundScreen ? px(100) : px(70)) + px(250);
+    // Summary Card: Y = 100/70, Height = 250/200
+    const isGIS = this.data.project?.recordType === 'gis_project';
+    const summaryCardHeight = isGIS ? px(200) : px(250);
+    const summaryEndY = (isRoundScreen ? px(100) : px(70)) + summaryCardHeight;
     const startY = summaryEndY + px(20);
     const totalHeight = startY + titleHeight + spacing + tableHeight + spacing + px(20);
     
@@ -588,6 +654,239 @@ Page({
     });
     
     logger.debug(`点详情表格创建完成，显示${visiblePoints.length}/${points.length}个点，总高度: ${totalHeight}px`);
+  },
+  
+  /**
+   * 构建GIS项目要素列表表格
+   */
+  buildGISFeaturesTable(width, height, isRoundScreen, cardX, cardW) {
+    const features = this.data.project?.features || [];
+    
+    // 计算表格所需高度
+    const rowHeight = px(35);
+    const headerHeight = px(35);
+    const titleHeight = px(25);
+    const spacing = px(10);
+    
+    let tableHeight = 0;
+    let visibleFeatures = [];
+    
+    if (features.length === 0) {
+      // 无数据时的高度
+      tableHeight = px(80);
+    } else {
+      // 计算完整表格高度
+      const fullTableHeight = headerHeight + features.length * rowHeight;
+      
+      // 检查是否需要滚动（圆屏）
+      if (isRoundScreen && fullTableHeight > px(300)) {
+        // 限制最大显示高度，其余滚动
+        const maxRows = Math.floor(px(300) / rowHeight);
+        visibleFeatures = features.slice(0, maxRows);
+        tableHeight = headerHeight + visibleFeatures.length * rowHeight;
+      } else {
+        visibleFeatures = features;
+        tableHeight = fullTableHeight;
+      }
+    }
+    
+    // 计算页面总高度（从项目摘要结束位置开始）
+    const summaryEndY = (isRoundScreen ? px(100) : px(70)) + px(200); // GIS项目卡片高度为200
+    const startY = summaryEndY + px(20);
+    const totalHeight = startY + titleHeight + spacing + tableHeight + spacing + px(20);
+    
+    // 表格起始位置
+    const tableStartY = startY;
+    
+    // 标题
+    createWidget(widget.TEXT, {
+      x: cardX,
+      y: tableStartY,
+      w: cardW,
+      h: titleHeight,
+      color: 0xffffff,
+      text_size: px(16),
+      align_h: align.LEFT,
+      text_style: text_style.BOLD,
+      text: `📊 ${getText('featureList') || '要素列表'}`
+    });
+    
+    if (features.length === 0) {
+      // 无数据提示
+      createWidget(widget.TEXT, {
+        x: cardX,
+        y: tableStartY + titleHeight + spacing,
+        w: cardW,
+        h: tableHeight,
+        color: 0x666666,
+        text_size: px(14),
+        align_h: align.CENTER_H,
+        align_v: align.CENTER_V,
+        text: getText('noFeatures') || '暂无要素数据'
+      });
+    } else {
+      // 表格背景
+      createWidget(widget.FILL_RECT, {
+        x: cardX,
+        y: tableStartY + titleHeight + spacing,
+        w: cardW,
+        h: tableHeight,
+        radius: px(16),
+        color: 0x1c1b1f
+      });
+      
+      // 表头
+      const headerY = tableStartY + titleHeight + spacing + px(5);
+      const colWidths = isRoundScreen ?
+        [px(60), px(80), px(100), px(80)] :
+        [px(50), px(70), px(90), px(70)];
+      
+      const colX = [
+        cardX + px(5),
+        cardX + px(5) + colWidths[0],
+        cardX + px(5) + colWidths[0] + colWidths[1],
+        cardX + px(5) + colWidths[0] + colWidths[1] + colWidths[2]
+      ];
+      
+      // 表头背景
+      createWidget(widget.FILL_RECT, {
+        x: cardX + px(2),
+        y: headerY - px(2),
+        w: cardW - px(4),
+        h: px(30),
+        radius: px(12),
+        color: 0x2b2d31
+      });
+      
+      // 表头文字
+      const headers = [
+        getText('type') || '类型', 
+        getText('featureName') || '名称', 
+        getText('pointCount') || '点数', 
+        getText('length') || '长度'
+      ];
+      headers.forEach((header, i) => {
+        createWidget(widget.TEXT, {
+          x: colX[i],
+          y: headerY,
+          w: colWidths[i],
+          h: px(26),
+          color: 0xffffff,
+          text_size: px(12),
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.BOLD,
+          text: header
+        });
+      });
+      
+      // 表格数据行
+      visibleFeatures.forEach((feature, index) => {
+        const rowY = headerY + px(30) + index * rowHeight;
+        
+        // 行背景（交替颜色）
+        if (index % 2 === 1) {
+          createWidget(widget.FILL_RECT, {
+            x: cardX + px(2),
+            y: rowY - px(1),
+            w: cardW - px(4),
+            h: rowHeight - px(2),
+            color: 0x25232a
+          });
+        }
+        
+        // 类型
+        const typeText = feature.featureType === 'point' ? '点' : 
+                        feature.featureType === 'line' ? '线' : '面';
+        const typeColor = feature.featureType === 'point' ? 0xff6b6b :
+                         feature.featureType === 'line' ? 0x4ecdc4 : 0x45b7d1;
+        createWidget(widget.TEXT, {
+          x: colX[0],
+          y: rowY,
+          w: colWidths[0],
+          h: rowHeight - px(4),
+          color: typeColor,
+          text_size: px(12),
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text_style: text_style.BOLD,
+          text: typeText
+        });
+        
+        // 名称
+        createWidget(widget.TEXT, {
+          x: colX[1],
+          y: rowY,
+          w: colWidths[1],
+          h: rowHeight - px(4),
+          color: 0xcccccc,
+          text_size: px(11),
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text: feature.featureName || `要素${index + 1}`
+        });
+        
+        // 点数
+        const pointCount = feature.featureType === 'point' ? 1 : 
+                          (feature.coords?.length || 0);
+        createWidget(widget.TEXT, {
+          x: colX[2],
+          y: rowY,
+          w: colWidths[2],
+          h: rowHeight - px(4),
+          color: this.data.highContrast ? 0xffffff : 0x88ccff,
+          text_size: px(12),
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text: `${pointCount}`
+        });
+        
+        // 长度/面积
+        let lengthText = '--';
+        if (feature.featureType === 'line') {
+          lengthText = feature.length ? `${feature.length.toFixed(1)}m` : '--';
+        } else if (feature.featureType === 'polygon') {
+          lengthText = feature.perimeter ? `${feature.perimeter.toFixed(1)}m` : '--';
+        }
+        createWidget(widget.TEXT, {
+          x: colX[3],
+          y: rowY,
+          w: colWidths[3],
+          h: rowHeight - px(4),
+          color: 0xffaa00,
+          text_size: px(11),
+          align_h: align.CENTER_H,
+          align_v: align.CENTER_V,
+          text: lengthText
+        });
+      });
+      
+      // 如果有更多数据，显示提示
+      if (features.length > visibleFeatures.length) {
+        const showingText = `显示前${visibleFeatures.length}个要素，共${features.length}个`;
+        createWidget(widget.TEXT, {
+          x: cardX,
+          y: tableStartY + titleHeight + spacing + tableHeight + px(5),
+          w: cardW,
+          h: px(15),
+          color: 0x888888,
+          text_size: px(10),
+          align_h: align.CENTER_H,
+          text: showingText
+        });
+      }
+    }
+    
+    // 底部空白区域
+    createWidget(widget.FILL_RECT, {
+      x: 0,
+      y: totalHeight,
+      w: width,
+      h: px(150),
+      color: 0x0a0a0a
+    });
+    
+    logger.debug(`GIS要素表格创建完成，显示${visibleFeatures.length}/${features.length}个要素，总高度: ${totalHeight}px`);
   },
   
   /**

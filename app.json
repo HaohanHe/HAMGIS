@@ -177,7 +177,10 @@
       "polygonFeature": "Polygon Feature",
       "featureCount": "Features",
       "currentFeature": "Current",
-      "longPressToFinishProject": "Long press to finish project"
+      "longPressToFinishProject": "Long press to finish project",
+      "featureList": "Feature List",
+      "featureName": "Name",
+      "noFeatures": "No features"
     },
     "zh-CN": {
       "appName": "HAMGIS测亩",
@@ -296,7 +299,10 @@
       "polygonFeature": "面要素",
       "featureCount": "已采集",
       "currentFeature": "当前",
-      "longPressToFinishProject": "长按完成项目"
+      "longPressToFinishProject": "长按完成项目",
+      "featureList": "要素列表",
+      "featureName": "名称",
+      "noFeatures": "暂无要素"
     },
     "ja-JP": {
       "appName": "HAMGIS",
@@ -415,7 +421,10 @@
       "polygonFeature": "面要素",
       "featureCount": "収集済み",
       "currentFeature": "現在",
-      "longPressToFinishProject": "長押しでプロジェクト完了"
+      "longPressToFinishProject": "長押しでプロジェクト完了",
+      "featureList": "要素リスト",
+      "featureName": "名称",
+      "noFeatures": "要素なし"
     }
   },
   "defaultLanguage": "en-US"
