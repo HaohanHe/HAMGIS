@@ -1278,22 +1278,9 @@ Page({
       this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
     }
     
-    // 更新GIS要素类型按钮颜色 - 使用NORMAL_COLOR更新背景色
+    // 更新GIS要素类型按钮 - 重新创建以更新颜色
     if (this.isGISMode()) {
-      const featureType = this.data.currentFeatureType;
-      const pointColor = featureType === 'point' ? 0x0986d4 : 0x2b2d31;
-      const lineColor = featureType === 'line' ? 0x0986d4 : 0x2b2d31;
-      const polygonColor = featureType === 'polygon' ? 0x0986d4 : 0x2b2d31;
-      
-      if (this.data.widgets.featureTypePoint) {
-        this.data.widgets.featureTypePoint.setProperty(prop.NORMAL_COLOR, pointColor);
-      }
-      if (this.data.widgets.featureTypeLine) {
-        this.data.widgets.featureTypeLine.setProperty(prop.NORMAL_COLOR, lineColor);
-      }
-      if (this.data.widgets.featureTypePolygon) {
-        this.data.widgets.featureTypePolygon.setProperty(prop.NORMAL_COLOR, polygonColor);
-      }
+      this.rebuildFeatureTypeButtons();
     }
     
     // 更新点数 - 圆屏需要简化显示
@@ -2354,5 +2341,102 @@ Page({
         logger.error(`停止震动失败: ${e}`);
       }
     }
+  },
+  
+  // 重新创建GIS要素类型按钮（用于更新按钮颜色状态）
+  rebuildFeatureTypeButtons() {
+    if (!this.isGISMode()) return;
+    
+    const deviceInfo = getDeviceInfo();
+    const { width } = deviceInfo;
+    const pageInstance = this;
+    
+    // 删除旧按钮
+    if (this.data.widgets.featureTypePoint) {
+      try {
+        this.data.widgets.featureTypePoint.setProperty(prop.VISIBLE, false);
+        delete this.data.widgets.featureTypePoint;
+      } catch (e) {}
+    }
+    if (this.data.widgets.featureTypeLine) {
+      try {
+        this.data.widgets.featureTypeLine.setProperty(prop.VISIBLE, false);
+        delete this.data.widgets.featureTypeLine;
+      } catch (e) {}
+    }
+    if (this.data.widgets.featureTypePolygon) {
+      try {
+        this.data.widgets.featureTypePolygon.setProperty(prop.VISIBLE, false);
+        delete this.data.widgets.featureTypePolygon;
+      } catch (e) {}
+    }
+    
+    // 计算按钮位置（与build中一致）
+    const gpsBarHeight = px(30);
+    const coordY = gpsBarHeight;
+    const coordHeight = px(35);
+    let featureTypeBtnY = coordY + coordHeight;
+    const featureTypeBtnHeight = px(42);
+    
+    const btnWidth = px(85);
+    const btnSpacing = px(8);
+    const totalBtnWidth = btnWidth * 3 + btnSpacing * 2;
+    const startX = (width - totalBtnWidth) / 2;
+    
+    const featureType = this.data.currentFeatureType;
+    
+    // 重新创建点按钮
+    this.data.widgets.featureTypePoint = createWidget(widget.BUTTON, {
+      x: startX,
+      y: featureTypeBtnY,
+      w: btnWidth,
+      h: featureTypeBtnHeight,
+      radius: px(21),
+      normal_color: featureType === 'point' ? 0x0986d4 : 0x2b2d31,
+      press_color: 0x0061a4,
+      text: getText('mode_point') || '点',
+      text_size: px(18),
+      color: 0xffffff,
+      click_func: () => {
+        pageInstance.data.currentFeatureType = 'point';
+        pageInstance.updateUI();
+      }
+    });
+    
+    // 重新创建线按钮
+    this.data.widgets.featureTypeLine = createWidget(widget.BUTTON, {
+      x: startX + btnWidth + btnSpacing,
+      y: featureTypeBtnY,
+      w: btnWidth,
+      h: featureTypeBtnHeight,
+      radius: px(21),
+      normal_color: featureType === 'line' ? 0x0986d4 : 0x2b2d31,
+      press_color: 0x0061a4,
+      text: getText('mode_line') || '线',
+      text_size: px(18),
+      color: 0xffffff,
+      click_func: () => {
+        pageInstance.data.currentFeatureType = 'line';
+        pageInstance.updateUI();
+      }
+    });
+    
+    // 重新创建面按钮
+    this.data.widgets.featureTypePolygon = createWidget(widget.BUTTON, {
+      x: startX + (btnWidth + btnSpacing) * 2,
+      y: featureTypeBtnY,
+      w: btnWidth,
+      h: featureTypeBtnHeight,
+      radius: px(21),
+      normal_color: featureType === 'polygon' ? 0x0986d4 : 0x2b2d31,
+      press_color: 0x0061a4,
+      text: getText('mode_polygon') || '面',
+      text_size: px(18),
+      color: 0xffffff,
+      click_func: () => {
+        pageInstance.data.currentFeatureType = 'polygon';
+        pageInstance.updateUI();
+      }
+    });
   }
 });

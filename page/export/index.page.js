@@ -113,12 +113,12 @@ Page(
 
       // 二维码 - 减小尺寸，紧凑显示
       const qrcodeUrl = 'https://github.com/HaohanHe/HAMGIS-drop/releases';
-      const qrcodeSize = px(100); // 减小二维码尺寸
+      const qrcodeSize = px(90); // 进一步减小二维码尺寸
       const qrcodeX = centerX - qrcodeSize / 2;
-      const qrcodeY = px(140); // 调整位置
+      const qrcodeY = px(145); // 调整位置
       
-      // 二维码白色背景 - 只包裹二维码本身
-      const padding = px(8);
+      // 二维码白色背景 - 只包裹二维码本身，很小的内边距
+      const padding = px(4);
       createWidget(widget.FILL_RECT, {
         x: qrcodeX - padding,
         y: qrcodeY - padding,
@@ -127,14 +127,13 @@ Page(
         color: 0xffffff
       });
       
+      // 二维码组件 - 不设置bg_color，使用上面的FILL_RECT作为背景
       createWidget(widget.QRCODE, {
         x: qrcodeX,
         y: qrcodeY,
         w: qrcodeSize,
         h: qrcodeSize,
-        content: qrcodeUrl,
-        bg_color: 0xffffff, // 设置二维码背景为白色
-        fg_color: 0x000000  // 设置二维码前景为黑色
+        content: qrcodeUrl
       });
       
       // 按钮 - 居中显示，在二维码下方
