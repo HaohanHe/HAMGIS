@@ -538,17 +538,10 @@ Page({
     
     this.data.isAutoCollecting = true;
     
-    // 更新按钮状态
+    // 更新按钮文本（颜色在创建时已设置，避免prop.MORE长度限制问题）
     if (this.data.widgets.collectBtn) {
       const stopText = getText('stopCollect') || "停止采集";
       this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, stopText);
-      
-      // 直接设置按钮颜色，不获取当前值比较
-      const newMore = {
-        normal_color: 0xb3261e, // Red
-        press_color: 0x8c1d18
-      };
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 立即采集一次
@@ -574,17 +567,10 @@ Page({
       this.data.autoCollectTimer = null;
     }
     
-    // 更新按钮状态
+    // 更新按钮文本（颜色在创建时已设置，避免prop.MORE长度限制问题）
     if (this.data.widgets.collectBtn) {
       const startText = getText('startCollect') || "开始采集";
       this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, startText);
-      
-      // 直接设置按钮颜色，不获取当前值比较
-      const newMore = {
-        normal_color: 0x0986d4, // Blue
-        press_color: 0x0061a4
-      };
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 减少日志输出
@@ -1753,19 +1739,8 @@ Page({
       // 如果是点模式且不是自动采集，显示“记录点位”可能更合适，但保持一致性也行
       // 这里不做特殊文字修改，保持“采集点”
       
-      // 使用safeSetProperty来避免频繁调用
+      // 只更新按钮文本，不更新颜色（避免prop.MORE长度限制问题）
       this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, btnText);
-      
-      // 直接设置按钮颜色，不获取当前值比较
-      const normalColor = canCollect ? 0x00aaff : 0x333333;
-      const pressColor = canCollect ? 0x0066cc : 0x222222;
-      
-      // 直接创建新对象，避免长度超过限制
-      const newMore = {
-        normal_color: normalColor,
-        press_color: pressColor
-      };
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 完成按钮状态
@@ -1815,16 +1790,7 @@ Page({
       try {
         this.data.widgets.finishBtn.setEnable(canFinish);
       } catch (e) {
-        // 降级方案：通过颜色变化表示状态
-        const normalColor = canFinish ? 0x30d158 : 0x333333;
-        const pressColor = canFinish ? 0x2daf4d : 0x222222;
-        
-        // 直接创建新对象，避免长度超过限制
-        const newMore = {
-          normal_color: normalColor,
-          press_color: pressColor
-        };
-        this.safeSetProperty(this.data.widgets.finishBtn, prop.MORE, newMore);
+        // setEnable 失败，但不通过颜色变化表示状态（避免prop.MORE长度限制问题）
       }
     }
     
@@ -1834,16 +1800,7 @@ Page({
       try {
         this.data.widgets.undoBtn.setEnable(canUndo);
       } catch (e) {
-        // 降级方案：通过颜色变化表示状态
-        const normalColor = canUndo ? 0xff5e57 : 0x333333;
-        const pressColor = canUndo ? 0xcc0000 : 0x222222;
-        
-        // 直接创建新对象，避免长度超过限制
-        const newMore = {
-          normal_color: normalColor,
-          press_color: pressColor
-        };
-        this.safeSetProperty(this.data.widgets.undoBtn, prop.MORE, newMore);
+        // setEnable 失败，但不通过颜色变化表示状态（避免prop.MORE长度限制问题）
       }
       // Update text color for undo btn based on high contrast
       this.safeSetProperty(this.data.widgets.undoBtn, prop.COLOR, highlightColor);
