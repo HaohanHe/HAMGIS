@@ -291,7 +291,99 @@ Page({
     
     // 缓存单位信息，避免频繁读取localStorage
     cachedUnit: null,
-    cachedUnitInfo: null
+    cachedUnitInfo: null,
+    
+    // Widget属性值缓存，避免频繁的getProperty和setProperty调用
+    widgetPropertyCache: {}
+  },
+
+  // 安全的setProperty包装函数，增强widget存在性检查和错误处理
+  safeSetProperty(widgetObj, property, value) {
+    try {
+      if (!widgetObj) {
+        return false;
+      }
+      
+      // 创建widget的唯一标识符
+      const widgetId = widgetObj.toString();
+      const cacheKey = `${widgetId}_${property}`;
+      
+      // 检查缓存值是否相同，避免不必要的setProperty调用
+      if (this.data.widgetPropertyCache[cacheKey] === value) {
+        return true;
+      }
+      
+      // 对于 prop.MORE 对象，检查长度是否超过限制
+      if (property === prop.MORE && typeof value === 'object') {
+        const valueStr = JSON.stringify(value);
+        if (valueStr.length > 300) {
+          logger.warn(`prop.MORE 对象长度超过限制: ${valueStr.length}`);
+          return false;
+        }
+      }
+      
+      // 更新widget属性
+      widgetObj.setProperty(property, value);
+      
+      // 更新缓存
+      this.data.widgetPropertyCache[cacheKey] = value;
+      
+      return true;
+    } catch (e) {
+      logger.warn(`setProperty失败: ${property} = ${value}, 错误: ${e}`);
+      return false;
+    }
+  },
+
+  // 安全的getProperty包装函数，增强widget存在性检查和错误处理
+  safeGetProperty(widgetObj, property, defaultValue) {
+    try {
+      if (!widgetObj) {
+        return defaultValue;
+      }
+      
+      // 创建widget的唯一标识符
+      const widgetId = widgetObj.toString();
+      const cacheKey = `${widgetId}_${property}`;
+      
+      // 检查缓存
+      if (this.data.widgetPropertyCache[cacheKey] !== undefined) {
+        return this.data.widgetPropertyCache[cacheKey];
+      }
+      
+      // 获取属性值
+      const value = widgetObj.getProperty(property);
+      
+      // 更新缓存
+      this.data.widgetPropertyCache[cacheKey] = value;
+      
+      return value;
+    } catch (e) {
+      logger.warn(`getProperty失败: ${property}, 错误: ${e}`);
+      return defaultValue;
+    }
+  },
+
+  // 清除widget属性缓存
+  clearWidgetPropertyCache(widgetObj, property) {
+    if (!widgetObj) {
+      return;
+    }
+    
+    const widgetId = widgetObj.toString();
+    
+    if (property) {
+      // 清除特定属性的缓存
+      const cacheKey = `${widgetId}_${property}`;
+      delete this.data.widgetPropertyCache[cacheKey];
+    } else {
+      // 清除该widget的所有缓存
+      Object.keys(this.data.widgetPropertyCache).forEach(key => {
+        if (key.startsWith(widgetId)) {
+          delete this.data.widgetPropertyCache[key];
+        }
+      });
+    }
   },
 
   // 获取应用模式
@@ -341,7 +433,15 @@ Page({
             this.data.gpsStatus = 'permission_denied';
             logger.warn('GPS权限被关闭');
           }
-          this.updateUI();
+          // 只在GPS状态变化时更新UI，避免频繁调用
+            if (this.data.lastGPSStatus !== this.data.gpsStatus) {
+              this.data.lastGPSStatus = this.data.gpsStatus;
+              // 只在GPS状态变化时更新UI，避免频繁调用
+      if (this.data.lastGPSStatus !== this.data.gpsStatus) {
+        this.data.lastGPSStatus = this.data.gpsStatus;
+        this.updateUI();
+      }
+            }
         });
       }
       
@@ -407,7 +507,11 @@ Page({
         }
       }
       
-      this.updateUI();
+      // 只在GPS状态变化时更新UI，避免频繁调用
+      if (this.data.lastGPSStatus !== this.data.gpsStatus) {
+        this.data.lastGPSStatus = this.data.gpsStatus;
+        this.updateUI();
+      }
     } catch (e) {
       logger.error(`更新GPS位置失败: ${e}`);
       this.data.gpsStatus = 'error';
@@ -435,12 +539,15 @@ Page({
     
     // 更新按钮状态
     if (this.data.widgets.collectBtn) {
-      this.data.widgets.collectBtn.setProperty(prop.TEXT, getText('stopCollect') || "停止采集");
-      this.data.widgets.collectBtn.setProperty(prop.MORE, {
-        ...this.data.widgets.collectBtn.getProperty(prop.MORE),
+      const stopText = getText('stopCollect') || "停止采集";
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, stopText);
+      
+      // 直接设置按钮颜色，不获取当前值比较
+      const newMore = {
         normal_color: 0xb3261e, // Red
         press_color: 0x8c1d18
-      });
+      };
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 立即采集一次
@@ -468,12 +575,15 @@ Page({
     
     // 更新按钮状态
     if (this.data.widgets.collectBtn) {
-      this.data.widgets.collectBtn.setProperty(prop.TEXT, getText('startCollect') || "开始采集");
-      this.data.widgets.collectBtn.setProperty(prop.MORE, {
-        ...this.data.widgets.collectBtn.getProperty(prop.MORE),
+      const startText = getText('startCollect') || "开始采集";
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, startText);
+      
+      // 直接设置按钮颜色，不获取当前值比较
+      const newMore = {
         normal_color: 0x0986d4, // Blue
         press_color: 0x0061a4
-      });
+      };
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 减少日志输出
@@ -486,9 +596,9 @@ Page({
       // 显示提示
       if (this.data.widgets.statusTip) {
         const weakSignalText = getText('weakSignal') || '信号弱';
-        const moveOpenText = getText('moveToOpenArea') || '请移动到开阔地带';
-        this.data.widgets.statusTip.setProperty(prop.TEXT, `${weakSignalText}，${moveOpenText}`);
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+      const moveOpenText = getText('moveToOpenArea') || '请移动到开阔地带';
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${weakSignalText}，${moveOpenText}`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
     }
@@ -543,8 +653,8 @@ Page({
         
         // 显示提示
         if (this.data.widgets.statusTip) {
-          this.data.widgets.statusTip.setProperty(prop.TEXT, `${getText('featureSaved') || '要素已保存'}: ${pointFeature.featureName}`);
-          this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+          this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${getText('featureSaved') || '要素已保存'}: ${pointFeature.featureName}`);
+          this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
         }
         
         logger.debug(`GIS点要素已保存: ${pointFeature.featureName}`);
@@ -734,8 +844,8 @@ Page({
       // 显示提示
       if (this.data.widgets.statusTip) {
         const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
-        this.data.widgets.statusTip.setProperty(prop.TEXT, msg.replace('%d', '3'));
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, msg.replace('%d', '3'));
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
     }
@@ -751,8 +861,8 @@ Page({
       const unitText = getText('mu') || '亩';
       const infoText = ` ${areaInMu}${unitText}`;
       
-      this.data.widgets.statusTip.setProperty(prop.TEXT, `${this.data.currentFieldName}${savedText}${infoText}`);
-      this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${this.data.currentFieldName}${savedText}${infoText}`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
     
     // 震动反馈（长震动表示完成）
@@ -793,8 +903,8 @@ Page({
     // 点要素在采集时就已保存，这里只处理线/面
     if (featureType === 'point') {
       if (this.data.widgets.statusTip) {
-        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('pointFeature') || '点要素已自动保存');
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('pointFeature') || '点要素已自动保存');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
       }
       return;
     }
@@ -803,8 +913,8 @@ Page({
       logger.warn(`点数不足${minPoints}个，无法完成要素`);
       if (this.data.widgets.statusTip) {
         const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
-        this.data.widgets.statusTip.setProperty(prop.TEXT, msg.replace('%d', minPoints));
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, msg.replace('%d', minPoints));
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
     }
@@ -883,8 +993,8 @@ Page({
     if (this.data.gisFeatures.length === 0) {
       logger.warn("没有要素可导出");
       if (this.data.widgets.statusTip) {
-        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('noFeatures') || '暂无要素');
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || '暂无要素');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
     }
@@ -1431,8 +1541,9 @@ Page({
       const statusText = this.getGPSText();
       const statusColor = this.getGPSColor();
       
-      this.data.widgets.gpsStatus.setProperty(prop.TEXT, statusText);
-      this.data.widgets.gpsStatus.setProperty(prop.COLOR, statusColor);
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.gpsStatus, prop.TEXT, statusText);
+      this.safeSetProperty(this.data.widgets.gpsStatus, prop.COLOR, statusColor);
     }
     
     // 更新坐标显示
@@ -1440,18 +1551,25 @@ Page({
       const coordText = this.data.currentLat && this.data.currentLon
         ? `${this.data.currentLat.toFixed(5)}, ${this.data.currentLon.toFixed(5)}`
         : TEXTS.noGPS;
-      this.data.widgets.coordinates.setProperty(prop.TEXT, coordText);
+      
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.coordinates, prop.TEXT, coordText);
     }
     
     // 更新海拔显示
     if (this.data.widgets.altitudeDisplay) {
       if (this.data.currentAltitude !== null) {
         const altitudeText = `${getText('altitude')}: ${Math.round(this.data.currentAltitude)}m`;
-        this.data.widgets.altitudeDisplay.setProperty(prop.TEXT, altitudeText);
-        this.data.widgets.altitudeDisplay.setProperty(prop.COLOR, altColor);
+        
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.altitudeDisplay, prop.TEXT, altitudeText);
+        this.safeSetProperty(this.data.widgets.altitudeDisplay, prop.COLOR, altColor);
       } else {
-        this.data.widgets.altitudeDisplay.setProperty(prop.TEXT, `${getText('altitude')}: --`);
-        this.data.widgets.altitudeDisplay.setProperty(prop.COLOR, 0x666666);
+        const defaultText = `${getText('altitude')}: --`;
+        
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.altitudeDisplay, prop.TEXT, defaultText);
+        this.safeSetProperty(this.data.widgets.altitudeDisplay, prop.COLOR, 0x666666);
       }
     }
     
@@ -1463,19 +1581,13 @@ Page({
       } else {
         name = this.data.currentFieldName || TEXTS.unnamed;
       }
-      this.data.widgets.fieldName.setProperty(prop.TEXT, name);
-      this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
+      
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.fieldName, prop.TEXT, name);
+      this.safeSetProperty(this.data.widgets.fieldName, prop.COLOR, highlightColor);
     }
     
-    // 更新GIS要素类型按钮 - 只在类型变化时重建，避免频繁操作
-    if (this.isGISMode()) {
-      const currentType = this.data.currentFeatureType;
-      const lastType = this.data.lastFeatureType;
-      if (currentType !== lastType) {
-        this.data.lastFeatureType = currentType;
-        this.rebuildFeatureTypeButtons();
-      }
-    }
+    // GIS要素类型按钮颜色固定，不需要更新
     
     // 更新点数 - 圆屏需要简化显示
     if (this.data.widgets.pointCount) {
@@ -1491,10 +1603,14 @@ Page({
           polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
         };
         const countText = `点×${counts.point} 线×${counts.line} 面×${counts.polygon}`;
-        this.data.widgets.pointCount.setProperty(prop.TEXT, countText);
+        
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
       } else {
         const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || '点数'}: ${this.data.points.length}`;
-        this.data.widgets.pointCount.setProperty(prop.TEXT, pointText);
+        
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, pointText);
       }
     }
     
@@ -1520,11 +1636,12 @@ Page({
         const isRoundScreen = deviceInfo.width >= 480;
         const perimeterText = isRoundScreen ? perimeter : `${label}: ${perimeter}`;
         
-        this.data.widgets.perimeterDisplay.setProperty(prop.TEXT, perimeterText);
-        this.data.widgets.perimeterDisplay.setProperty(prop.COLOR, altColor);
-        this.data.widgets.perimeterDisplay.setProperty(prop.VISIBLE, true);
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.perimeterDisplay, prop.TEXT, perimeterText);
+        this.safeSetProperty(this.data.widgets.perimeterDisplay, prop.COLOR, altColor);
+        this.safeSetProperty(this.data.widgets.perimeterDisplay, prop.VISIBLE, true);
       } else {
-        this.data.widgets.perimeterDisplay.setProperty(prop.VISIBLE, false);
+        this.safeSetProperty(this.data.widgets.perimeterDisplay, prop.VISIBLE, false);
       }
     }
     
@@ -1576,41 +1693,50 @@ Page({
           }
         }
         
-        this.data.widgets.areaDisplay.setProperty(prop.VISIBLE, true);
-        this.data.widgets.areaDisplay.setProperty(prop.TEXT, displayText);
-        this.data.widgets.areaDisplay.setProperty(prop.COLOR, highlightColor);
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.VISIBLE, true);
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.TEXT, displayText);
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.COLOR, highlightColor);
       } else {
         // 普通模式：显示面积
         const currentUnit = this.getCurrentUnit();
         const unitInfo = this.getUnitInfo(currentUnit);
         
+        let displayText = '';
+        
         if (this.data.currentArea > 0) {
           const areaValue = (this.data.currentArea * unitInfo.factor).toFixed(2);
-          const displayText = `${areaValue} ${unitInfo.symbol}`;
-          this.data.widgets.areaDisplay.setProperty(prop.VISIBLE, true);
-          this.data.widgets.areaDisplay.setProperty(prop.TEXT, displayText);
-          this.data.widgets.areaDisplay.setProperty(prop.COLOR, highlightColor);
+          displayText = `${areaValue} ${unitInfo.symbol}`;
         } else {
-          const displayText = `0.00 ${unitInfo.symbol}`;
-          this.data.widgets.areaDisplay.setProperty(prop.VISIBLE, true);
-          this.data.widgets.areaDisplay.setProperty(prop.TEXT, displayText);
-          this.data.widgets.areaDisplay.setProperty(prop.COLOR, highlightColor);
+          displayText = `0.00 ${unitInfo.symbol}`;
         }
+        
+        // 使用safeSetProperty来避免频繁调用
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.VISIBLE, true);
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.TEXT, displayText);
+        this.safeSetProperty(this.data.widgets.areaDisplay, prop.COLOR, highlightColor);
       }
     }
     
     // 更新状态提示
     if (this.data.widgets.statusTip) {
       const statusText = this.getMeasureStatusText();
-      this.data.widgets.statusTip.setProperty(prop.TEXT, statusText);
+      
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, statusText);
+      
       // 根据状态设置颜色
+      let statusColor;
       if (this.data.points.length >= 3) {
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88); // 绿色
+        statusColor = 0x00ff88; // 绿色
       } else if (this.data.points.length > 0) {
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xffaa00); // 黄色
+        statusColor = 0xffaa00; // 黄色
       } else {
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0x888888); // 灰色
+        statusColor = 0x888888; // 灰色
       }
+      
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, statusColor);
     }
     
     // 更新按钮状态
@@ -1626,13 +1752,19 @@ Page({
       // 如果是点模式且不是自动采集，显示“记录点位”可能更合适，但保持一致性也行
       // 这里不做特殊文字修改，保持“采集点”
       
-      this.data.widgets.collectBtn.setProperty(prop.TEXT, btnText);
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, btnText);
       
-      this.data.widgets.collectBtn.setProperty(prop.MORE, {
-        ...this.data.widgets.collectBtn.getProperty(prop.MORE),
-        normal_color: canCollect ? 0x00aaff : 0x333333,
-        press_color: canCollect ? 0x0066cc : 0x222222
-      });
+      // 直接设置按钮颜色，不获取当前值比较
+      const normalColor = canCollect ? 0x00aaff : 0x333333;
+      const pressColor = canCollect ? 0x0066cc : 0x222222;
+      
+      // 直接创建新对象，避免长度超过限制
+      const newMore = {
+        normal_color: normalColor,
+        press_color: pressColor
+      };
+      this.safeSetProperty(this.data.widgets.collectBtn, prop.MORE, newMore);
     }
     
     // 完成按钮状态
@@ -1676,18 +1808,22 @@ Page({
         btnText = getText('finishField') || '完成地块';
       }
       
-      // 更新按钮文本
-      this.data.widgets.finishBtn.setProperty(prop.TEXT, btnText);
+      // 使用safeSetProperty来避免频繁调用
+      this.safeSetProperty(this.data.widgets.finishBtn, prop.TEXT, btnText);
       
       try {
         this.data.widgets.finishBtn.setEnable(canFinish);
       } catch (e) {
         // 降级方案：通过颜色变化表示状态
-        this.data.widgets.finishBtn.setProperty(prop.MORE, {
-          ...this.data.widgets.finishBtn.getProperty(prop.MORE),
-          normal_color: canFinish ? 0x30d158 : 0x333333,
-          press_color: canFinish ? 0x2daf4d : 0x222222
-        });
+        const normalColor = canFinish ? 0x30d158 : 0x333333;
+        const pressColor = canFinish ? 0x2daf4d : 0x222222;
+        
+        // 直接创建新对象，避免长度超过限制
+        const newMore = {
+          normal_color: normalColor,
+          press_color: pressColor
+        };
+        this.safeSetProperty(this.data.widgets.finishBtn, prop.MORE, newMore);
       }
     }
     
@@ -1698,19 +1834,25 @@ Page({
         this.data.widgets.undoBtn.setEnable(canUndo);
       } catch (e) {
         // 降级方案：通过颜色变化表示状态
-        this.data.widgets.undoBtn.setProperty(prop.MORE, {
-          ...this.data.widgets.undoBtn.getProperty(prop.MORE),
-          normal_color: canUndo ? 0xff5e57 : 0x333333,
-          press_color: canUndo ? 0xcc0000 : 0x222222
-        });
+        const normalColor = canUndo ? 0xff5e57 : 0x333333;
+        const pressColor = canUndo ? 0xcc0000 : 0x222222;
+        
+        // 直接创建新对象，避免长度超过限制
+        const newMore = {
+          normal_color: normalColor,
+          press_color: pressColor
+        };
+        this.safeSetProperty(this.data.widgets.undoBtn, prop.MORE, newMore);
       }
       // Update text color for undo btn based on high contrast
-      this.data.widgets.undoBtn.setProperty(prop.COLOR, highlightColor);
+      this.safeSetProperty(this.data.widgets.undoBtn, prop.COLOR, highlightColor);
     }
     
     // Finish btn color
     if (this.data.widgets.finishBtn) {
-        this.data.widgets.finishBtn.setProperty(prop.COLOR, highlightColor);
+        if (this.data.widgets.finishBtn.getProperty(prop.COLOR) !== highlightColor) {
+            this.data.widgets.finishBtn.setProperty(prop.COLOR, highlightColor);
+        }
     }
   },
 
@@ -1915,57 +2057,57 @@ Page({
       const totalBtnWidth = btnWidth * 3 + btnSpacing * 2;
       const startX = (width - totalBtnWidth) / 2;
       
-      // 点按钮
+      // 点按钮 - 固定颜色，不随选中状态变化
       this.data.widgets.featureTypePoint = createWidget(widget.BUTTON, {
         x: startX,
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
-        radius: px(21), // 增大圆角
-        normal_color: this.data.currentFeatureType === 'point' ? 0x0986d4 : 0x2b2d31,
+        radius: px(21),
+        normal_color: 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_point') || '点',
-        text_size: px(18), // 增大字体
+        text_size: px(16),
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'point';
-          pageInstance.updateUI();
+          pageInstance.data.lastFeatureType = 'point';
         }
       });
-      
-      // 线按钮
+
+      // 线按钮 - 固定颜色，不随选中状态变化
       this.data.widgets.featureTypeLine = createWidget(widget.BUTTON, {
         x: startX + btnWidth + btnSpacing,
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
         radius: px(21),
-        normal_color: this.data.currentFeatureType === 'line' ? 0x0986d4 : 0x2b2d31,
+        normal_color: 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_line') || '线',
-        text_size: px(18),
+        text_size: px(16),
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'line';
-          pageInstance.updateUI();
+          pageInstance.data.lastFeatureType = 'line';
         }
       });
-      
-      // 面按钮
+
+      // 面按钮 - 固定颜色，不随选中状态变化
       this.data.widgets.featureTypePolygon = createWidget(widget.BUTTON, {
         x: startX + (btnWidth + btnSpacing) * 2,
         y: featureTypeBtnY,
         w: btnWidth,
         h: featureTypeBtnHeight,
         radius: px(21),
-        normal_color: this.data.currentFeatureType === 'polygon' ? 0x0986d4 : 0x2b2d31,
+        normal_color: 0x2b2d31,
         press_color: 0x0061a4,
         text: getText('mode_polygon') || '面',
-        text_size: px(18),
+        text_size: px(16),
         color: 0xffffff,
         click_func: () => {
           pageInstance.data.currentFeatureType = 'polygon';
-          pageInstance.updateUI();
+          pageInstance.data.lastFeatureType = 'polygon';
         }
       });
       
@@ -2537,103 +2679,8 @@ Page({
     }
   },
   
-  // 重新创建GIS要素类型按钮（用于更新按钮颜色状态）
+  // GIS要素类型按钮颜色已固定，此函数不再需要
   rebuildFeatureTypeButtons() {
-    if (!this.isGISMode()) return;
-    
-    const deviceInfo = getDeviceInfo();
-    const { width } = deviceInfo;
-    const pageInstance = this;
-    
-    // 删除旧按钮
-    if (this.data.widgets.featureTypePoint) {
-      try {
-        this.data.widgets.featureTypePoint.setProperty(prop.VISIBLE, false);
-        delete this.data.widgets.featureTypePoint;
-      } catch (e) {}
-    }
-    if (this.data.widgets.featureTypeLine) {
-      try {
-        this.data.widgets.featureTypeLine.setProperty(prop.VISIBLE, false);
-        delete this.data.widgets.featureTypeLine;
-      } catch (e) {}
-    }
-    if (this.data.widgets.featureTypePolygon) {
-      try {
-        this.data.widgets.featureTypePolygon.setProperty(prop.VISIBLE, false);
-        delete this.data.widgets.featureTypePolygon;
-      } catch (e) {}
-    }
-    
-    // 计算按钮位置（与build中一致）
-    const gpsBarHeight = px(30);
-    const coordY = gpsBarHeight;
-    const coordHeight = px(35);
-    let featureTypeBtnY = coordY + coordHeight;
-    const featureTypeBtnHeight = px(42);
-    
-    const btnWidth = px(85);
-    const btnSpacing = px(8);
-    const totalBtnWidth = btnWidth * 3 + btnSpacing * 2;
-    const startX = (width - totalBtnWidth) / 2;
-    
-    const featureType = this.data.currentFeatureType;
-    
-    // 重新创建点按钮
-    this.data.widgets.featureTypePoint = createWidget(widget.BUTTON, {
-      x: startX,
-      y: featureTypeBtnY,
-      w: btnWidth,
-      h: featureTypeBtnHeight,
-      radius: px(21),
-      normal_color: featureType === 'point' ? 0x0986d4 : 0x2b2d31,
-      press_color: 0x0061a4,
-      text: getText('mode_point') || '点',
-      text_size: px(18),
-      color: 0xffffff,
-      click_func: () => {
-        pageInstance.data.currentFeatureType = 'point';
-        pageInstance.data.lastFeatureType = 'point';
-        pageInstance.rebuildFeatureTypeButtons();
-      }
-    });
-    
-    // 重新创建线按钮
-    this.data.widgets.featureTypeLine = createWidget(widget.BUTTON, {
-      x: startX + btnWidth + btnSpacing,
-      y: featureTypeBtnY,
-      w: btnWidth,
-      h: featureTypeBtnHeight,
-      radius: px(21),
-      normal_color: featureType === 'line' ? 0x0986d4 : 0x2b2d31,
-      press_color: 0x0061a4,
-      text: getText('mode_line') || '线',
-      text_size: px(18),
-      color: 0xffffff,
-      click_func: () => {
-        pageInstance.data.currentFeatureType = 'line';
-        pageInstance.data.lastFeatureType = 'line';
-        pageInstance.rebuildFeatureTypeButtons();
-      }
-    });
-    
-    // 重新创建面按钮
-    this.data.widgets.featureTypePolygon = createWidget(widget.BUTTON, {
-      x: startX + (btnWidth + btnSpacing) * 2,
-      y: featureTypeBtnY,
-      w: btnWidth,
-      h: featureTypeBtnHeight,
-      radius: px(21),
-      normal_color: featureType === 'polygon' ? 0x0986d4 : 0x2b2d31,
-      press_color: 0x0061a4,
-      text: getText('mode_polygon') || '面',
-      text_size: px(18),
-      color: 0xffffff,
-      click_func: () => {
-        pageInstance.data.currentFeatureType = 'polygon';
-        pageInstance.data.lastFeatureType = 'polygon';
-        pageInstance.rebuildFeatureTypeButtons();
-      }
-    });
+    // 按钮颜色固定，不需要更新
   }
 });
