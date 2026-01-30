@@ -345,7 +345,7 @@ Page({
         });
       }
       
-      logger.debug("GPS定位初始化成功");
+      // 减少日志输出
     } catch (e) {
       logger.error(`GPS定位初始化失败: ${e}`);
       this.data.gpsStatus = 'error';
@@ -394,7 +394,7 @@ Page({
             logger.debug(`首次定位耗时: ${this.data.firstFixDuration}ms`);
           }
 
-          logger.debug(`GPS位置更新: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}, 精度: ${this.data.accuracy}m`);
+          // 减少日志输出，避免性能问题
         } else {
           logger.warn(`无效的坐标数据: lat=${latitude}, lon=${longitude}`);
           this.data.gpsStatus = 'error';
@@ -423,7 +423,7 @@ Page({
     // 自动生成地块名：Field A, Field B, Field C...
     this.data.currentFieldName = this.generateFieldName();
 
-    logger.debug(`开始新地块: ${this.data.currentFieldName}`);
+    // 减少日志输出
     this.updateUI();
   },
 
@@ -452,7 +452,7 @@ Page({
       this.collectPoint();
     }, interval);
     
-    logger.debug(`开始自动采集，间隔: ${interval}ms`);
+    // 减少日志输出
   },
   
   // 停止自动采集
@@ -476,7 +476,7 @@ Page({
       });
     }
     
-    logger.debug("停止自动采集");
+    // 减少日志输出
   },
 
   // 采集点 - 简化逻辑，直接采集
@@ -1214,7 +1214,7 @@ Page({
     try {
       // 如果缓存存在且有效，直接返回缓存
       if (this.data.cachedUnit) {
-        logger.debug(`使用缓存单位: ${this.data.cachedUnit}`);
+        // 减少日志输出，避免性能问题
         return this.data.cachedUnit;
       }
       
@@ -1234,7 +1234,7 @@ Page({
         
         // 缓存单位信息
         this.data.cachedUnit = unit;
-        logger.debug(`读取单位设置: ${JSON.stringify(settings)} -> ${unit}`);
+        // 只在首次读取时记录日志
         return unit;
       } else {
         logger.debug('未找到设置，使用默认单位: mu');
@@ -1303,7 +1303,7 @@ Page({
     // 支持所有单位类型，如果找不到则默认为亩
     const normalizedKey = unitKey.toUpperCase().replace('SQUAREMILE', 'SQUARE_MILE');
     const unit = units[normalizedKey] || units.MU;
-    logger.debug(`单位信息: ${unitKey} -> ${unit.name} (${unit.symbol})`);
+    // 减少日志输出
     return unit;
   },
 
@@ -1467,9 +1467,14 @@ Page({
       this.data.widgets.fieldName.setProperty(prop.COLOR, highlightColor);
     }
     
-    // 更新GIS要素类型按钮 - 重新创建以更新颜色
+    // 更新GIS要素类型按钮 - 只在类型变化时重建，避免频繁操作
     if (this.isGISMode()) {
-      this.rebuildFeatureTypeButtons();
+      const currentType = this.data.currentFeatureType;
+      const lastType = this.data.lastFeatureType;
+      if (currentType !== lastType) {
+        this.data.lastFeatureType = currentType;
+        this.rebuildFeatureTypeButtons();
+      }
     }
     
     // 更新点数 - 圆屏需要简化显示
