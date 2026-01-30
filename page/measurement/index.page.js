@@ -2593,7 +2593,8 @@ Page({
       color: 0xffffff,
       click_func: () => {
         pageInstance.data.currentFeatureType = 'point';
-        pageInstance.updateUI();
+        pageInstance.data.lastFeatureType = 'point';
+        pageInstance.rebuildFeatureTypeButtons();
       }
     });
     
@@ -2611,7 +2612,8 @@ Page({
       color: 0xffffff,
       click_func: () => {
         pageInstance.data.currentFeatureType = 'line';
-        pageInstance.updateUI();
+        pageInstance.data.lastFeatureType = 'line';
+        pageInstance.rebuildFeatureTypeButtons();
       }
     });
     
@@ -2629,7 +2631,8 @@ Page({
       color: 0xffffff,
       click_func: () => {
         pageInstance.data.currentFeatureType = 'polygon';
-        pageInstance.updateUI();
+        pageInstance.data.lastFeatureType = 'polygon';
+        pageInstance.rebuildFeatureTypeButtons();
       }
     });
   }
