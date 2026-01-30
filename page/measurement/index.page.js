@@ -316,8 +316,9 @@ Page({
       // 对于 prop.MORE 对象，检查长度是否超过限制
       if (property === prop.MORE && typeof value === 'object') {
         const valueStr = JSON.stringify(value);
-        if (valueStr.length > 300) {
-          logger.warn(`prop.MORE 对象长度超过限制: ${valueStr.length}`);
+        logger.debug(`prop.MORE 对象长度: ${valueStr.length}, 内容: ${valueStr}`);
+        if (valueStr.length > 50) {
+          logger.warn(`prop.MORE 对象长度超过限制: ${valueStr.length}, 内容: ${valueStr}`);
           return false;
         }
       }
