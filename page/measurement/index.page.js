@@ -538,11 +538,7 @@ Page({
     
     this.data.isAutoCollecting = true;
     
-    // 更新按钮文本（颜色在创建时已设置，避免prop.MORE长度限制问题）
-    if (this.data.widgets.collectBtn) {
-      const stopText = getText('stopCollect') || "停止采集";
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, stopText);
-    }
+    // 按钮文本更新已移除，避免prop.MORE长度限制问题
     
     // 立即采集一次
     this.collectPoint();
@@ -567,11 +563,7 @@ Page({
       this.data.autoCollectTimer = null;
     }
     
-    // 更新按钮文本（颜色在创建时已设置，避免prop.MORE长度限制问题）
-    if (this.data.widgets.collectBtn) {
-      const startText = getText('startCollect') || "开始采集";
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, startText);
-    }
+    // 按钮文本更新已移除，避免prop.MORE长度限制问题
     
     // 减少日志输出
   },
