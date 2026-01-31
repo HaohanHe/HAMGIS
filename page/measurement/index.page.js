@@ -1743,19 +1743,7 @@ Page({
     // 加载设置
     this.data.settings = this.loadSettings();
     
-    // 设置屏幕常亮和息屏后重启 - 根据设置决定是否启用
-    try {
-      if (this.data.settings.keepScreenOn) {
-        setPageBrightTime({ brightTime: 1200000 }); // 20分钟屏幕常亮（20 * 60 * 1000）
-        setWakeUpRelaunch(true); // 息屏后自动重启应用，防止测量失效
-        pauseDropWristScreenOff({ duration: 0 }); // 持续暂停抬腕息屏
-        logger.debug("已启用屏幕常亮功能：20分钟，且禁止落腕息屏");
-      } else {
-        logger.debug("屏幕常亮功能已关闭");
-      }
-    } catch (e) {
-      logger.error(`设置屏幕常亮/息屏重启失败: ${e}`);
-    }
+    // 屏幕常亮功能已在app.js全局设置，此处不再重复设置
     
     // 初始化震动器
     try {
@@ -2504,12 +2492,7 @@ Page({
     this.stopAutoCollect();
     
     // 恢复抬腕息屏功能
-    try {
-      resetDropWristScreenOff();
-      logger.debug("已恢复抬腕息屏功能");
-    } catch (e) {
-      logger.error(`恢复抬腕息屏失败: ${e}`);
-    }
+    // 屏幕常亮功能在全局管理，此处不恢复抬腕息屏
     
     // 清除定时器
     if (this.data.locationTimer) {

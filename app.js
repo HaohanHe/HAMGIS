@@ -1,5 +1,6 @@
 import { log } from "@zos/utils";
 import { BaseApp } from '@zeppos/zml/base-app'
+import { setPageBrightTime, setWakeUpRelaunch, pauseDropWristScreenOff } from "@zos/display";
 
 const logger = log.getLogger("hamgis-app");
 
@@ -28,6 +29,24 @@ App(BaseApp({
     
     // 初始化应用
     this.initApp();
+    
+    // 设置屏幕常亮（全局生效）
+    this.setupScreenAlwaysOn();
+  },
+  
+  // 设置屏幕常亮（全局生效）
+  setupScreenAlwaysOn() {
+    try {
+      const settings = this.globalData.settings;
+      if (settings.keepScreenOn) {
+        setPageBrightTime({ brightTime: 1200000 }); // 20分钟屏幕常亮
+        setWakeUpRelaunch(true); // 息屏后自动重启应用
+        pauseDropWristScreenOff({ duration: 0 }); // 禁止落腕息屏
+        logger.debug("全局屏幕常亮已启用：20分钟，且禁止落腕息屏");
+      }
+    } catch (e) {
+      logger.error(`设置全局屏幕常亮失败: ${e}`);
+    }
   },
 
   onDestroy() {
