@@ -949,8 +949,8 @@ Page({
       } else {
         infoText = ` ${this.data.currentPerimeter.toFixed(1)}m`;
       }
-      this.data.widgets.statusTip.setProperty(prop.TEXT, `${featureName}${getText('save') || '已保存'}${infoText}`);
-      this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${featureName}${getText('save') || '已保存'}${infoText}`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
     // 震动反馈
@@ -1036,8 +1036,8 @@ Page({
     } catch (e) {
       logger.error(`准备导出失败: ${e}`);
       if (this.data.widgets.statusTip) {
-        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('exportFailed') || '导出失败');
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('exportFailed') || '导出失败');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
     }
   },
@@ -1047,8 +1047,8 @@ Page({
     if (this.data.gisFeatures.length === 0) {
       logger.warn("没有要素可保存");
       if (this.data.widgets.statusTip) {
-        this.data.widgets.statusTip.setProperty(prop.TEXT, getText('noFeatures') || '暂无要素');
-        this.data.widgets.statusTip.setProperty(prop.COLOR, 0xff3b30);
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || '暂无要素');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
     }
@@ -1113,8 +1113,8 @@ Page({
     // 显示提示
     if (this.data.widgets.statusTip) {
       const countText = `点×${featureCount.point} 线×${featureCount.line} 面×${featureCount.polygon}`;
-      this.data.widgets.statusTip.setProperty(prop.TEXT, `${project.name} ${getText('save') || '已保存'} (${countText})`);
-      this.data.widgets.statusTip.setProperty(prop.COLOR, 0x00ff88);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${project.name} ${getText('save') || '已保存'} (${countText})`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
     // 震动反馈（长震动表示完成）
@@ -1806,11 +1806,9 @@ Page({
       this.safeSetProperty(this.data.widgets.undoBtn, prop.COLOR, highlightColor);
     }
     
-    // Finish btn color
+    // Finish btn color - 使用safeSetProperty
     if (this.data.widgets.finishBtn) {
-        if (this.data.widgets.finishBtn.getProperty(prop.COLOR) !== highlightColor) {
-            this.data.widgets.finishBtn.setProperty(prop.COLOR, highlightColor);
-        }
+        this.safeSetProperty(this.data.widgets.finishBtn, prop.COLOR, highlightColor);
     }
   },
 
