@@ -1515,15 +1515,7 @@ Page({
     const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
     const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
-    // 更新GPS状态
-    if (this.data.widgets.gpsStatus) {
-      const statusText = this.getGPSText();
-      const statusColor = this.getGPSColor();
-      
-      // 使用safeSetProperty来避免频繁调用
-      this.safeSetProperty(this.data.widgets.gpsStatus, prop.TEXT, statusText);
-      this.safeSetProperty(this.data.widgets.gpsStatus, prop.COLOR, statusColor);
-    }
+    // GPS状态更新已移除，避免prop.MORE长度限制问题（gpsStatus是BUTTON类型）
     
     // 更新坐标显示
     if (this.data.widgets.coordinates) {
