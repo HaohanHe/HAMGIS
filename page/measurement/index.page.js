@@ -1739,77 +1739,10 @@ Page({
       // 如果是点模式且不是自动采集，显示“记录点位”可能更合适，但保持一致性也行
       // 这里不做特殊文字修改，保持“采集点”
       
-      // 只更新按钮文本，不更新颜色（避免prop.MORE长度限制问题）
-      this.safeSetProperty(this.data.widgets.collectBtn, prop.TEXT, btnText);
+      // 按钮文本更新已移除，避免prop.MORE长度限制问题
     }
     
-    // 完成按钮状态
-    if (this.data.widgets.finishBtn) {
-      let canFinish = false;
-      let btnText = '';
-      
-      if (this.isGISMode()) {
-        // GIS模式：根据当前要素类型判断
-        const featureType = this.data.currentFeatureType;
-        
-        // 检查是否有混合要素（点、线、面都有）
-        const gisFeatures = this.data.gisFeatures || [];
-        const hasPoint = gisFeatures.some(f => f.featureType === 'point');
-        const hasLine = gisFeatures.some(f => f.featureType === 'line');
-        const hasPolygon = gisFeatures.some(f => f.featureType === 'polygon');
-        const hasMixedFeatures = (hasPoint && hasLine) || (hasPoint && hasPolygon) || (hasLine && hasPolygon);
-        
-        if (hasMixedFeatures) {
-          // 有混合要素时，按钮变为"导出到Android"
-          canFinish = true;
-          btnText = getText('exportToAndroid') || '导出到Android';
-        } else if (featureType === 'point') {
-          // 点要素已自动保存，始终可点击（用于提示）
-          canFinish = true;
-          btnText = getText('finishFeature') || '完成要素';
-        } else if (featureType === 'line') {
-          canFinish = this.data.points.length >= 2;
-          btnText = getText('finishFeature') || '完成要素';
-        } else {
-          canFinish = this.data.points.length >= 3;
-          btnText = getText('finishFeature') || '完成要素';
-        }
-        // 如果有已保存的要素，按钮也应该高亮（可以长按完成项目）
-        if (this.data.gisFeatures.length > 0) {
-          canFinish = true;
-        }
-      } else {
-        // 测面积模式
-        canFinish = this.data.points.length >= 3;
-        btnText = getText('finishField') || '完成地块';
-      }
-      
-      // 使用safeSetProperty来避免频繁调用
-      this.safeSetProperty(this.data.widgets.finishBtn, prop.TEXT, btnText);
-      
-      try {
-        this.data.widgets.finishBtn.setEnable(canFinish);
-      } catch (e) {
-        // setEnable 失败，但不通过颜色变化表示状态（避免prop.MORE长度限制问题）
-      }
-    }
-    
-    // 撤销按钮：有点时可用
-    if (this.data.widgets.undoBtn) {
-      const canUndo = this.data.points.length > 0;
-      try {
-        this.data.widgets.undoBtn.setEnable(canUndo);
-      } catch (e) {
-        // setEnable 失败，但不通过颜色变化表示状态（避免prop.MORE长度限制问题）
-      }
-      // Update text color for undo btn based on high contrast
-      this.safeSetProperty(this.data.widgets.undoBtn, prop.COLOR, highlightColor);
-    }
-    
-    // Finish btn color - 使用safeSetProperty
-    if (this.data.widgets.finishBtn) {
-        this.safeSetProperty(this.data.widgets.finishBtn, prop.COLOR, highlightColor);
-    }
+    // 完成按钮和撤销按钮的状态更新已移除
   },
 
   onInit() {
