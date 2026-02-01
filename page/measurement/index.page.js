@@ -1625,29 +1625,13 @@ Page({
         if (featureType === 'point') {
           // 点要素：显示已采集的点数
           const pointCount = gisFeatures.filter(f => f.featureType === 'point').length;
-          const lang = this.getLanguage();
-          
-          if (lang === 'zh-CN') {
-            displayText = `${pointCount}点`;
-          } else if (lang === 'ja-JP') {
-            displayText = `${pointCount}点`;
-          } else {
-            // 英语直接显示数字
-            displayText = `${pointCount}`;
-          }
+          const pointText = getText('point') || '点';
+          displayText = `${pointCount}${pointText}`;
         } else if (featureType === 'line') {
           // 线要素：显示已采集的线数
           const lineCount = gisFeatures.filter(f => f.featureType === 'line').length;
-          const lang = this.getLanguage();
-          
-          if (lang === 'zh-CN') {
-            displayText = `${lineCount}线`;
-          } else if (lang === 'ja-JP') {
-            displayText = `${lineCount}線`;
-          } else {
-            // 英语直接显示数字
-            displayText = `${lineCount}`;
-          }
+          const lineText = getText('line') || '线';
+          displayText = `${lineCount}${lineText}`;
         } else if (featureType === 'polygon') {
           // 面要素：显示面积
           if (this.data.currentArea > 0) {

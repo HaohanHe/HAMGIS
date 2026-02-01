@@ -65,6 +65,12 @@ msgstr "Hectare"
 msgid "squareMeter"
 msgstr "Square Meter"
 
+msgid "acre"
+msgstr "Acre"
+
+msgid "squareMile"
+msgstr "Square Mile"
+
 msgid "enabled"
 msgstr "Enabled"
 
