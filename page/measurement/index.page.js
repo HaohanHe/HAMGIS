@@ -2010,144 +2010,70 @@ Page({
       color: 0x25232a // Slightly lighter surface container
     });
 
-    if (isRoundScreen) {
-      // 圆屏优化布局：面积放大，信息同行
-      
-      // 面积显示 (默认大字模式)
-      const areaFontSize = px(120);
-      const areaY = progressY + px(5);
-      const areaHeight = px(110);
-      
-      this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
-        x: 0,
-        y: areaY,
-        w: width,
-        h: areaHeight,
-        color: highlightColor,
-        text_size: areaFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.BOLD,
-        text: `0.00 ${getText('mu')}`
-      });
+    // 统一使用圆屏布局（不分方圆屏）
+    
+    // 面积显示 (默认大字模式)
+    const areaFontSize = px(120);
+    const areaY = progressY + px(5);
+    const areaHeight = px(110);
+    
+    this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
+      x: 0,
+      y: areaY,
+      w: width,
+      h: areaHeight,
+      color: highlightColor,
+      text_size: areaFontSize,
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text_style: text_style.BOLD,
+      text: `0.00 ${getText('mu')}`
+    });
 
-      // 地块名称、点数、周长 - 同一行显示 (默认大字模式)
-      const infoRowY = progressY + px(120);
-      const infoHeight = px(22);
-      const infoFontSize = px(16);
-      
-      // 计算每个文本框的宽度，避免文字滚动
-      const infoBoxWidth = (width - px(80)) / 3; // 平均分配宽度
-      
-      this.data.widgets.fieldName = createWidget(widget.TEXT, {
-        x: px(20),
-        y: infoRowY,
-        w: infoBoxWidth,
-        h: infoHeight,
-        color: highlightColor,
-        text_size: infoFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.BOLD,
-        text: TEXTS.unnamed
-      });
+    // 地块名称、点数、周长 - 同一行显示 (默认大字模式)
+    const infoRowY = progressY + px(120);
+    const infoHeight = px(22);
+    const infoFontSize = px(16);
+    
+    // 计算每个文本框的宽度，避免文字滚动
+    const infoBoxWidth = (width - px(80)) / 3; // 平均分配宽度
+    
+    this.data.widgets.fieldName = createWidget(widget.TEXT, {
+      x: px(20),
+      y: infoRowY,
+      w: infoBoxWidth,
+      h: infoHeight,
+      color: highlightColor,
+      text_size: infoFontSize,
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text_style: text_style.BOLD,
+      text: TEXTS.unnamed
+    });
 
-      this.data.widgets.pointCount = createWidget(widget.TEXT, {
-        x: px(20) + infoBoxWidth + px(20),
-        y: infoRowY,
-        w: infoBoxWidth,
-        h: infoHeight,
-        color: 0xcccccc,
-        text_size: infoFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: `${TEXTS.points}: 0`
-      });
+    this.data.widgets.pointCount = createWidget(widget.TEXT, {
+      x: px(20) + infoBoxWidth + px(20),
+      y: infoRowY,
+      w: infoBoxWidth,
+      h: infoHeight,
+      color: 0xcccccc,
+      text_size: infoFontSize,
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: `${TEXTS.points}: 0`
+    });
 
-      this.data.widgets.perimeterDisplay = createWidget(widget.TEXT, {
-        x: px(20) + infoBoxWidth * 2 + px(40),
-        y: infoRowY,
-        w: infoBoxWidth,
-        h: infoHeight,
-        color: altColor,
-        text_size: infoFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: `${TEXTS.perimeter}: 0.0m`
-      });
-      
-    } else {
-      // 方屏优化布局 (默认大字模式)
-      
-      // 地块名称
-      const fieldNameFontSize = px(18);
-      const fieldNameHeight = px(25);
-      
-      this.data.widgets.fieldName = createWidget(widget.TEXT, {
-        x: 0,
-        y: progressY + px(5),
-        w: width,
-        h: fieldNameHeight,
-        color: highlightColor,
-        text_size: fieldNameFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.BOLD,
-        text: TEXTS.unnamed
-      });
-
-      // 点数显示
-      const pointsFontSize = px(18);
-      const pointsHeight = px(25);
-      const pointsY = progressY + px(30);
-      
-      this.data.widgets.pointCount = createWidget(widget.TEXT, {
-        x: 0,
-        y: pointsY,
-        w: width,
-        h: pointsHeight,
-        color: 0xcccccc,
-        text_size: pointsFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: `${TEXTS.points}: 0`
-      });
-
-      // 面积显示
-      const areaFontSize = px(72);
-      const areaY = progressY + px(55);
-      const areaHeight = px(80);
-      
-      this.data.widgets.areaDisplay = createWidget(widget.TEXT, {
-        x: 0,
-        y: areaY,
-        w: width,
-        h: areaHeight,
-        color: highlightColor,
-        text_size: areaFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text_style: text_style.BOLD,
-        text: `0.00 ${getText('mu')}`
-      });
-
-      // 周长显示
-      const perimeterY = progressY + px(140);
-      const perimeterFontSize = px(18);
-      const perimeterHeight = px(25);
-      
-      this.data.widgets.perimeterDisplay = createWidget(widget.TEXT, {
-        x: 0,
-        y: perimeterY,
-        w: width,
-        h: perimeterHeight,
-        color: altColor,
-        text_size: perimeterFontSize,
-        align_h: align.CENTER_H,
-        align_v: align.CENTER_V,
-        text: `${TEXTS.perimeter}: 0.0m`
-      });
-    }
+    this.data.widgets.perimeterDisplay = createWidget(widget.TEXT, {
+      x: px(20) + infoBoxWidth * 2 + px(40),
+      y: infoRowY,
+      w: infoBoxWidth,
+      h: infoHeight,
+      color: altColor,
+      text_size: infoFontSize,
+      align_h: align.CENTER_H,
+      align_v: align.CENTER_V,
+      text: `${TEXTS.perimeter}: 0.0m`
+    });
 
     // ===== 状态提示区 =====
     const statusY = progressY + progressHeight;
