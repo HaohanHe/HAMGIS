@@ -1554,7 +1554,7 @@ Page({
     // 更新点数 - 圆屏需要简化显示
     if (this.data.widgets.pointCount) {
       const deviceInfo = getDeviceInfo();
-      const isRoundScreen = deviceInfo.width >= 480;
+      const isRoundScreen = deviceInfo.width >= 466;
       
       if (this.isGISMode()) {
         // GIS模式：显示要素统计
@@ -1598,7 +1598,7 @@ Page({
           ? `${this.data.currentPerimeter.toFixed(1)}m` 
           : '0.0m';
         const deviceInfo = getDeviceInfo();
-        const isRoundScreen = deviceInfo.width >= 480;
+        const isRoundScreen = deviceInfo.width >= 466;
         const perimeterText = isRoundScreen ? perimeter : `${label}: ${perimeter}`;
         
         // 使用safeSetProperty来避免频繁调用
@@ -1833,8 +1833,8 @@ Page({
     const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
     const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
-    // 检测屏幕类型：480px为圆屏，390px为方屏
-    const isRoundScreen = width >= 480;
+    // 检测屏幕类型：466px及以上为圆屏，390px为方屏
+    const isRoundScreen = width >= 466;
     
     // 背景 - 深色主题，适合户外使用
     createWidget(widget.FILL_RECT, {
