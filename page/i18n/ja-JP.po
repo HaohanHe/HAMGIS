@@ -451,3 +451,22 @@ msgstr "要素なし"
 
 msgid "longPressToFinishProject"
 msgstr "長押しでプロジェクト完了"
+
+# Missing translations for internationalization
+msgid "point"
+msgstr "点"
+
+msgid "line"
+msgstr "線"
+
+msgid "polygon"
+msgstr "面"
+
+msgid "collected"
+msgstr "収集済み"
+
+msgid "current"
+msgstr "現在"
+
+msgid "collectedPoints"
+msgstr "{0}点収集済み、あと{1}点"

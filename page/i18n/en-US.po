@@ -391,3 +391,22 @@ msgstr "No Features"
 
 msgid "longPressToFinishProject"
 msgstr "Long Press to Finish Project"
+
+# Missing translations for internationalization
+msgid "point"
+msgstr "Point"
+
+msgid "line"
+msgstr "Line"
+
+msgid "polygon"
+msgstr "Polygon"
+
+msgid "collected"
+msgstr "Collected"
+
+msgid "current"
+msgstr "Current"
+
+msgid "collectedPoints"
+msgstr "{0} collected, {1} more needed"

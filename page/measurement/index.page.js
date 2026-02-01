@@ -1104,7 +1104,10 @@ Page({
 
     // 显示提示
     if (this.data.widgets.statusTip) {
-      const countText = `点×${featureCount.point} 线×${featureCount.line} 面×${featureCount.polygon}`;
+      const pointText = getText('point') || '点';
+      const lineText = getText('line') || '线';
+      const polygonText = getText('polygon') || '面';
+      const countText = `${pointText}×${featureCount.point} ${lineText}×${featureCount.line} ${polygonText}×${featureCount.polygon}`;
       this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${project.name} ${getText('save') || '已保存'} (${countText})`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
@@ -1438,26 +1441,21 @@ Page({
       const featureCount = this.data.gisFeatures.length;
       const lang = this.getLanguage();
       
+      const pointFeatureText = getText('pointFeature') || '点要素';
+      const lineFeatureText = getText('lineFeature') || '线要素';
+      const polygonFeatureText = getText('polygonFeature') || '面要素';
+      const collectedText = getText('collected') || '已采集';
+      const currentText = getText('current') || '当前';
+      
       if (featureType === 'point') {
-        if (lang === 'zh-CN') {
-          return `点要素 | 已采集: ${featureCount}`;
-        } else if (lang === 'ja-JP') {
-          return `点要素 | 収集済み: ${featureCount}`;
-        } else {
-          return `Point | Collected: ${featureCount}`;
-        }
+        return `${pointFeatureText} | ${collectedText}: ${featureCount}`;
       } else {
         const minPoints = featureType === 'line' ? 2 : 3;
         const currentPoints = this.data.points.length;
+        const featureName = featureType === 'line' ? lineFeatureText : polygonFeatureText;
         
         if (currentPoints === 0) {
-          if (lang === 'zh-CN') {
-            return featureType === 'line' ? '当前: 线要素' : '当前: 面要素';
-          } else if (lang === 'ja-JP') {
-            return featureType === 'line' ? '現在: 線要素' : '現在: 面要素';
-          } else {
-            return featureType === 'line' ? 'Current: Line' : 'Current: Polygon';
-          }
+          return `${currentText}: ${featureName}`;
         } else if (currentPoints < minPoints) {
           const needCount = minPoints - currentPoints;
           if (lang === 'zh-CN') {
@@ -1485,15 +1483,8 @@ Page({
         // 使用更简洁的文本，避免混合语言和显示截断问题
         const collectedCount = this.data.points.length;
         const needCount = 3 - collectedCount;
-        const lang = this.getLanguage();
-        
-        if (lang === 'zh-CN') {
-          return `已采集${collectedCount}点，还需${needCount}点`;
-        } else if (lang === 'ja-JP') {
-          return `${collectedCount}点収集済み、あと${needCount}点`;
-        } else {
-          return `${collectedCount} collected, ${needCount} more needed`;
-        }
+        const collectedPointsText = getText('collectedPoints') || '已采集{0}点，还需{1}点';
+        return collectedPointsText.replace('{0}', collectedCount).replace('{1}', needCount);
       } else {
         return `${getText('finishField')}`;
       }
@@ -1573,7 +1564,10 @@ Page({
           line: gisFeatures.filter(f => f.featureType === 'line').length,
           polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
         };
-        const countText = `点×${counts.point} 线×${counts.line} 面×${counts.polygon}`;
+        const pointText = getText('point') || '点';
+        const lineText = getText('line') || '线';
+        const polygonText = getText('polygon') || '面';
+        const countText = `${pointText}×${counts.point} ${lineText}×${counts.line} ${polygonText}×${counts.polygon}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
