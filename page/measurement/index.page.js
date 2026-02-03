@@ -212,39 +212,39 @@ const GeoCalculator = {
 // 面积单位转换 - 使用动态国际化
 const getAreaUnits = () => ({
   MU: {
-    name: getText('mu') || '亩',
-    symbol: getText('mu') || '亩',
+    name: getText('mu') || 'Mu',
+    symbol: getText('mu') || 'mu',
     factor: 0.0015  // 1平方米 = 0.0015亩
   },
   HECTARE: {
-    name: getText('hectare') || '公顷',
-    symbol: getText('hectare') || '公顷',
+    name: getText('hectare') || 'Hectare',
+    symbol: getText('hectare') || 'ha',
     factor: 0.0001  // 1平方米 = 0.0001公顷
   },
   ACRE: {
-    name: getText('acre') || '英亩',
-    symbol: getText('acre') || '英亩',
+    name: getText('acre') || 'Acre',
+    symbol: getText('acre') || 'ac',
     factor: 0.000247105  // 1平方米 = 0.000247105英亩
   },
   SQUARE_MILE: {
-    name: getText('squareMile') || '平方英里',
-    symbol: getText('squareMile') || '平方英里',
+    name: getText('squareMile') || 'Square Mile',
+    symbol: getText('squareMile') || 'mi²',
     factor: 3.861e-7  // 1平方米 = 3.861e-7平方英里
   }
 });
 
 // 文本映射 - 使用国际化
 const TEXTS = {
-  get locating() { return getText('locating') || '定位中...'; },
-  get accuracy() { return getText('accuracy') || '精度'; },
-  get weakSignal() { return getText('weakSignal') || '信号弱'; },
-  get points() { return getText('points') || '点位'; },
-  get area() { return getText('area') || '面积'; },
-  get perimeter() { return getText('perimeter') || '周长'; },
-  get history() { return getText('history') || '历史'; },
-  get settings() { return getText('settings') || '设置'; },
-  get noGPS() { return getText('noGPS') || '等待定位...'; },
-  get unnamed() { return getText('unnamed') || '未命名地块'; }
+  get locating() { return getText('locating') || 'Locating...'; },
+  get accuracy() { return getText('accuracy') || 'Accuracy'; },
+  get weakSignal() { return getText('weakSignal') || 'Weak Signal'; },
+  get points() { return getText('points') || 'Points'; },
+  get area() { return getText('area') || 'Area'; },
+  get perimeter() { return getText('perimeter') || 'Perimeter'; },
+  get history() { return getText('history') || 'History'; },
+  get settings() { return getText('settings') || 'Settings'; },
+  get noGPS() { return getText('noGPS') || 'Waiting...'; },
+  get unnamed() { return getText('unnamed') || 'Unnamed'; }
 };
 
 Page({
@@ -574,8 +574,8 @@ Page({
       logger.warn("GPS未就绪，无法采集点");
       // 显示提示
       if (this.data.widgets.statusTip) {
-        const weakSignalText = getText('weakSignal') || '信号弱';
-      const moveOpenText = getText('moveToOpenArea') || '请移动到开阔地带';
+        const weakSignalText = getText('weakSignal') || 'Weak Signal';
+      const moveOpenText = getText('moveToOpenArea') || 'Move to open area';
       this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${weakSignalText}，${moveOpenText}`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
@@ -621,7 +621,7 @@ Page({
         const pointFeature = {
           featureId: `f${Date.now()}`,
           featureType: 'point',
-          featureName: `${getText('pointFeature') || '点要素'}${this.data.gisFeatureIndex}`,
+          featureName: `${getText('pointFeature') || 'Point Feature'}${this.data.gisFeatureIndex}`,
           coords: point,
           properties: {
             accuracy: this.data.accuracy,
@@ -632,7 +632,7 @@ Page({
         
         // 显示提示
         if (this.data.widgets.statusTip) {
-          this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${getText('featureSaved') || '要素已保存'}: ${pointFeature.featureName}`);
+          this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${getText('featureSaved') || 'Feature Saved'}: ${pointFeature.featureName}`);
           this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
         }
         
@@ -822,7 +822,7 @@ Page({
       logger.warn(`点数不足3个，无法完成地块`);
       // 显示提示
       if (this.data.widgets.statusTip) {
-        const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
+        const msg = getText('atLeastNeedPoints') || 'At least %d points needed';
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, msg.replace('%d', '3'));
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
@@ -834,10 +834,10 @@ Page({
     
     // 显示完成提示
     if (this.data.widgets.statusTip) {
-      const savedText = getText('save') || '已保存';
+      const savedText = getText('save') || 'Saved';
       const units = getAreaUnits();
       const areaInMu = (this.data.currentArea * units.MU.factor).toFixed(2);
-      const unitText = getText('mu') || '亩';
+      const unitText = getText('mu') || 'mu';
       const infoText = ` ${areaInMu}${unitText}`;
       
       this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${this.data.currentFieldName}${savedText}${infoText}`);
@@ -882,7 +882,7 @@ Page({
     // 点要素在采集时就已保存，这里只处理线/面
     if (featureType === 'point') {
       if (this.data.widgets.statusTip) {
-        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('pointFeature') || '点要素已自动保存');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('pointFeature') || 'Point feature auto-saved');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
       }
       return;
@@ -891,7 +891,7 @@ Page({
     if (this.data.points.length < minPoints) {
       logger.warn(`点数不足${minPoints}个，无法完成要素`);
       if (this.data.widgets.statusTip) {
-        const msg = getText('atLeastNeedPoints') || '至少需要%d个点';
+        const msg = getText('atLeastNeedPoints') || 'At least %d points needed';
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, msg.replace('%d', minPoints));
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
@@ -901,7 +901,10 @@ Page({
     // 构建要素对象
     this.data.gisFeatureIndex++;
     const featureNameKey = featureType === 'line' ? 'lineFeature' : 'polygonFeature';
-    const featureName = `${getText(featureNameKey) || (featureType === 'line' ? '线要素' : '面要素')}${this.data.gisFeatureIndex}`;
+    const fallbackName = featureType === 'line' 
+      ? (getText('lineFeature') || 'Line Feature') 
+      : (getText('polygonFeature') || 'Polygon Feature');
+    const featureName = `${getText(featureNameKey) || fallbackName}${this.data.gisFeatureIndex}`;
     
     const feature = {
       featureId: `f${Date.now()}`,
@@ -937,11 +940,11 @@ Page({
       if (featureType === 'polygon') {
         const units = getAreaUnits();
         const areaInMu = (this.data.currentArea * units.MU.factor).toFixed(2);
-        infoText = ` ${areaInMu}${getText('mu') || '亩'}`;
+        infoText = ` ${areaInMu}${getText('mu') || 'mu'}`;
       } else {
         infoText = ` ${this.data.currentPerimeter.toFixed(1)}m`;
       }
-      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${featureName}${getText('save') || '已保存'}${infoText}`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${featureName}${getText('save') || 'Saved'}${infoText}`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
@@ -972,7 +975,7 @@ Page({
     if (this.data.gisFeatures.length === 0) {
       logger.warn("没有要素可导出");
       if (this.data.widgets.statusTip) {
-        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || '暂无要素');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || 'No features');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
@@ -1008,7 +1011,7 @@ Page({
     // 构建项目数据
     const project = {
       id: Date.now().toString(),
-      name: this.data.gisProjectName || `${getText('gisProject') || 'GIS项目'}${this.data.todayFieldCount + 1}`,
+      name: this.data.gisProjectName || `${getText('gisProject') || 'GIS Project'}${this.data.todayFieldCount + 1}`,
       recordType: 'gis_project',
       timestamp: Date.now(),
       date: new Date().toISOString().split('T')[0],
@@ -1028,7 +1031,7 @@ Page({
     } catch (e) {
       logger.error(`准备导出失败: ${e}`);
       if (this.data.widgets.statusTip) {
-        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('exportFailed') || '导出失败');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('exportFailed') || 'Export failed');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
     }
@@ -1039,7 +1042,7 @@ Page({
     if (this.data.gisFeatures.length === 0) {
       logger.warn("没有要素可保存");
       if (this.data.widgets.statusTip) {
-        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || '暂无要素');
+        this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || 'No features');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
@@ -1075,7 +1078,7 @@ Page({
     // 构建项目数据
     const project = {
       id: Date.now().toString(),
-      name: this.data.gisProjectName || `${getText('gisProject') || 'GIS项目'}${this.data.todayFieldCount + 1}`,
+      name: this.data.gisProjectName || `${getText('gisProject') || 'GIS Project'}${this.data.todayFieldCount + 1}`,
       recordType: 'gis_project',
       timestamp: Date.now(),
       date: new Date().toISOString().split('T')[0],
@@ -1104,11 +1107,11 @@ Page({
 
     // 显示提示
     if (this.data.widgets.statusTip) {
-      const pointText = getText('point') || '点';
-      const lineText = getText('line') || '线';
-      const polygonText = getText('polygon') || '面';
+      const pointText = getText('point') || 'Point';
+      const lineText = getText('line') || 'Line';
+      const polygonText = getText('polygon') || 'Polygon';
       const countText = `${pointText}×${featureCount.point} ${lineText}×${featureCount.line} ${polygonText}×${featureCount.polygon}`;
-      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${project.name} ${getText('save') || '已保存'} (${countText})`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${project.name} ${getText('save') || 'Saved'} (${countText})`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
@@ -1142,7 +1145,7 @@ Page({
   startNewGISProject() {
     this.data.gisFeatures = [];
     this.data.gisFeatureIndex = 0;
-    this.data.gisProjectName = `${getText('gisProject') || 'GIS项目'}${this.generateProjectLetter()}`;
+    this.data.gisProjectName = `${getText('gisProject') || 'GIS Project'}${this.generateProjectLetter()}`;
     this.data.points = [];
     this.data.currentArea = 0;
     this.data.currentPerimeter = 0;
@@ -1346,13 +1349,13 @@ Page({
       const stored = localStorage.getItem('hamgis_settings');
       if (stored) {
         const settings = JSON.parse(stored);
-        return settings.language || 'zh-CN';
+        return settings.language || 'en-US';
       } else {
-        return 'zh-CN';
+        return 'en-US';
       }
     } catch (e) {
       logger.error(`读取语言设置失败: ${e}`);
-      return 'zh-CN';
+      return 'en-US';
     }
   },
 
@@ -1405,13 +1408,13 @@ Page({
       case 'locating':
         return TEXTS.locating;
       case 'ready':
-        return getText('gpsReady') || 'GPS就绪';
+        return getText('gpsReady') || 'GPS Ready';
       case 'weak':
         return TEXTS.weakSignal;
       case 'permission_denied':
-        return getText('noPermission') || '无权限';
+        return getText('noPermission') || 'No Permission';
       case 'error':
-        return getText('error') || '错误';
+        return getText('error') || 'Error';
       default:
         return 'GPS';
     }
@@ -1441,11 +1444,11 @@ Page({
       const featureCount = this.data.gisFeatures.length;
       const lang = this.getLanguage();
       
-      const pointFeatureText = getText('pointFeature') || '点要素';
-      const lineFeatureText = getText('lineFeature') || '线要素';
-      const polygonFeatureText = getText('polygonFeature') || '面要素';
-      const collectedText = getText('collected') || '已采集';
-      const currentText = getText('current') || '当前';
+      const pointFeatureText = getText('pointFeature') || 'Point Feature';
+      const lineFeatureText = getText('lineFeature') || 'Line Feature';
+      const polygonFeatureText = getText('polygonFeature') || 'Polygon Feature';
+      const collectedText = getText('collected') || 'Collected';
+      const currentText = getText('current') || 'Current';
       
       if (featureType === 'point') {
         return `${pointFeatureText} | ${collectedText}: ${featureCount}`;
@@ -1458,21 +1461,10 @@ Page({
           return `${currentText}: ${featureName}`;
         } else if (currentPoints < minPoints) {
           const needCount = minPoints - currentPoints;
-          if (lang === 'zh-CN') {
-            return `${currentPoints}点 | 还需${needCount}点`;
-          } else if (lang === 'ja-JP') {
-            return `${currentPoints}点 | あと${needCount}点`;
-          } else {
-            return `${currentPoints} pts | ${needCount} more needed`;
-          }
+          const pointsNeededText = getText('pointsNeeded') || '{0} pts, {1} more needed';
+          return pointsNeededText.replace('{0}', currentPoints).replace('{1}', needCount);
         } else {
-          if (lang === 'zh-CN') {
-            return '完成要素 | 长按完成项目';
-          } else if (lang === 'ja-JP') {
-            return '要素を完了 | 長押しでプロジェクト完了';
-          } else {
-            return 'Finish Feature | Long press to finish project';
-          }
+          return getText('finishFeatureHint') || 'Finish Feature | Long press to finish project';
         }
       }
     } else {
@@ -1483,7 +1475,7 @@ Page({
         // 使用更简洁的文本，避免混合语言和显示截断问题
         const collectedCount = this.data.points.length;
         const needCount = 3 - collectedCount;
-        const collectedPointsText = getText('collectedPoints') || '已采集{0}点，还需{1}点';
+        const collectedPointsText = getText('collectedPoints') || '{0} pts, {1} more needed';
         return collectedPointsText.replace('{0}', collectedCount).replace('{1}', needCount);
       } else {
         return `${getText('finishField')}`;
@@ -1539,7 +1531,7 @@ Page({
     if (this.data.widgets.fieldName) {
       let name;
       if (this.isGISMode()) {
-        name = this.data.gisProjectName || getText('gisProject') || 'GIS项目';
+        name = this.data.gisProjectName || getText('gisProject') || 'GIS Project';
       } else {
         name = this.data.currentFieldName || TEXTS.unnamed;
       }
@@ -1564,15 +1556,15 @@ Page({
           line: gisFeatures.filter(f => f.featureType === 'line').length,
           polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
         };
-        const pointText = getText('point') || '点';
-        const lineText = getText('line') || '线';
-        const polygonText = getText('polygon') || '面';
+        const pointText = getText('point') || 'Point';
+        const lineText = getText('line') || 'Line';
+        const polygonText = getText('polygon') || 'Polygon';
         const countText = `${pointText}×${counts.point} ${lineText}×${counts.line} ${polygonText}×${counts.polygon}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
       } else {
-        const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || '点数'}: ${this.data.points.length}`;
+        const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || 'Points'}: ${this.data.points.length}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, pointText);
@@ -1582,14 +1574,14 @@ Page({
     // 更新周长/长度 - 根据模式显示不同文本
     if (this.data.widgets.perimeterDisplay) {
       let showPerimeter = true;
-      let label = getText('perimeter') || '周长';
+      let label = getText('perimeter') || 'Perimeter';
       
       if (this.isGISMode()) {
         // GIS模式：根据当前要素类型
         if (this.data.currentFeatureType === 'point') {
           showPerimeter = false;
         } else if (this.data.currentFeatureType === 'line') {
-          label = getText('length') || '长度';
+          label = getText('length') || 'Length';
         }
       }
       
@@ -1625,12 +1617,12 @@ Page({
         if (featureType === 'point') {
           // 点要素：显示已采集的点数
           const pointCount = gisFeatures.filter(f => f.featureType === 'point').length;
-          const pointText = getText('point') || '点';
+          const pointText = getText('point') || 'Point';
           displayText = `${pointCount}${pointText}`;
         } else if (featureType === 'line') {
           // 线要素：显示已采集的线数
           const lineCount = gisFeatures.filter(f => f.featureType === 'line').length;
-          const lineText = getText('line') || '线';
+          const lineText = getText('line') || 'Line';
           displayText = `${lineCount}${lineText}`;
         } else if (featureType === 'polygon') {
           // 面要素：显示面积
@@ -1905,7 +1897,7 @@ Page({
         radius: px(21),
         normal_color: 0x2b2d31,
         press_color: 0x0061a4,
-        text: getText('mode_point') || '点',
+        text: getText('mode_point') || 'Point',
         text_size: px(16),
         color: 0xffffff,
         click_func: () => {
@@ -1923,7 +1915,7 @@ Page({
         radius: px(21),
         normal_color: 0x2b2d31,
         press_color: 0x0061a4,
-        text: getText('mode_line') || '线',
+        text: getText('mode_line') || 'Line',
         text_size: px(16),
         color: 0xffffff,
         click_func: () => {
@@ -1941,7 +1933,7 @@ Page({
         radius: px(21),
         normal_color: 0x2b2d31,
         press_color: 0x0061a4,
-        text: getText('mode_polygon') || '面',
+        text: getText('mode_polygon') || 'Polygon',
         text_size: px(16),
         color: 0xffffff,
         click_func: () => {
