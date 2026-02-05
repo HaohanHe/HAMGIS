@@ -316,9 +316,9 @@ Page({
       // 对于 prop.MORE 对象，检查长度是否超过限制
       if (property === prop.MORE && typeof value === 'object') {
         const valueStr = JSON.stringify(value);
-        logger.debug(`prop.MORE 对象长度: ${valueStr.length}, 内容: ${valueStr}`);
+        logger.debug(`prop.MORE object length: ${valueStr.length}, content: ${valueStr}`);
         if (valueStr.length > 50) {
-          logger.warn(`prop.MORE 对象长度超过限制: ${valueStr.length}, 内容: ${valueStr}`);
+          logger.warn(`prop.MORE object length exceeds limit: ${valueStr.length}, content: ${valueStr}`);
           return false;
         }
       }
@@ -331,7 +331,7 @@ Page({
       
       return true;
     } catch (e) {
-      logger.warn(`setProperty失败: ${property} = ${value}, 错误: ${e}`);
+      logger.warn(`setProperty failed: ${property} = ${value}, error: ${e}`);
       return false;
     }
   },
@@ -360,7 +360,7 @@ Page({
       
       return value;
     } catch (e) {
-      logger.warn(`getProperty失败: ${property}, 错误: ${e}`);
+      logger.warn(`getProperty failed: ${property}, error: ${e}`);
       return defaultValue;
     }
   },
@@ -408,7 +408,7 @@ Page({
         const enabled = this.data.geolocation.getEnabled();
         if (!enabled) {
           this.data.gpsStatus = 'permission_denied';
-          logger.warn('GPS权限被拒绝，请在设置中开启定位权限');
+          logger.warn('GPS permission denied, please enable location permission in settings');
           return;
         }
       }
@@ -428,11 +428,11 @@ Page({
           if (this.data.geolocation.getEnabled()) {
             this.data.geolocation.start();
             this.data.gpsStatus = 'locating';
-            logger.log('GPS权限已开启，开始定位');
+            logger.log('GPS permission enabled, starting location');
           } else {
             this.data.geolocation.stop();
             this.data.gpsStatus = 'permission_denied';
-            logger.warn('GPS权限被关闭');
+            logger.warn('GPS permission disabled');
           }
           // 只在GPS状态变化时更新UI，避免频繁调用
           if (this.data.lastGPSStatus !== this.data.gpsStatus) {
@@ -444,7 +444,7 @@ Page({
       
       // 减少日志输出
     } catch (e) {
-      logger.error(`GPS定位初始化失败: ${e}`);
+      logger.error(`GPS initialization failed: ${e}`);
       this.data.gpsStatus = 'error';
     }
   },
@@ -488,12 +488,12 @@ Page({
           
           if (this.data.firstFixDuration === null) {
             this.data.firstFixDuration = Date.now() - this.data.locateStartTime;
-            logger.debug(`首次定位耗时: ${this.data.firstFixDuration}ms`);
+            logger.debug(`First fix duration: ${this.data.firstFixDuration}ms`);
           }
 
           // 减少日志输出，避免性能问题
         } else {
-          logger.warn(`无效的坐标数据: lat=${latitude}, lon=${longitude}`);
+          logger.warn(`Invalid coordinate data: lat=${latitude}, lon=${longitude}`);
           this.data.gpsStatus = 'error';
         }
       } else {
@@ -510,7 +510,7 @@ Page({
         this.updateUI();
       }
     } catch (e) {
-      logger.error(`更新GPS位置失败: ${e}`);
+      logger.error(`Failed to update GPS location: ${e}`);
       this.data.gpsStatus = 'error';
     }
   },
@@ -567,12 +567,12 @@ Page({
   // 采集点 - 简化逻辑，直接采集
   collectPoint() {
     if (this.data.gpsStatus !== 'ready') {
-      logger.warn("GPS未就绪，无法采集点");
+      logger.warn("GPS not ready, cannot collect point");
       // 显示提示
       if (this.data.widgets.statusTip) {
         const weakSignalText = getText('weakSignal') || 'Weak Signal';
       const moveOpenText = getText('moveToOpenArea') || 'Move to open area';
-      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${weakSignalText}，${moveOpenText}`);
+      this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${weakSignalText}, ${moveOpenText}`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
@@ -585,7 +585,7 @@ Page({
     // 面模式：计算面积和周长
     
     if (!this.data.currentLat || !this.data.currentLon) {
-      logger.warn("GPS位置无效，无法采集点");
+      logger.warn("GPS position invalid, cannot collect point");
       return;
     }
     
@@ -632,7 +632,7 @@ Page({
           this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
         }
         
-        logger.debug(`GIS点要素已保存: ${pointFeature.featureName}`);
+        logger.debug(`GIS point feature saved: ${pointFeature.featureName}`);
       } else {
         // 线/面要素：添加到临时 points 数组
         this.data.points.push(point);
@@ -652,7 +652,7 @@ Page({
           this.calculateArea();
         }
         
-        logger.debug(`GIS${featureType}要素采集点${this.data.points.length}: ${point.lat}, ${point.lon}`);
+        logger.debug(`GIS ${featureType} feature collected point ${this.data.points.length}: ${point.lat}, ${point.lon}`);
       }
     } else {
       // 测面积模式（保持原有逻辑）
@@ -673,7 +673,7 @@ Page({
         this.calculatePerimeter();
       }
       
-      logger.debug(`采集点${this.data.points.length}: ${point.lat}, ${point.lon}, 海拔: ${point.altitude}m`);
+      logger.debug(`Collected point ${this.data.points.length}: ${point.lat}, ${point.lon}, altitude: ${point.altitude}m`);
     }
     
     this.updateUI();
@@ -682,7 +682,7 @@ Page({
   // 撤销最后一个点
   undoPoint() {
     if (this.data.points.length === 0) {
-      logger.warn("没有点可以撤销");
+      logger.warn("No points to undo");
       return;
     }
     
@@ -722,7 +722,7 @@ Page({
       }
     }
     
-    logger.debug(`撤销点，剩余${this.data.points.length}个点`);
+    logger.debug(`Undo point, remaining ${this.data.points.length} points`);
     this.updateUI();
   },
 
@@ -753,11 +753,11 @@ Page({
     if (maxDistance > 100000) {
       // 大范围测量（>100km），使用三角形分解法
       area = GeoCalculator.triangulatedGeodesicArea(points);
-      logger.debug(`大范围测量，使用三角形分解法计算面积: ${area} 平方米`);
+      logger.debug(`Large area measurement, using triangulation method: ${area} sq meters`);
     } else {
       // 小范围测量，使用局部平面近似法（更快）
       area = GeoCalculator.geodesicPolygonArea(points);
-      logger.debug(`小范围测量，使用测地多边形法计算面积: ${area} 平方米`);
+      logger.debug(`Small area measurement, using geodesic polygon method: ${area} sq meters`);
     }
     
     this.data.currentArea = area;
@@ -797,7 +797,7 @@ Page({
     }
     
     this.data.currentPerimeter = perimeter;
-    logger.debug(`计算周长/长度: ${perimeter} 米 (模式: ${mode}, 使用Vincenty公式)`);
+    logger.debug(`Calculated perimeter/length: ${perimeter} meters (mode: ${mode}, using Vincenty formula)`);
   },
 
   // 完成地块/要素 - 保存并自动开始下一个
@@ -815,7 +815,7 @@ Page({
 
     // 测面积模式（保持原有逻辑）
     if (this.data.points.length < 3) {
-      logger.warn(`点数不足3个，无法完成地块`);
+      logger.warn(`Not enough points (need 3), cannot finish field`);
       // 显示提示
       if (this.data.widgets.statusTip) {
         const msg = getText('atLeastNeedPoints') || 'At least %d points needed';
@@ -859,7 +859,7 @@ Page({
       }, 100);
     }
     
-    logger.debug(`地块完成: ${this.data.currentFieldName}, 面积: ${this.data.currentArea.toFixed(2)}㎡`);
+    logger.debug(`Field completed: ${this.data.currentFieldName}, area: ${this.data.currentArea.toFixed(2)} sq meters`);
     
     // 1.5秒后自动开始下一个地块
     setTimeout(() => {
@@ -885,7 +885,7 @@ Page({
     }
 
     if (this.data.points.length < minPoints) {
-      logger.warn(`点数不足${minPoints}个，无法完成要素`);
+      logger.warn(`Not enough points (need ${minPoints}), cannot finish feature`);
       if (this.data.widgets.statusTip) {
         const msg = getText('atLeastNeedPoints') || 'At least %d points needed';
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, msg.replace('%d', minPoints));
@@ -955,7 +955,7 @@ Page({
       }, 100);
     }
 
-    logger.debug(`GIS要素完成: ${featureName}, 类型: ${featureType}`);
+    logger.debug(`GIS feature completed: ${featureName}, type: ${featureType}`);
 
     // 重置临时数据，准备采集下一个同类型要素
     this.data.points = [];
@@ -969,7 +969,7 @@ Page({
   // GIS模式：导出到Android
   exportToAndroid() {
     if (this.data.gisFeatures.length === 0) {
-      logger.warn("没有要素可导出");
+      logger.warn("No features to export");
       if (this.data.widgets.statusTip) {
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || 'No features');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
@@ -1020,12 +1020,12 @@ Page({
     // 保存到 localStorage
     try {
       localStorage.setItem('hamgis_export_data', JSON.stringify(project));
-      logger.debug(`GIS项目已准备导出: ${project.name}, 要素数: ${this.data.gisFeatures.length}`);
+      logger.debug(`GIS project ready for export: ${project.name}, features: ${this.data.gisFeatures.length}`);
       
       // 跳转到导出页面
       push({ url: "page/export/index.page" });
     } catch (e) {
-      logger.error(`准备导出失败: ${e}`);
+      logger.error(`Export preparation failed: ${e}`);
       if (this.data.widgets.statusTip) {
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('exportFailed') || 'Export failed');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
@@ -1036,7 +1036,7 @@ Page({
   // GIS模式：完成整个项目
   finishGISProject() {
     if (this.data.gisFeatures.length === 0) {
-      logger.warn("没有要素可保存");
+      logger.warn("No features to save");
       if (this.data.widgets.statusTip) {
         this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('noFeatures') || 'No features');
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
@@ -1096,9 +1096,9 @@ Page({
       }
       measurements.push(project);
       localStorage.setItem('hamgis_measurements', JSON.stringify(measurements));
-      logger.debug(`GIS项目已保存: ${project.name}, 要素数: ${this.data.gisFeatures.length}`);
+      logger.debug(`GIS project saved: ${project.name}, features: ${this.data.gisFeatures.length}`);
     } catch (e) {
-      logger.error(`保存GIS项目失败: ${e}`);
+      logger.error(`Failed to save GIS project: ${e}`);
     }
 
     // 显示提示
@@ -1148,7 +1148,7 @@ Page({
     this.data.measureState = MEASURE_STATE.READY;
     this.data.currentFeatureType = 'polygon'; // 默认面要素
     
-    logger.debug(`开始新GIS项目: ${this.data.gisProjectName}`);
+    logger.debug(`Starting new GIS project: ${this.data.gisProjectName}`);
     this.updateUI();
   },
 
@@ -1168,7 +1168,7 @@ Page({
       
       return this.numberToLetter(todayCount);
     } catch (e) {
-      logger.error(`生成项目字母失败: ${e}`);
+      logger.error(`Failed to generate project letter: ${e}`);
       return 'A';
     }
   },
@@ -1207,12 +1207,12 @@ Page({
       
       // 验证数据完整性
       if (!this.data.points || this.data.points.length < 3) {
-        logger.warn(`点数不足3个，无法保存`);
+        logger.warn(`Not enough points (need 3), cannot save`);
         return;
       }
       
       if (this.data.currentArea <= 0) {
-        logger.warn('面积无效，无法保存');
+        logger.warn('Invalid area, cannot save');
         return;
       }
       
@@ -1224,16 +1224,16 @@ Page({
           try {
             fields = JSON.parse(stored);
             if (!Array.isArray(fields)) {
-              logger.warn('数据格式无效，重置');
+              logger.warn('Invalid data format, resetting');
               fields = [];
             }
           } catch (jsonError) {
-             logger.warn('JSON解析失败，重置数据');
+             logger.warn('JSON parse failed, resetting data');
              fields = [];
           }
         }
       } catch (e) {
-        logger.error(`读取历史记录失败: ${e}`);
+        logger.error(`Failed to read history: ${e}`);
         fields = [];
       }
       
@@ -1243,25 +1243,25 @@ Page({
       // 保存
       try {
         localStorage.setItem('hamgis_measurements', JSON.stringify(fields));
-        logger.debug(`地块已保存: ${field.name}, 总记录: ${fields.length}, 类型: ${field.type}`);
+        logger.debug(`Field saved: ${field.name}, total records: ${fields.length}, type: ${field.type}`);
       } catch (saveError) {
-        logger.error(`写入Storage失败: ${saveError}`);
+        logger.error(`Failed to write Storage: ${saveError}`);
         // 尝试只保存最后一条，或者提示存储空间不足
         if (fields.length > 1) {
              // 简单的清理策略：如果保存失败，尝试删除最旧的一条再试
-             logger.warn('尝试清理旧数据并重试...');
+             logger.warn('Attempting to clean old data and retry...');
              fields.shift(); // 移除第一条
              fields.push(field); // 重新加入当前
              try {
                 localStorage.setItem('hamgis_measurements', JSON.stringify(fields));
-                logger.debug('清理后保存成功');
+                logger.debug('Saved successfully after cleanup');
              } catch (retryError) {
-                logger.error(`清理后仍保存失败: ${retryError}`);
+                logger.error(`Still failed to save after cleanup: ${retryError}`);
              }
         }
       }
     } catch (e) {
-      logger.error(`保存地块失败: ${e}`);
+      logger.error(`Failed to save field: ${e}`);
     }
   },
 
@@ -1284,7 +1284,7 @@ Page({
       const letter = this.numberToLetter(todayCount);
       return `${getText('field')}${letter}`;
     } catch (e) {
-      logger.error(`生成地块名称失败: ${e}`);
+      logger.error(`Failed to generate field name: ${e}`);
       return `${getText('field')}${this.data.todayFieldCount + 1}`;
     }
   },
@@ -1320,7 +1320,7 @@ Page({
           // 更新设置
           settings.primaryUnit = 'mu';
           localStorage.setItem('hamgis_settings', JSON.stringify(settings));
-          logger.debug('自动将平方米设置转换为亩');
+          logger.debug('Auto-converted square meter setting to mu');
         }
         
         // 缓存单位信息
@@ -1328,12 +1328,12 @@ Page({
         // 只在首次读取时记录日志
         return unit;
       } else {
-        logger.debug('未找到设置，使用默认单位: mu');
+        logger.debug('Settings not found, using default unit: mu');
         this.data.cachedUnit = 'mu';
         return 'mu';
       }
     } catch (e) {
-      logger.error(`读取单位设置失败: ${e}`);
+      logger.error(`Failed to read unit settings: ${e}`);
       this.data.cachedUnit = 'mu';
       return 'mu';
     }
@@ -1350,7 +1350,7 @@ Page({
         return 'en-US';
       }
     } catch (e) {
-      logger.error(`读取语言设置失败: ${e}`);
+      logger.error(`Failed to read language settings: ${e}`);
       return 'en-US';
     }
   },
@@ -1373,7 +1373,7 @@ Page({
         };
       }
     } catch (e) {
-      logger.error(`加载设置失败: ${e}`);
+      logger.error(`Failed to load settings: ${e}`);
     }
     // 返回默认设置
     return {
@@ -1688,9 +1688,9 @@ Page({
       const canCollect = this.data.gpsStatus === 'ready';
       
       // 点模式下修改按钮文字
-      let btnText = this.data.settings.autoCollect 
-            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "停止采集") : (getText('startCollect') || "开始采集"))
-            : (getText('addPoint') || "采集点");
+      let btnText = this.data.settings.autoCollect
+            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "Stop") : (getText('startCollect') || "Start"))
+            : (getText('addPoint') || "Collect");
             
       // 如果是点模式且不是自动采集，显示“记录点位”可能更合适，但保持一致性也行
       // 这里不做特殊文字修改，保持“采集点”
@@ -1702,14 +1702,14 @@ Page({
   },
 
   onInit() {
-    logger.debug("测量页面初始化");
+    logger.debug("Measurement page initialized");
     
     // 隐藏状态栏（方形屏幕适配）
     try {
       setStatusBarVisible(false);
-      logger.debug("状态栏已隐藏");
+      logger.debug("Status bar hidden");
     } catch (e) {
-      logger.error(`隐藏状态栏失败: ${e}`);
+      logger.error(`Failed to hide status bar: ${e}`);
     }
     
     // 加载设置
@@ -1721,7 +1721,7 @@ Page({
     try {
       this.data.vibrator = new Vibrator();
     } catch (e) {
-      logger.error(`初始化震动器失败: ${e}`);
+      logger.error(`Failed to initialize vibrator: ${e}`);
       this.data.vibrator = null;
     }
     
@@ -1729,7 +1729,7 @@ Page({
     try {
       const success = barometerManager.init();
       if (success) {
-        logger.info('气压计初始化成功');
+        logger.info('Barometer initialized successfully');
         // 注册海拔变化监听
         barometerManager.onChange((altitude) => {
           this.data.currentAltitude = altitude;
@@ -1738,10 +1738,10 @@ Page({
         // 立即获取一次海拔
         this.data.currentAltitude = barometerManager.getAltitude();
       } else {
-        logger.warn('气压计初始化失败，海拔数据不可用');
+        logger.warn('Barometer initialization failed, altitude data unavailable');
       }
     } catch (e) {
-      logger.error(`初始化气压计失败: ${e}`);
+      logger.error(`Failed to initialize barometer: ${e}`);
     }
     
     // 计算今天已完成的地块数
@@ -1755,7 +1755,7 @@ Page({
         }
       }
     } catch (e) {
-      logger.error(`读取今日地块数失败: ${e}`);
+      logger.error(`Failed to read today field count: ${e}`);
       this.data.todayFieldCount = 0;
     }
     
@@ -1817,11 +1817,11 @@ Page({
           // 更新lastSettingsCheck但不执行切换
           this.data.lastSettingsCheck = currentSettings;
           this.data.settings = this.loadSettings(); // 仍然更新设置（单位等可以改）
-          logger.debug('有未保存数据，禁止切换模式');
+          logger.debug('Unsaved data exists, mode switching blocked');
           return;
         }
         
-        logger.debug('检测到设置变化，重新构建界面');
+        logger.debug('Settings changed, rebuilding interface');
         this.data.lastSettingsCheck = currentSettings;
         this.data.settings = this.loadSettings(); // Reload settings
         // 重新构建界面
@@ -1833,7 +1833,7 @@ Page({
   },
 
   build() {
-    logger.debug("构建测量界面 - 根据设计文档优化布局");
+    logger.debug("Building measurement interface - optimized layout per design doc");
     
     const deviceInfo = getDeviceInfo();
     const { width, height } = deviceInfo;
@@ -2035,7 +2035,7 @@ Page({
       align_h: align.CENTER_H,
       align_v: align.CENTER_V,
       text_style: text_style.BOLD,
-      text: `0.00 ${getText('mu')}`
+      text: `0.00 ${getText('mu') || 'mu'}`
     });
 
     // 地块名称、点数、周长 - 同一行显示 (默认大字模式)
@@ -2134,9 +2134,9 @@ Page({
       radius: px(28),
       normal_color: this.data.settings.autoCollect && this.data.isAutoCollecting ? 0xb3261e : 0x0986d4,
       press_color: this.data.settings.autoCollect && this.data.isAutoCollecting ? 0x8c1d18 : 0x0061a4,
-      text: this.data.settings.autoCollect 
-            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "停止采集") : (getText('startCollect') || "开始采集"))
-            : (getText('addPoint') || "采集点"),
+      text: this.data.settings.autoCollect
+            ? (this.data.isAutoCollecting ? (getText('stopCollect') || "Stop") : (getText('startCollect') || "Start"))
+            : (getText('addPoint') || "Collect"),
       text_size: buttonFontSize,
       color: 0xffffff,
       click_func: () => {
@@ -2151,7 +2151,7 @@ Page({
             pageInstance.collectPoint();
           }
         } catch (e) {
-          logger.error(`采集点按钮点击失败: ${e}`);
+          logger.error(`Collect button click failed: ${e}`);
         }
       }
     });
@@ -2180,14 +2180,14 @@ Page({
       radius: px(28),
       normal_color: 0x2b2d31, // M3 Surface Container
       press_color: 0x3e4248,
-      text: getText('undo') || "撤销",
+      text: getText('undo') || "Undo",
       text_size: smallButtonFontSize,
       color: highlightColor, // Blue/White Text for Action
       click_func: () => {
         try {
           pageInstance.undoPoint();
         } catch (e) {
-          logger.error(`撤销按钮点击失败: ${e}`);
+          logger.error(`Undo button click failed: ${e}`);
         }
       }
     });
@@ -2210,7 +2210,7 @@ Page({
       radius: px(28),
       normal_color: 0x2b2d31, // M3 Surface Container
       press_color: 0x3e4248,
-      text: this.isGISMode() ? (getText('finishFeature') || "完成要素") : (getText('finishField') || "完成地块"),
+      text: this.isGISMode() ? (getText('finishFeature') || "Finish") : (getText('finishField') || "Finish"),
       text_size: smallButtonFontSize,
       color: highlightColor, // Blue/White Text for Action
       click_func: () => {
@@ -2235,7 +2235,7 @@ Page({
             pageInstance.finishField();
           }
         } catch (e) {
-          logger.error(`完成按钮点击失败: ${e}`);
+          logger.error(`Finish button click failed: ${e}`);
         }
       },
       longpress_func: () => {
@@ -2244,7 +2244,7 @@ Page({
           try {
             pageInstance.finishGISProject();
           } catch (e) {
-            logger.error(`完成项目失败: ${e}`);
+            logger.error(`Failed to finish project: ${e}`);
           }
         }
       }
@@ -2282,7 +2282,7 @@ Page({
           try {
             push({ url: "page/history/index.page" });
           } catch (e) {
-            logger.error(`历史按钮点击失败: ${e}`);
+            logger.error(`History button click failed: ${e}`);
           }
         }
       });
@@ -2312,7 +2312,7 @@ Page({
           try {
             push({ url: "page/settings/index.page" });
           } catch (e) {
-            logger.error(`设置按钮点击失败: ${e}`);
+            logger.error(`Settings button click failed: ${e}`);
           }
         }
       });
@@ -2357,7 +2357,7 @@ Page({
           try {
             push({ url: "page/history/index.page" });
           } catch (e) {
-            logger.error(`历史按钮点击失败: ${e}`);
+            logger.error(`History button click failed: ${e}`);
           }
         }
       });
@@ -2387,7 +2387,7 @@ Page({
           try {
             push({ url: "page/settings/index.page" });
           } catch (e) {
-            logger.error(`设置按钮点击失败: ${e}`);
+            logger.error(`Settings button click failed: ${e}`);
           }
         }
       });
@@ -2402,7 +2402,7 @@ Page({
           if (key === KEY_SHORTCUT || key === KEY_BACK) {
             // 如果是手动采集模式，则将按键作为采集触发
             if (!this.data.settings.autoCollect) {
-              logger.debug(`按键触发采集: ${key}`);
+              logger.debug(`Key triggered collection: ${key}`);
               this.collectPoint();
               return true; // 拦截按键事件
             }
@@ -2414,7 +2414,7 @@ Page({
   },
 
   onDestroy() {
-    logger.debug("测量页面销毁");
+    logger.debug("Measurement page destroyed");
     
     // 停止自动采集
     this.stopAutoCollect();
@@ -2441,16 +2441,16 @@ Page({
         }
         this.data.geolocation.stop();
       } catch (e) {
-        logger.error(`停止GPS失败: ${e}`);
+        logger.error(`Failed to stop GPS: ${e}`);
       }
     }
     
     // 销毁气压计
     try {
       barometerManager.destroy();
-      logger.info('气压计已销毁');
+      logger.info('Barometer destroyed');
     } catch (e) {
-      logger.error(`销毁气压计失败: ${e}`);
+      logger.error(`Failed to destroy barometer: ${e}`);
     }
     
     // 停止震动
@@ -2458,7 +2458,7 @@ Page({
       try {
         this.data.vibrator.stop();
       } catch (e) {
-        logger.error(`停止震动失败: ${e}`);
+        logger.error(`Failed to stop vibration: ${e}`);
       }
     }
   },
