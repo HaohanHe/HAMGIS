@@ -476,3 +476,21 @@ msgstr "現在"
 
 msgid "collectedPoints"
 msgstr "{0}点収集済み、あと{1}点"
+
+msgid "finishFeatureHint"
+msgstr "要素完了 | 長押しでプロジェクト完了"
+
+msgid "atLeastNeedPoints"
+msgstr "最低%d点必要"
+
+msgid "acquiringSignal"
+msgstr "信号取得中"
+
+msgid "switchingFeatureTypeWarning"
+msgstr "現在の要素は破棄されます"
+
+msgid "saveBeforeSwitchMode"
+msgstr "保存してからモード切替"
+
+msgid "pointsNeeded"
+msgstr "{0}点、あと{1}点必要"
