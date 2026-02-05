@@ -1759,10 +1759,21 @@ Page({
       this.data.todayFieldCount = 0;
     }
     
-    // 根据模式初始化
+    // 根据模式初始化，并清理对方模式的数据
     if (this.isGISMode()) {
+      // 清理测面积模式数据
+      this.data.currentFieldName = '';
+      this.data.todayFieldCount = 0;
+      this.data.fields = [];
+      // 初始化GIS模式
       this.startNewGISProject();
     } else {
+      // 清理GIS模式数据
+      this.data.gisFeatures = [];
+      this.data.gisFeatureIndex = 0;
+      this.data.gisProjectName = '';
+      this.data.currentFeatureType = 'polygon';
+      // 初始化测面积模式
       this.startNewField();
     }
     
@@ -1791,6 +1802,25 @@ Page({
         appMode: this.loadSettings().appMode // 检查应用模式变化
       });
       if (currentSettings !== this.data.lastSettingsCheck) {
+        // 防呆检查：采集过程中禁止切换模式
+        const hasUnsavedData = this.data.points.length > 0 || 
+                               (this.data.gisFeatures && this.data.gisFeatures.length > 0) ||
+                               this.data.isAutoCollecting;
+        
+        if (hasUnsavedData) {
+          // 有未保存的数据，显示提示但不切换
+          if (this.data.widgets.statusTip) {
+            const warningText = getText('saveBeforeSwitchMode') || 'Save before switching mode';
+            this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, warningText);
+            this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xffaa00);
+          }
+          // 更新lastSettingsCheck但不执行切换
+          this.data.lastSettingsCheck = currentSettings;
+          this.data.settings = this.loadSettings(); // 仍然更新设置（单位等可以改）
+          logger.debug('有未保存数据，禁止切换模式');
+          return;
+        }
+        
         logger.debug('检测到设置变化，重新构建界面');
         this.data.lastSettingsCheck = currentSettings;
         this.data.settings = this.loadSettings(); // Reload settings

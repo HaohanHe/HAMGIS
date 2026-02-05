@@ -474,3 +474,6 @@ msgstr "搜星中"
 
 msgid "switchingFeatureTypeWarning"
 msgstr "当前要素将被丢弃"
+
+msgid "saveBeforeSwitchMode"
+msgstr "请先保存再切换模式"

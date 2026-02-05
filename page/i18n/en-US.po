@@ -431,3 +431,6 @@ msgstr "Acquiring Satellites"
 
 msgid "switchingFeatureTypeWarning"
 msgstr "Current feature will be discarded"
+
+msgid "saveBeforeSwitchMode"
+msgstr "Save before switching mode"
