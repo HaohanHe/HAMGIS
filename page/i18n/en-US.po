@@ -434,3 +434,6 @@ msgstr "Current feature will be discarded"
 
 msgid "saveBeforeSwitchMode"
 msgstr "Save before switching mode"
+
+msgid "countTemplate"
+msgstr "{0} x {1}"

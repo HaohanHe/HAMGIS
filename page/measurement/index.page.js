@@ -1620,12 +1620,14 @@ Page({
           // 点要素：显示已采集的点数
           const pointCount = gisFeatures.filter(f => f.featureType === 'point').length;
           const pointText = getText('point') || 'Point';
-          displayText = `${pointCount}${pointText}`;
+          const countTemplate = getText('countTemplate') || '{0} {1}';
+          displayText = countTemplate.replace('{0}', pointText).replace('{1}', pointCount);
         } else if (featureType === 'line') {
           // 线要素：显示已采集的线数
           const lineCount = gisFeatures.filter(f => f.featureType === 'line').length;
           const lineText = getText('line') || 'Line';
-          displayText = `${lineCount}${lineText}`;
+          const countTemplate = getText('countTemplate') || '{0} {1}';
+          displayText = countTemplate.replace('{0}', lineText).replace('{1}', lineCount);
         } else if (featureType === 'polygon') {
           // 面要素：显示面积
           if (this.data.currentArea > 0) {
