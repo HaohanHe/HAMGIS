@@ -462,3 +462,15 @@ msgstr "平方英里"
 
 msgid "acre"
 msgstr "英亩"
+
+msgid "finishFeatureHint"
+msgstr "完成要素 | 长按完成项目"
+
+msgid "atLeastNeedPoints"
+msgstr "至少需要%d个点"
+
+msgid "acquiringSignal"
+msgstr "搜星中"
+
+msgid "switchingFeatureTypeWarning"
+msgstr "当前要素将被丢弃"

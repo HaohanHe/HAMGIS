@@ -422,3 +422,12 @@ msgstr "{0} pts | {1} more needed"
 
 msgid "finishFeatureHint"
 msgstr "Finish Feature | Long press to finish project"
+
+msgid "atLeastNeedPoints"
+msgstr "At least %d points needed"
+
+msgid "acquiringSignal"
+msgstr "Acquiring Satellites"
+
+msgid "switchingFeatureTypeWarning"
+msgstr "Current feature will be discarded"

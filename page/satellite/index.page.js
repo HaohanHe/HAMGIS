@@ -294,8 +294,8 @@ Page({
   updateUI() {
     // Update Dual Band
     if (this.data.widgets.dualBandText) {
-        const dualText = getText('dualBand');
-        const singleText = getText('singleBand');
+        const dualText = getText('dualBand') || 'Dual Band (L1+L5)';
+        const singleText = getText('singleBand') || 'Single Band';
         this.data.widgets.dualBandText.setProperty(prop.TEXT, this.data.isDualBand ? dualText : singleText);
         // Single Band -> Yellow or Grey? Dual Band -> Green
         this.data.widgets.dualBandText.setProperty(prop.COLOR, this.data.isDualBand ? 0x00ff88 : 0xffcc00);

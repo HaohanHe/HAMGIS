@@ -435,14 +435,10 @@ Page({
             logger.warn('GPS权限被关闭');
           }
           // 只在GPS状态变化时更新UI，避免频繁调用
-            if (this.data.lastGPSStatus !== this.data.gpsStatus) {
-              this.data.lastGPSStatus = this.data.gpsStatus;
-              // 只在GPS状态变化时更新UI，避免频繁调用
-      if (this.data.lastGPSStatus !== this.data.gpsStatus) {
-        this.data.lastGPSStatus = this.data.gpsStatus;
-        this.updateUI();
-      }
-            }
+          if (this.data.lastGPSStatus !== this.data.gpsStatus) {
+            this.data.lastGPSStatus = this.data.gpsStatus;
+            this.updateUI();
+          }
         });
       }
       
@@ -1498,7 +1494,13 @@ Page({
     const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
     const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
-    // GPS状态更新已移除，避免prop.MORE长度限制问题（gpsStatus是BUTTON类型）
+    // GPS状态更新 - 使用safeSetProperty避免prop.MORE长度限制问题
+    if (this.data.widgets.gpsStatus) {
+      const gpsText = this.getGPSText();
+      const gpsColor = this.getGPSColor();
+      this.safeSetProperty(this.data.widgets.gpsStatus, prop.TEXT, gpsText);
+      this.safeSetProperty(this.data.widgets.gpsStatus, prop.COLOR, gpsColor);
+    }
     
     // 更新坐标显示
     if (this.data.widgets.coordinates) {
