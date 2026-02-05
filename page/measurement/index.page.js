@@ -1101,12 +1101,9 @@ Page({
       logger.error(`Failed to save GIS project: ${e}`);
     }
 
-    // 显示提示
+    // 显示提示 - 使用缩写格式避免截断
     if (this.data.widgets.statusTip) {
-      const pointText = getText('point') || 'Point';
-      const lineText = getText('line') || 'Line';
-      const polygonText = getText('polygon') || 'Polygon';
-      const countText = `${pointText}×${featureCount.point} ${lineText}×${featureCount.line} ${polygonText}×${featureCount.polygon}`;
+      const countText = `P:${featureCount.point} L:${featureCount.line} A:${featureCount.polygon}`;
       this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, `${project.name} ${getText('save') || 'Saved'} (${countText})`);
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
@@ -1551,17 +1548,15 @@ Page({
       const isRoundScreen = deviceInfo.width >= 466;
       
       if (this.isGISMode()) {
-        // GIS模式：显示要素统计
+        // GIS模式：显示要素统计 - 使用缩写避免截断
         const gisFeatures = this.data.gisFeatures || [];
         const counts = {
           point: gisFeatures.filter(f => f.featureType === 'point').length,
           line: gisFeatures.filter(f => f.featureType === 'line').length,
           polygon: gisFeatures.filter(f => f.featureType === 'polygon').length
         };
-        const pointText = getText('point') || 'Point';
-        const lineText = getText('line') || 'Line';
-        const polygonText = getText('polygon') || 'Polygon';
-        const countText = `${pointText}×${counts.point} ${lineText}×${counts.line} ${polygonText}×${counts.polygon}`;
+        // 使用单字母缩写：P=Point, L=Line, A=Area(Polygon)
+        const countText = `P:${counts.point} L:${counts.line} A:${counts.polygon}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
@@ -1620,14 +1615,12 @@ Page({
           // 点要素：显示已采集的点数
           const pointCount = gisFeatures.filter(f => f.featureType === 'point').length;
           const pointText = getText('point') || 'Point';
-          const countTemplate = getText('countTemplate') || '{0} {1}';
-          displayText = countTemplate.replace('{0}', pointText).replace('{1}', pointCount);
+          displayText = `${pointCount}${pointText}`;
         } else if (featureType === 'line') {
           // 线要素：显示已采集的线数
           const lineCount = gisFeatures.filter(f => f.featureType === 'line').length;
           const lineText = getText('line') || 'Line';
-          const countTemplate = getText('countTemplate') || '{0} {1}';
-          displayText = countTemplate.replace('{0}', lineText).replace('{1}', lineCount);
+          displayText = `${lineCount}${lineText}`;
         } else if (featureType === 'polygon') {
           // 面要素：显示面积
           if (this.data.currentArea > 0) {
