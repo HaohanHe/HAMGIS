@@ -4,6 +4,14 @@
 
 ---
 
+## 📱 Android 配套客户端
+
+[![HAMGIS Receiver](https://img.shields.io/badge/HAMGIS%20Receiver-下载客户端-FF6B9D?style=for-the-badge&logo=android)](https://github.com/HaohanHe/HAMGIS-drop)
+
+> **HAMGIS Receiver** 是 HAMGIS 的 Android 配套应用，用于接收手表端采集的数据并导出为 CSV、JSON、GeoJSON、KML 等专业格式。
+
+---
+
 ## 简体中文
 
 # HAMGIS 测亩 - 专业 GIS 土地测量应用
