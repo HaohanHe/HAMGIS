@@ -480,3 +480,12 @@ msgstr "请先保存再切换模式"
 
 msgid "current"
 msgstr "当前"
+
+msgid "point"
+msgstr "点"
+
+msgid "line"
+msgstr "线"
+
+msgid "polygon"
+msgstr "面"
