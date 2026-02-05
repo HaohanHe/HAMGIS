@@ -478,5 +478,5 @@ msgstr "当前要素将被丢弃"
 msgid "saveBeforeSwitchMode"
 msgstr "请先保存再切换模式"
 
-msgid "countTemplate"
-msgstr "{0} x {1}"
+msgid "current"
+msgstr "当前"
