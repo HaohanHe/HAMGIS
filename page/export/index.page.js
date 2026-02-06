@@ -132,10 +132,10 @@ Page(
         bg_h: qrcodeSize + bgPadding * 2
       });
       
-      // 按钮 - 紧贴白色区域下方
+      // 按钮 - 往下移，避免遮挡二维码
       const buttonWidth = px(110);
       const buttonHeight = px(42);
-      const buttonY = qrcodeY + qrcodeSize + px(15); // 减小间距，更紧凑
+      const buttonY = qrcodeY + qrcodeSize + px(35); // 增大间距，往下移
       createWidget(widget.BUTTON, {
         x: centerX - buttonWidth / 2,
         y: buttonY,
