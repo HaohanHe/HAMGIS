@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAMGIS 日式海报生成器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* 控制面板（上传区域） */
+        .control-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            width: 280px;
+            backdrop-filter: blur(10px);
+            border: 1px solid #eee;
+        }
+        
+        .control-panel h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+        }
+        
+        .upload-group {
+            margin-bottom: 15px;
+        }
+        
+        .upload-group label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .file-input-label:hover {
+            background: #e0e0e0;
+            border-color: #999;
+        }
+        
+        .file-name {
+            font-size: 11px;
+            color: #333;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+        
+        .status {
+            display: none;
+            font-size: 11px;
+            color: #4CAF50;
+            margin-top: 4px;
+        }
+        
+        .btn-download {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 700;
+            transition: transform 0.2s;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        /* 海报区域 */
+        .poster-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        
+        .poster {
+            width: 800px;
+            height: 800px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        /* 背景亩字 - 已移除 */
+        
+        /* 赤丸 */
+        .red-dot {
+            width: 28px;
+            height: 28px;
+            background: #E60012;
+            border-radius: 50%;
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            z-index: 20;
+        }
+        
+        /* 金賞框 */
+        .gold-box {
+            border: 3px solid #D4AF37;
+            padding: 16px 32px;
+            color: #D4AF37;
+            font-weight: 700;
+            font-size: 28px;
+            letter-spacing: 0.15em;
+            position: absolute;
+            top: 60px;
+            right: 60px;
+            z-index: 20;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        /* 大字标题 */
+        .title-container {
+            position: absolute;
+            left: -20px;
+            top: 140px;
+            z-index: 10;
+        }
+        
+        .title-text {
+            font-size: 180px;
+            line-height: 0.85;
+            letter-spacing: -0.03em;
+            font-weight: 900;
+            color: #000;
+            margin: 0;
+        }
+        
+        /* 装饰线 */
+        .deco-line {
+            position: absolute;
+            bottom: -100px;
+            left: 80px;
+            width: 100px;
+            height: 4px;
+            background: #000;
+        }
+        
+        /* 底部文字 */
+        .bottom-text {
+            position: absolute;
+            bottom: 40px;
+            left: 80px;
+            z-index: 10;
+        }
+        
+        .jp-text {
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .en-text {
+            font-size: 12px;
+            color: #999;
+            letter-spacing: 0.2em;
+        }
+        
+        /* 手表区域 */
+        .watch-section {
+            position: absolute;
+            right: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 15;
+        }
+        
+        .watch-wrapper {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+        
+        /* 竖排GOLD */
+        .vertical-gold {
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            font-size: 48px;
+            font-weight: 900;
+            color: #D4AF37;
+            letter-spacing: 0.2em;
+            z-index: 25;
+        }
+        
+        /* 硬件层 */
+        .watch-hardware {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 20;
+        }
+        
+        /* UI层 - 精确叠加在表盘上（缩小到220px） */
+        .watch-ui {
+            position: absolute;
+            top: 90px;
+            left: 90px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            overflow: hidden;
+            z-index: 15;
+        }
+        
+        .watch-ui img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .ui-placeholder {
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        /* 占位符提示 */
+        .placeholder-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ccc;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* 可选：Gold标签叠加（如果需要） */
+        .gold-label {
+            position: absolute;
+            bottom: 80px;
+            right: 80px;
+            z-index: 30;
+        }
+        
+        .gold-label img {
+            width: 100px;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 控制面板 -->
+    <div class="control-panel">
+        <h3>🎌 素材上传</h3>
+        
+        <div class="upload-group">
+            <label>1. 手表硬件图（表壳表带）</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="upload-hardware" accept="image/*">
+                <label for="upload-hardware" class="file-input-label">
+                    点击上传或拖拽图片
+                </label>
+            </div>
+            <div class="status" id="status-hardware">✓ 已加载</div>
+            <div class="file-name" id="name-hardware"></div>
+        </div>
+        
+        <div class="upload-group">
+            <label>2. UI界面截图（表盘内容）</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="upload-ui" accept="image/*">
+                <label for="upload-ui" class="file-input-label">
+                    点击上传或拖拽图片
+                </label>
+            </div>
+            <div class="status" id="status-ui">✓ 已加载</div>
+            <div class="file-name" id="name-ui"></div>
+        </div>
+        
+        <div class="upload-group">
+            <label>3. Gold标签（可选）</label>
+            <div class="file-input-wrapper">
+                <input type="file" id="upload-gold" accept="image/*">
+                <label for="upload-gold" class="file-input-label">
+                    点击上传（可选）
+                </label>
+            </div>
+            <div class="status" id="status-gold">✓ 已加载</div>
+            <div class="file-name" id="name-gold"></div>
+        </div>
+        
+        <button class="btn-download" onclick="downloadPoster()">📥 下载海报（PNG）</button>
+        <p style="font-size: 11px; color: #999; margin-top: 10px; text-align: center;">
+            Chrome/Edge中右键"图片另存为"也可保存
+        </p>
+    </div>
+    
+    <!-- 海报区域 -->
+    <div class="poster-container">
+        <div class="poster" id="poster">
+            <!-- 背景亩字 - 已移除 -->
+            
+            <!-- 赤丸 -->
+            <div class="red-dot"></div>
+            
+            <!-- 金賞框 -->
+            <div class="gold-box">金奖</div>
+            
+            <!-- 大字标题 -->
+            <div class="title-container">
+                <div class="title-text">HAM</div>
+                <div class="title-text">GIS</div>
+                <div class="deco-line"></div>
+            </div>
+            
+            <!-- 底部文字 -->
+            <div class="bottom-text">
+                <div class="en-text">Amazfit</div>
+                <div class="en-text">ZEPP OS GLOBAL HACKATHON 2025</div>
+            </div>
+            
+            <!-- 手表展示 -->
+            <div class="watch-section">
+                <div class="watch-wrapper">
+                 
+                    <!-- UI层 -->
+                    <div class="watch-ui" id="display-ui">
+                        <div class="ui-placeholder">等待上传UI图片...</div>
+                    </div>
+                    
+                    <!-- 硬件层 -->
+                    <img id="display-hardware" class="watch-hardware" style="display:none;">
+                </div>
+            </div>
+            
+            <!-- Gold标签（可选） -->
+            <div class="gold-label" id="display-gold-container" style="display:none;">
+                <img id="display-gold">
+            </div>
+        </div>
+    </div>
+    
+    <!-- html2canvas 库用于导出 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script>
+        // 文件上传处理
+        function handleFileUpload(inputId, displayId, statusId, nameId, isBackground = false) {
+            const input = document.getElementById(inputId);
+            const display = document.getElementById(displayId);
+            const status = document.getElementById(statusId);
+            const nameDisplay = document.getElementById(nameId);
+            
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const imgUrl = event.target.result;
+                        
+                        if (isBackground) {
+                            display.style.backgroundImage = `url(${imgUrl})`;
+                            display.style.backgroundSize = 'cover';
+                            display.innerHTML = '';
+                        } else if (display.tagName === 'IMG') {
+                            display.src = imgUrl;
+                            display.style.display = 'block';
+                        } else {
+                            display.innerHTML = `<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;">`;
+                        }
+                        
+                        status.style.display = 'block';
+                        nameDisplay.textContent = file.name;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // 拖拽支持
+            const label = input.nextElementSibling;
+            label.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                label.style.borderColor = '#000';
+                label.style.background = '#e8e8e8';
+            });
+            
+            label.addEventListener('dragleave', () => {
+                label.style.borderColor = '#ccc';
+                label.style.background = '#f0f0f0';
+            });
+            
+            label.addEventListener('drop', (e) => {
+                e.preventDefault();
+                label.style.borderColor = '#ccc';
+                label.style.background = '#f0f0f0';
+                
+                const file = e.dataTransfer.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    input.files = e.dataTransfer.files;
+                    const event = new Event('change');
+                    input.dispatchEvent(event);
+                }
+            });
+        }
+        
+        // 初始化上传器
+        handleFileUpload('upload-hardware', 'display-hardware', 'status-hardware', 'name-hardware');
+        handleFileUpload('upload-ui', 'display-ui', 'status-ui', 'name-ui', true);
+        handleFileUpload('upload-gold', 'display-gold', 'status-gold', 'name-gold');
+        
+        // 拖拽到Gold容器
+        const goldContainer = document.getElementById('display-gold-container');
+        document.getElementById('upload-gold').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                goldContainer.style.display = 'block';
+            }
+        });
+        
+        // 下载海报功能
+        function downloadPoster() {
+            const poster = document.getElementById('poster');
+            
+            // 临时隐藏控制面板（截图时不显示）
+            const controlPanel = document.querySelector('.control-panel');
+            controlPanel.style.opacity = '0';
+            
+            html2canvas(poster, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'HAMGIS_日式海报.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // 恢复控制面板
+                controlPanel.style.opacity = '1';
+            }).catch(err => {
+                console.error('生成失败:', err);
+                alert('生成失败，请使用浏览器截图功能替代');
+                controlPanel.style.opacity = '1';
+            });
+        }
+        
+        // 提示
+        console.log('%c HAMGIS 海报生成器已就绪 ', 'background: #000; color: #fff; padding: 10px; font-size: 16px;');
+        console.log('使用方法：');
+        console.log('1. 点击右上角的上传区域选择图片');
+        console.log('2. 调整好后点击"下载海报"');
+        console.log('3. 或直接右键海报区域选择"图片另存为"');
+    </script>
+</body>
+</html>

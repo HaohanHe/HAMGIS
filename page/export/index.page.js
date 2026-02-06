@@ -111,14 +111,14 @@ Page(
         text_style: text_style.WRAP
       });
 
-      // 二维码 - 紧凑显示，白色背景只包裹二维码
+      // 二维码 - 放大显示，白色背景紧贴二维码
       const qrcodeUrl = 'https://github.com/HaohanHe/HAMGIS-drop/releases';
-      const qrcodeSize = px(85);
+      const qrcodeSize = px(110);  // 从85放大到110
       const qrcodeX = centerX - qrcodeSize / 2;
-      const qrcodeY = px(135);
-      const padding = px(3);
+      const qrcodeY = px(125);     // 稍微上移
+      const padding = px(2);       // 减小padding，让白色背景更紧凑
       
-      // 白色背景 - 只包裹二维码
+      // 白色背景 - 紧贴二维码，不要太多留白
       createWidget(widget.FILL_RECT, {
         x: qrcodeX - padding,
         y: qrcodeY - padding,
@@ -136,10 +136,10 @@ Page(
         content: qrcodeUrl
       });
       
-      // 按钮 - 在白色区域外
+      // 按钮 - 紧贴白色区域下方
       const buttonWidth = px(110);
       const buttonHeight = px(42);
-      const buttonY = qrcodeY + qrcodeSize + px(25); // 白色区域下方
+      const buttonY = qrcodeY + qrcodeSize + px(15); // 减小间距，更紧凑
       createWidget(widget.BUTTON, {
         x: centerX - buttonWidth / 2,
         y: buttonY,
