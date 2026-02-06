@@ -113,9 +113,9 @@ Page(
 
       // 二维码 - 使用QRCODE内置背景功能，更简洁
       const qrcodeUrl = 'https://github.com/HaohanHe/HAMGIS-drop/releases';
-      const qrcodeSize = px(130);  // 稍微减小到130，确保能完整显示
+      const qrcodeSize = px(120);  // 减小到120，确保在圆形屏幕内完整显示
       const qrcodeX = centerX - qrcodeSize / 2;
-      const qrcodeY = px(125);     // 往下移，确保白色背景框完整显示
+      const qrcodeY = px(135);     // 再往下移，避免白色背景被截断
       const bgPadding = px(4);     // 白色背景比二维码大4px
       
       // QRCODE widget自带白色背景，使用bg_*参数控制
@@ -135,7 +135,7 @@ Page(
       // 按钮 - 在二维码下方
       const buttonWidth = px(110);
       const buttonHeight = px(42);
-      const buttonY = qrcodeY + qrcodeSize + px(25); // 合适的间距
+      const buttonY = qrcodeY + qrcodeSize + px(20); // 合适的间距
       createWidget(widget.BUTTON, {
         x: centerX - buttonWidth / 2,
         y: buttonY,
