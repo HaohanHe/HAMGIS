@@ -4,6 +4,7 @@ import { Geolocation } from "@zos/sensor";
 import { getDeviceInfo } from "@zos/device";
 import { getText } from '@zos/i18n';
 import { back } from '@zos/router';
+import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 
 const logger = log.getLogger("hamgis-satellite");
 
@@ -20,7 +21,11 @@ Page({
     systemCounts: {}, // { 'GPS': 5, 'BDS': 3, ... }
     gpsMode: null,
     signalQuality: null,
-    avgSnr: 0
+    avgSnr: 0,
+    
+    // 回调函数引用，用于清理
+    gnssChangeCallback: null,
+    locationChangeCallback: null
   },
 
   onInit(params) {
@@ -56,16 +61,18 @@ Page({
       
       // Use onGnssChange for detailed stats (API 3.0+)
       if (typeof this.data.geolocation.onGnssChange === 'function') {
-        this.data.geolocation.onGnssChange((event) => {
+        this.data.gnssChangeCallback = (event) => {
            this.processGnssData(event);
-        });
+        };
+        this.data.geolocation.onGnssChange(this.data.gnssChangeCallback);
       } else {
         // Fallback to onChange
-        this.data.geolocation.onChange((event) => {
+        this.data.locationChangeCallback = (event) => {
           if (event && event.satellite_data) {
              this.processSatelliteData(event.satellite_data);
           }
-        });
+        };
+        this.data.geolocation.onChange(this.data.locationChangeCallback);
       }
       
       this.data.geolocation.start();
@@ -347,10 +354,38 @@ Page({
             data_type_config_count: 1
         });
     }
+    
+    // 注册按键监听
+    // 下键(Shortcut/Back): 返回功能 - 全局可用
+    onKey({
+      callback: (key, keyEvent) => {
+        if (keyEvent === KEY_EVENT_CLICK) {
+          // 下键：返回首页 - 全局可用
+          if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            logger.debug(`Shortcut/Back key triggered back: ${key}`);
+            // 执行返回操作
+            back();
+            return true; // 拦截按键事件
+          }
+        }
+        return false;
+      }
+    });
   },
 
   onDestroy() {
     if (this.data.geolocation) {
+      // 移除事件监听
+      try {
+        if (this.data.gnssChangeCallback && typeof this.data.geolocation.offGnssChange === 'function') {
+          this.data.geolocation.offGnssChange(this.data.gnssChangeCallback);
+        }
+        if (this.data.locationChangeCallback && typeof this.data.geolocation.offChange === 'function') {
+          this.data.geolocation.offChange(this.data.locationChangeCallback);
+        }
+      } catch (e) {
+        logger.error(`移除GPS监听失败: ${e}`);
+      }
       this.data.geolocation.stop();
     }
   }

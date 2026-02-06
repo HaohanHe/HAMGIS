@@ -1,9 +1,10 @@
 import { log, px } from "@zos/utils";
 import { createWidget, widget, align } from '@zos/ui';
 import { getDeviceInfo } from "@zos/device";
-import { back } from '@zos/router';
+import { back, push } from '@zos/router';
 import { getText } from '@zos/i18n';
 import { MiniMapRenderer } from '../../utils/minimap-renderer.js';
+import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 
 const logger = log.getLogger("hamgis-map-page");
 
@@ -186,6 +187,23 @@ Page({
         text: `${this.data.project.name} - ${points.length}${getText('individual') || '个点'}`
       });
     }
+    
+    // 注册按键监听
+    // 下键(Shortcut/Back): 返回功能 - 全局可用
+    onKey({
+      callback: (key, keyEvent) => {
+        if (keyEvent === KEY_EVENT_CLICK) {
+          // 下键：返回首页 - 全局可用
+          if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            logger.debug(`Shortcut/Back key triggered back: ${key}`);
+            // 执行返回操作
+            back();
+            return true; // 拦截按键事件
+          }
+        }
+        return false;
+      }
+    });
   },
   
   /**

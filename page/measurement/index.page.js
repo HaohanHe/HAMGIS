@@ -1,13 +1,13 @@
 import { log, px } from "@zos/utils";
 import { createWidget, widget, align, prop, text_style, setStatusBarVisible } from '@zos/ui';
-import { setPageBrightTime, setWakeUpRelaunch, pauseDropWristScreenOff, resetDropWristScreenOff } from "@zos/display";
+
 import { getDeviceInfo } from "@zos/device";
 import { Geolocation } from "@zos/sensor";
 import { Vibrator } from "@zos/sensor";
 import { localStorage } from '@zos/storage';
-import { push } from '@zos/router';
+import { push, exit } from '@zos/router';
 import { getText } from '@zos/i18n';
-import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
+import { onKey, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 import { barometerManager } from '../../utils/barometer.js';
 import { calculateElevationStats } from '../../utils/elevation.js';
 
@@ -294,7 +294,14 @@ Page({
     cachedUnitInfo: null,
     
     // Widget属性值缓存，避免频繁的getProperty和setProperty调用
-    widgetPropertyCache: {}
+    widgetPropertyCache: {},
+    
+    // GPS回调函数引用，用于清理
+    enableChangeCallback: null,
+    
+    // GPS状态追踪
+    lastGPSStatus: null,
+    isDualBand: false
   },
 
   // 安全的setProperty包装函数，增强widget存在性检查和错误处理
@@ -304,30 +311,17 @@ Page({
         return false;
       }
       
-      // 创建widget的唯一标识符
-      const widgetId = widgetObj.toString();
-      const cacheKey = `${widgetId}_${property}`;
-      
-      // 检查缓存值是否相同，避免不必要的setProperty调用
-      if (this.data.widgetPropertyCache[cacheKey] === value) {
-        return true;
-      }
-      
       // 对于 prop.MORE 对象，检查长度是否超过限制
       if (property === prop.MORE && typeof value === 'object') {
         const valueStr = JSON.stringify(value);
-        logger.debug(`prop.MORE object length: ${valueStr.length}, content: ${valueStr}`);
         if (valueStr.length > 50) {
-          logger.warn(`prop.MORE object length exceeds limit: ${valueStr.length}, content: ${valueStr}`);
+          logger.warn(`prop.MORE object length exceeds limit: ${valueStr.length}`);
           return false;
         }
       }
       
       // 更新widget属性
       widgetObj.setProperty(property, value);
-      
-      // 更新缓存
-      this.data.widgetPropertyCache[cacheKey] = value;
       
       return true;
     } catch (e) {
@@ -387,8 +381,13 @@ Page({
     }
   },
 
-  // 获取应用模式
+  // 获取应用模式 - 使用缓存的设置，避免重复读取 localStorage
   getAppMode() {
+    // 优先使用 data 中已加载的设置
+    if (this.data.settings && typeof this.data.settings.appMode !== 'undefined') {
+      return this.data.settings.appMode;
+    }
+    // 回退到从 localStorage 读取
     const settings = this.loadSettings();
     return settings.appMode || 0;
   },
@@ -424,7 +423,7 @@ Page({
       
       // 监听权限变化 (API_LEVEL 4.0+)
       if (typeof this.data.geolocation.onEnableChange === 'function') {
-        this.data.geolocation.onEnableChange(() => {
+        this.data.enableChangeCallback = () => {
           if (this.data.geolocation.getEnabled()) {
             this.data.geolocation.start();
             this.data.gpsStatus = 'locating';
@@ -439,7 +438,8 @@ Page({
             this.data.lastGPSStatus = this.data.gpsStatus;
             this.updateUI();
           }
-        });
+        };
+        this.data.geolocation.onEnableChange(this.data.enableChangeCallback);
       }
       
       // 减少日志输出
@@ -2403,14 +2403,45 @@ Page({
     // 移除底部提示文字
 
     // 注册按键监听
+    // 上键(Home/Select): 采集点功能 - 在GIS采集模式和测面积模式下都可用
+    // 下键(Shortcut/Back): 返回功能 - 全局可用
     onKey({
       callback: (key, keyEvent) => {
         if (keyEvent === KEY_EVENT_CLICK) {
-          if (key === KEY_SHORTCUT || key === KEY_BACK) {
-            // 如果是手动采集模式，则将按键作为采集触发
+          // 上键：采集点 - 在手动采集模式下可用（包括GIS采集模式和测面积模式）
+          if (key === KEY_HOME || key === KEY_SELECT) {
+            // 非自动采集模式下，上键触发采集
             if (!this.data.settings.autoCollect) {
-              logger.debug(`Key triggered collection: ${key}`);
+              logger.debug(`Home/Select key triggered collection: ${key}, mode: ${this.isGISMode() ? 'GIS' : 'Area'}`);
               this.collectPoint();
+              return true; // 拦截按键事件
+            } else {
+              // 自动采集模式下，上键作为开始/停止自动采集
+              logger.debug(`Home/Select key triggered auto collect toggle: ${key}`);
+              if (this.data.isAutoCollecting) {
+                this.stopAutoCollect();
+              } else {
+                this.startAutoCollect();
+              }
+              return true; // 拦截按键事件
+            }
+          }
+          // 下键：结束采集/退出软件
+          if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            logger.debug(`Shortcut/Back key triggered: ${key}, measureState: ${this.data.measureState}, points: ${this.data.points.length}`);
+            
+            // 检查是否正在采集中（有采集的点）
+            const isCollecting = this.data.points.length > 0;
+            
+            if (isCollecting) {
+              // 正在采集中，先结束当前采集
+              logger.debug('Ending current collection');
+              this.finishField();
+              return true; // 拦截按键事件
+            } else {
+              // 没有在采集，直接退出软件
+              logger.debug('Exiting app');
+              exit();
               return true; // 拦截按键事件
             }
           }
@@ -2439,12 +2470,18 @@ Page({
     if (this.data.settingsCheckTimer) {
       clearInterval(this.data.settingsCheckTimer);
     }
+    if (this.data.autoCollectTimer) {
+      clearInterval(this.data.autoCollectTimer);
+    }
     
     // 停止GPS
     if (this.data.geolocation) {
       try {
         if (this.data.locationCallback) {
           this.data.geolocation.offChange(this.data.locationCallback);
+        }
+        if (this.data.enableChangeCallback && typeof this.data.geolocation.offEnableChange === 'function') {
+          this.data.geolocation.offEnableChange(this.data.enableChangeCallback);
         }
         this.data.geolocation.stop();
       } catch (e) {

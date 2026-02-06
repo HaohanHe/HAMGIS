@@ -40,7 +40,8 @@
             "page/project-detail/index.page",
             "page/map/index.page",
             "page/satellite/index.page",
-            "page/export/index.page"
+            "page/export/index.page",
+            "page/data-view/index.page"
           ]
         },
         "app-side": {

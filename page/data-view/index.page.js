@@ -1,8 +1,11 @@
 import { createWidget, widget, align, text_style, prop } from '@zos/ui'
-import { push } from '@zos/router'
+import { back } from '@zos/router'
 import { LocalStorage } from '@zos/storage'
-import { showToast } from '@zos/interaction'
+import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction'
 import { getText } from '@zos/i18n'
+import { log } from '@zos/utils'
+
+const logger = log.getLogger("hamgis-data-view")
 
 const localStorage = new LocalStorage()
 
@@ -103,5 +106,22 @@ Page({
       align_h: align.CENTER_H,
       text_style: text_style.WRAP
     })
+    
+    // 注册按键监听
+    // 下键(Shortcut/Back): 返回功能 - 全局可用
+    onKey({
+      callback: (key, keyEvent) => {
+        if (keyEvent === KEY_EVENT_CLICK) {
+          // 下键：返回首页 - 全局可用
+          if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            logger.debug(`Shortcut/Back key triggered back: ${key}`);
+            // 执行返回操作
+            back();
+            return true; // 拦截按键事件
+          }
+        }
+        return false;
+      }
+    });
   }
 })

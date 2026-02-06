@@ -2,7 +2,6 @@
  * 小地图渲染器 - 使用CANVAS绘制
  */
 
-import hmUI from '@zos/ui';
 import { projectToCanvas, pixelToMeters } from './projection';
 
 /**

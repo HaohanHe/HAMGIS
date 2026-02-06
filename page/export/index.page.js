@@ -3,8 +3,9 @@ import { log, px } from "@zos/utils";
 import { createWidget, widget, align, prop, text_style } from '@zos/ui';
 import { BasePage } from '@zeppos/zml/base-page'
 import { getText } from '@zos/i18n';
-import { back } from '@zos/router';
+import { back, push } from '@zos/router';
 import { getDeviceInfo } from "@zos/device";
+import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 
 const logger = log.getLogger("hamgis-export");
 
@@ -149,6 +150,23 @@ Page(
           this.startExport();
         }
       });
+      
+      // 注册按键监听
+      // 下键(Shortcut/Back): 返回功能 - 全局可用
+      onKey({
+        callback: (key, keyEvent) => {
+          if (keyEvent === KEY_EVENT_CLICK) {
+            // 下键：返回首页 - 全局可用
+            if (key === KEY_SHORTCUT || key === KEY_BACK) {
+              logger.debug(`Shortcut/Back key triggered back: ${key}`);
+              // 执行返回操作
+              back();
+              return true; // 拦截按键事件
+            }
+          }
+          return false;
+        }
+      });
     },
 
     updateLog(msg) {
@@ -180,12 +198,28 @@ Page(
       
       try {
         const parsed = JSON.parse(this.data.exportData);
-        if (!parsed.points || !Array.isArray(parsed.points) || parsed.points.length === 0) {
-          this.updateLog(getText('exportFailed') || "Invalid Data: No points");
-          logger.error("Invalid data: no points array");
-          return;
+        
+        // 检测项目类型
+        const isGISProject = parsed.recordType === 'gis_project' || 
+                            (parsed.features && Array.isArray(parsed.features));
+        
+        if (isGISProject) {
+          // 验证 GIS 项目
+          if (!parsed.features || !Array.isArray(parsed.features) || parsed.features.length === 0) {
+            this.updateLog(getText('exportFailed') || "Invalid Data: No features");
+            logger.error("Invalid data: no features array");
+            return;
+          }
+          logger.info(`Ready to export GIS project: ${parsed.name}, ${parsed.features.length} features`);
+        } else {
+          // 验证测面积项目
+          if (!parsed.points || !Array.isArray(parsed.points) || parsed.points.length === 0) {
+            this.updateLog(getText('exportFailed') || "Invalid Data: No points");
+            logger.error("Invalid data: no points array");
+            return;
+          }
+          logger.info(`Ready to export area measurement: ${parsed.name}, ${parsed.points.length} points`);
         }
-        logger.info(`Ready to export: ${parsed.name}, ${parsed.points.length} points`);
       } catch (e) {
         this.updateLog(getText('exportFailed') || "Invalid Data: JSON error");
         logger.error(`JSON parse error: ${e}`);
