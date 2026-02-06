@@ -2421,14 +2421,9 @@ Page({
         if (keyEvent === KEY_EVENT_CLICK) {
           // 上键：采集点 - 仅在系统开启按键模式时可用
           if (key === KEY_HOME || key === KEY_SELECT) {
-            // 检查系统是否开启按键模式
+            // 检查系统是否开启按键模式，未开启则无功能
             if (!buttonModeEnabled) {
               logger.debug(`Home/Select key ignored: button mode not enabled`);
-              // 显示提示
-              if (this.data.widgets.statusTip) {
-                this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('enableButtonMode') || '请开启按键模式');
-                this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xffaa00);
-              }
               return false; // 不拦截，让系统处理
             }
             
