@@ -434,3 +434,7 @@ msgstr "Current feature will be discarded"
 
 msgid "saveBeforeSwitchMode"
 msgstr "Save before switching mode"
+# Button Mode
+msgid "enableButtonMode"
+msgstr "Please enable button mode"
+

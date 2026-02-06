@@ -8,6 +8,7 @@ import { localStorage } from '@zos/storage';
 import { push, exit } from '@zos/router';
 import { getText } from '@zos/i18n';
 import { onKey, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
+import { getSystemMode } from '@zos/settings';
 import { barometerManager } from '../../utils/barometer.js';
 import { calculateElevationStats } from '../../utils/elevation.js';
 
@@ -2402,14 +2403,35 @@ Page({
 
     // 移除底部提示文字
 
+    // 检查系统按键模式
+    let buttonModeEnabled = false;
+    try {
+      const systemMode = getSystemMode();
+      buttonModeEnabled = systemMode && systemMode.button === true;
+      logger.debug(`System button mode: ${buttonModeEnabled}`);
+    } catch (e) {
+      logger.error(`Failed to get system mode: ${e}`);
+    }
+
     // 注册按键监听
-    // 上键(Home/Select): 采集点功能 - 在GIS采集模式和测面积模式下都可用
-    // 下键(Shortcut/Back): 返回功能 - 全局可用
+    // 上键(Home/Select): 采集点功能 - 仅在系统开启按键模式时可用
+    // 下键(Shortcut/Back): 结束采集/退出软件
     onKey({
       callback: (key, keyEvent) => {
         if (keyEvent === KEY_EVENT_CLICK) {
-          // 上键：采集点 - 在手动采集模式下可用（包括GIS采集模式和测面积模式）
+          // 上键：采集点 - 仅在系统开启按键模式时可用
           if (key === KEY_HOME || key === KEY_SELECT) {
+            // 检查系统是否开启按键模式
+            if (!buttonModeEnabled) {
+              logger.debug(`Home/Select key ignored: button mode not enabled`);
+              // 显示提示
+              if (this.data.widgets.statusTip) {
+                this.safeSetProperty(this.data.widgets.statusTip, prop.TEXT, getText('enableButtonMode') || '请开启按键模式');
+                this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xffaa00);
+              }
+              return false; // 不拦截，让系统处理
+            }
+            
             // 非自动采集模式下，上键触发采集
             if (!this.data.settings.autoCollect) {
               logger.debug(`Home/Select key triggered collection: ${key}, mode: ${this.isGISMode() ? 'GIS' : 'Area'}`);
