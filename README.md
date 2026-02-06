@@ -30,7 +30,7 @@ HAMGIS 是一款适配农业、测绘等户外作业的移动端 GIS 采集软�
 可应用于国土、林业、农业、水利、电力、石油、土木等行业，适配土地确权、森林清查、农田测量、管线巡检等多场景。
 
 ### 注意事项
-- 目前数据下载功能暂不可用，待华米官方 API 更新。
+- **数据导出功能**：Android 平台可正常使用，iOS 平台需等待华米官方 API 更新。
 - 使用问题或建议可发至邮箱 [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top) 反馈。
 
 ### 安装与开发
@@ -59,7 +59,7 @@ HAMGIS is a mobile GIS collection software adapted for outdoor operations such a
 Applicable to industries such as land resources, forestry, agriculture, water conservancy, power, petroleum, and civil engineering. Suitable for land titling, forest inventory, farmland measurement, pipeline inspection, and more.
 
 ### Notes
-- Data download function is currently unavailable, pending Huami official API update.
+- **Data Export**: Available on Android platform. iOS platform requires Huami official API update.
 - Feedback or suggestions can be sent to [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top).
 
 ### Installation & Development
@@ -88,7 +88,7 @@ HAMGISは、農業や測量などの屋外作業に適応したモバイルGIS�
 国土、林業、農業、水利、電力、石油、土木などの業界に応用可能。土地権利確定、森林調査、農地測量、パイプライン巡検など、多岐にわたるシーンに対応します。
 
 ### 注意事項
-- 現在、データダウンロード機能は一時的に利用不可となっており、Huami公式APIの更新待ちです。
+- **データエクスポート機能**：Androidプラットフォームでは正常に使用可能です。iOSプラットフォームはHuami公式APIの更新が必要です。
 - 使用上の問題や提案は、メール [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top) までお送りください。
 
 ### インストールと開発
