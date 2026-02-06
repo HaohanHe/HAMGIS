@@ -2443,8 +2443,14 @@ Page({
               return true; // 拦截按键事件
             }
           }
-          // 下键：结束采集/退出软件
+          // 下键：结束采集/退出软件 - 仅在系统开启按键模式时可用
           if (key === KEY_SHORTCUT || key === KEY_BACK) {
+            // 检查系统是否开启按键模式，未开启则无功能
+            if (!buttonModeEnabled) {
+              logger.debug(`Shortcut/Back key ignored: button mode not enabled`);
+              return false; // 不拦截，让系统处理
+            }
+            
             logger.debug(`Shortcut/Back key triggered: ${key}, measureState: ${this.data.measureState}, points: ${this.data.points.length}`);
             
             // 检查是否正在采集中（有采集的点）
