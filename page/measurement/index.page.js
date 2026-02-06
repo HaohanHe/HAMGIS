@@ -7,7 +7,7 @@ import { Vibrator } from "@zos/sensor";
 import { localStorage } from '@zos/storage';
 import { push, exit } from '@zos/router';
 import { getText } from '@zos/i18n';
-import { onKey, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
+import { onKey, onDigitalCrown, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 import { getSystemMode } from '@zos/settings';
 import { barometerManager } from '../../utils/barometer.js';
 import { calculateElevationStats } from '../../utils/elevation.js';
@@ -302,7 +302,11 @@ Page({
     
     // GPS状态追踪
     lastGPSStatus: null,
-    isDualBand: false
+    isDualBand: false,
+    
+    // 表冠滚轮节流控制
+    lastCrownTime: 0,
+    crownThrottleMs: 300  // 滚轮事件节流间隔（毫秒）
   },
 
   // 安全的setProperty包装函数，增强widget存在性检查和错误处理
@@ -2470,6 +2474,38 @@ Page({
           }
         }
         return false;
+      }
+    });
+
+    // 注册表冠滚轮监听 - 添加节流控制
+    onDigitalCrown({
+      callback: (key, degree) => {
+        // 检查系统是否开启按键模式
+        if (!buttonModeEnabled) {
+          return; // 无功能
+        }
+        
+        const now = Date.now();
+        const elapsed = now - this.data.lastCrownTime;
+        
+        // 节流控制：如果距离上次处理的时间小于阈值，则忽略
+        if (elapsed < this.data.crownThrottleMs) {
+          return;
+        }
+        
+        this.data.lastCrownTime = now;
+        
+        logger.debug(`Digital crown rotated: key=${key}, degree=${degree}`);
+        
+        // 根据旋转方向执行不同操作
+        // 正数：逆时针旋转，负数：顺时针旋转
+        if (degree > 0) {
+          // 逆时针旋转 - 可以添加向上滚动或其他功能
+          logger.debug('Crown rotated counter-clockwise');
+        } else if (degree < 0) {
+          // 顺时针旋转 - 可以添加向下滚动或其他功能
+          logger.debug('Crown rotated clockwise');
+        }
       }
     });
   },
