@@ -1494,12 +1494,19 @@ Page({
     const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
     const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
-    // GPS状态更新 - 使用safeSetProperty避免prop.MORE长度限制问题
+    // GPS状态更新 - BUTTON类型widget使用prop.MORE更新文本，避免setProperty错误
     if (this.data.widgets.gpsStatus) {
       const gpsText = this.getGPSText();
       const gpsColor = this.getGPSColor();
-      this.safeSetProperty(this.data.widgets.gpsStatus, prop.TEXT, gpsText);
-      this.safeSetProperty(this.data.widgets.gpsStatus, prop.COLOR, gpsColor);
+      // BUTTON类型widget使用prop.MORE更新属性，而不是直接设置prop.TEXT
+      try {
+        this.data.widgets.gpsStatus.setProperty(prop.MORE, {
+          text: gpsText,
+          color: gpsColor
+        });
+      } catch (e) {
+        logger.warn(`GPS status button update failed: ${e}`);
+      }
     }
     
     // 更新坐标显示
