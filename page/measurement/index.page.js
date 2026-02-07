@@ -1574,12 +1574,15 @@ Page({
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
       } else {
-        const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || 'Points'}: ${this.data.points.length}`;
+        // 采集阶段：只显示点数，不计算面积和周长
+        const pointText = isRoundScreen 
+          ? `${this.data.points.length}` 
+          : `${getText('pointCount') || 'Points'}: ${this.data.points.length}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, pointText);
       }
-    }
+    },
     
     // 更新周长/长度 - 根据模式显示不同文本
     if (this.data.widgets.perimeterDisplay) {

@@ -201,7 +201,7 @@ Page({
       this.data.widgets.areaDisplay.setProperty(prop.TEXT, this.formatArea(current));
     }
     
-    // 更新详细信息
+    // 更新详细信息 - 包含面积和周长计算
     if (this.data.widgets.detailsText) {
       let detailsText = '';
       
@@ -212,17 +212,26 @@ Page({
         const totalPoints = current.totalPoints || 0;
         detailsText = `${getText('type') || '类型'}: ${getText('gisProject') || 'GIS项目'}\n${getText('featureCount') || '要素数'}: ${totalFeatures}\n${getText('points')}: ${totalPoints}`;
       } else {
+        // 普通测量项目 - 计算面积和周长
         const points = current.points ? current.points.length : 0;
         const perimeter = current.perimeter ? (current.perimeter / 1000).toFixed(2) : '0.00';
         const accuracy = current.accuracy || 5;
         const type = current.type || 'polygon';
         
+        // 计算面积（平方米和亩）
+        let areaText = '';
+        if (current.perimeter && points >= 3) {
+          const areaSqMeters = current.area || 0;
+          const areaMu = (areaSqMeters * 0.0015).toFixed(2);
+          areaText = `${getText('area') || '面积'}: ${areaSqMeters}㎡ (${areaMu}亩)`;
+        }
+        
         if (type === 'point') {
            detailsText = `${getText('type') || '类型'}: ${getText('mode_point') || '点'}\n${getText('points')}: ${points}\n${getText('accuracy')}: ±${accuracy}m`;
         } else if (type === 'line') {
-           detailsText = `${getText('type') || '类型'}: ${getText('mode_line') || '线'}\n${getText('points')}: ${points}\n${getText('length')}: ${current.perimeter.toFixed(1)}m`;
+           detailsText = `${getText('type') || '类型'}: ${getText('mode_line') || '线'}\n${getText('points')}: ${points}\n${getText('length')}: ${perimeter.toFixed(1)}m`;
         } else {
-           detailsText = `${getText('points')}: ${points}\n${getText('perimeter')}: ${perimeter} km\n${getText('accuracy')}: ±${accuracy}m`;
+           detailsText = `${getText('points')}: ${points}\n${areaText}\n${getText('perimeter')}: ${perimeter} km\n${getText('accuracy')}: ±${accuracy}m`;
         }
       }
       
