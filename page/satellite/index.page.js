@@ -1,5 +1,5 @@
 import { log, px } from "@zos/utils";
-import { createWidget, widget, align, prop, text_style, setStatusBarVisible } from '@zos/ui';
+import { createWidget, widget, align, prop, text_style } from '@zos/ui';
 import { Geolocation } from "@zos/sensor";
 import { getDeviceInfo } from "@zos/device";
 import { getText } from '@zos/i18n';
@@ -82,7 +82,7 @@ Page({
   },
 
   processGnssData(info) {
-    // info contains: nb_valid_satellite, nb_used_satellite, satellite_data
+    // info contains: nb_valid_satellite, nb_used_satellite, satellite_data, is_dualband, gnss_id
     this.data.visibleCount = info.nb_valid_satellite || 0;
     this.data.usedCount = info.nb_used_satellite || 0;
     
@@ -94,13 +94,16 @@ Page({
         else if (this.data.avgSnr >= 30) quality = 'good';
         this.data.signalQuality = quality;
     }
-
+    
+    // 判断是否为双频模式
+    this.data.isDualBand = info.is_dualband === 1;
+    
     if (info.satellite_data) {
-      this.processSatelliteData(info.satellite_data);
+      this.processSatelliteData(info.satellite_data, info.gnss_id);
     }
   },
 
-  processSatelliteData(data) {
+  processSatelliteData(data, gnssId) {
     let allSats = [];
     let isDualBand = false;
     let sysCounts = {
@@ -124,20 +127,27 @@ Page({
         default: return 'Others';
       }
     };
-
+    
     if (Array.isArray(data)) {
       data.forEach(system => {
-        if (system.is_dualband === 1) {
-          isDualBand = true;
-        }
+        // 判断是否为双频模式：如果有BDS+GPS，或者BDS+GLONASS，或者BDS+GALILEO
+        const sysName = getSysName(system.gnss_id);
+        
+        // 检查是否同时有多个系统（双频模式）
+        const hasBDS = sysCounts['BDS'] > 0;
+        const hasGPS = sysCounts['GPS'] > 0;
+        const hasGLONASS = sysCounts['GLONASS'] > 0;
+        const hasGALILEO = sysCounts['GALILEO'] > 0;
+        
+        // 双频模式判断：BDS+GPS，或BDS+GLONASS，或BDS+GALILEO
+        isDualBand = (hasBDS && hasGPS) || (hasBDS && hasGLONASS) || (hasBDS && hasGALILEO);
         
         // Count satellites per system
-        const sysName = getSysName(system.gnss_id);
         const count = system.nb_valid_satellite || (system.gsv_data ? system.gsv_data.length : 0);
         if (sysName !== 'Others' || count > 0) {
              sysCounts[sysName] = (sysCounts[sysName] || 0) + count;
         }
-
+        
         if (system.gsv_data && Array.isArray(system.gsv_data)) {
           system.gsv_data.forEach(sat => {
             allSats.push({
@@ -151,7 +161,7 @@ Page({
         }
       });
     }
-
+    
     this.data.satelliteData = allSats;
     this.data.isDualBand = isDualBand;
     this.data.systemCounts = sysCounts;
@@ -166,9 +176,6 @@ Page({
 
   build() {
     const { width, height } = getDeviceInfo();
-    
-    // 隐藏状态栏，避免显示"定位中"
-    setStatusBarVisible(false);
     
     // Background
     createWidget(widget.FILL_RECT, {
