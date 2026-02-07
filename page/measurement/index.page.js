@@ -2474,6 +2474,9 @@ Page({
         return false;
       }
     });
+    
+    // 初始化UI状态
+    this.updateUI();
   },
 
   onDestroy() {
