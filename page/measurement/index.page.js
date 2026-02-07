@@ -695,32 +695,38 @@ Page({
       this.data.currentArea = 0;
       this.data.currentPerimeter = 0;
     } else {
-      if (this.isGISMode()) {
-        // GIS模式：根据当前要素类型计算
-        const featureType = this.data.currentFeatureType;
-        if (featureType === 'polygon' && this.data.points.length >= 3) {
-          this.calculateArea();
+      // 超过25个点后不再实时计算，防止卡顿崩溃
+      const shouldCalculate = this.data.points.length <= 25;
+      
+      if (shouldCalculate) {
+        if (this.isGISMode()) {
+          // GIS模式：根据当前要素类型计算
+          const featureType = this.data.currentFeatureType;
+          if (featureType === 'polygon' && this.data.points.length >= 3) {
+            this.calculateArea();
+          } else {
+            this.data.currentArea = 0;
+          }
+          if (this.data.points.length >= 2) {
+            this.calculatePerimeter();
+          } else {
+            this.data.currentPerimeter = 0;
+          }
         } else {
-          this.data.currentArea = 0;
-        }
-        if (this.data.points.length >= 2) {
-          this.calculatePerimeter();
-        } else {
-          this.data.currentPerimeter = 0;
-        }
-      } else {
-        // 测面积模式：重新计算面积和周长
-        if (this.data.points.length >= 3) {
-          this.calculateArea();
-        } else {
-          this.data.currentArea = 0;
-        }
-        if (this.data.points.length >= 2) {
-          this.calculatePerimeter();
-        } else {
-          this.data.currentPerimeter = 0;
+          // 测面积模式：重新计算面积和周长
+          if (this.data.points.length >= 3) {
+            this.calculateArea();
+          } else {
+            this.data.currentArea = 0;
+          }
+          if (this.data.points.length >= 2) {
+            this.calculatePerimeter();
+          } else {
+            this.data.currentPerimeter = 0;
+          }
         }
       }
+      // 超过25个点时，保持之前的面积和周长值，不重新计算
     }
     
     logger.debug(`Undo point, remaining ${this.data.points.length} points`);
@@ -824,6 +830,13 @@ Page({
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
+    }
+    
+    // 如果点数超过25个，重新计算面积和周长（之前暂停了实时计算）
+    if (this.data.points.length > 25) {
+      logger.debug(`Recalculating area and perimeter for ${this.data.points.length} points`);
+      this.calculateArea();
+      this.calculatePerimeter();
     }
     
     // 保存当前地块
@@ -1574,15 +1587,12 @@ Page({
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, countText);
       } else {
-        // 采集阶段：只显示点数，不计算面积和周长
-        const pointText = isRoundScreen 
-          ? `${this.data.points.length}` 
-          : `${getText('pointCount') || 'Points'}: ${this.data.points.length}`;
+        const pointText = isRoundScreen ? `${this.data.points.length}` : `${getText('pointCount') || 'Points'}: ${this.data.points.length}`;
         
         // 使用safeSetProperty来避免频繁调用
         this.safeSetProperty(this.data.widgets.pointCount, prop.TEXT, pointText);
       }
-    },
+    }
     
     // 更新周长/长度 - 根据模式显示不同文本
     if (this.data.widgets.perimeterDisplay) {
@@ -1598,7 +1608,8 @@ Page({
         }
       }
       
-      if (showPerimeter) {
+      // 超过25个点后不显示周长，避免卡顿
+      if (showPerimeter && this.data.points.length <= 25) {
         const perimeter = this.data.currentPerimeter > 0 
           ? `${this.data.currentPerimeter.toFixed(1)}m` 
           : '0.0m';
@@ -1658,7 +1669,12 @@ Page({
         
         let displayText = '';
         
-        if (this.data.currentArea > 0) {
+        // 超过25个点后显示提示文字
+        if (this.data.points.length > 25) {
+          const pointCount = this.data.points.length;
+          const pointText = getText('point') || '点';
+          displayText = `采集${pointCount}${pointText}\n暂停计算，完成后统计`;
+        } else if (this.data.currentArea > 0) {
           const areaValue = (this.data.currentArea * unitInfo.factor).toFixed(2);
           displayText = `${areaValue} ${unitInfo.symbol}`;
         } else {
