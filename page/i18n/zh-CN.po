@@ -489,3 +489,12 @@ msgstr "线"
 
 msgid "polygon"
 msgstr "面"
+
+msgid "collected"
+msgstr "已采集"
+
+msgid "collectedPoints"
+msgstr "{0}点已采集，还需{1}点"
+
+msgid "pointsNeeded"
+msgstr "{0}点，还需{1}点"

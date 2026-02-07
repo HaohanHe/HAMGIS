@@ -2406,18 +2406,28 @@ Page({
     // 注册按键监听
     // 上键(Home/Select): 采集点功能 - 在GIS采集模式和测面积模式下都可用
     // 下键(Shortcut/Back): 返回功能 - 全局可用
-    // 注意：仅在系统开启按键模式时生效
+    // 注意：仅在系统开启按键模式或设备有3个及以上按键时生效
     onKey({
       callback: (key, keyEvent) => {
-        // 检查系统是否开启了按键模式
+        // 检查是否满足按键功能开启条件
         try {
           const systemMode = getSystemMode();
-          if (!systemMode.button) {
-            // 系统未开启按键模式，按键不生效
+          const deviceInfo = getDeviceInfo();
+          
+          // 条件1：系统开启了按键模式
+          const buttonModeEnabled = systemMode.button === true;
+          // 条件2：设备有3个及以上按键
+          const hasEnoughKeys = deviceInfo.keyNumber >= 3;
+          
+          if (!buttonModeEnabled && !hasEnoughKeys) {
+            // 不满足任何条件，按键不生效
+            logger.debug(`按键功能未启用：系统按键模式=${buttonModeEnabled}, 按键数=${deviceInfo.keyNumber}`);
             return false;
           }
+          
+          logger.debug(`按键功能已启用：系统按键模式=${buttonModeEnabled}, 按键数=${deviceInfo.keyNumber}`);
         } catch (e) {
-          logger.error(`获取系统模式失败: ${e}`);
+          logger.error(`检测按键模式失败: ${e}`);
           // 获取失败时，默认不启用按键功能
           return false;
         }

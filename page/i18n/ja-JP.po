@@ -14,7 +14,7 @@ msgid "weakSignal"
 msgstr "信号弱"
 
 msgid "points"
-msgstr "点位"
+msgstr "ポイント"
 
 msgid "area"
 msgstr "面積"
@@ -32,7 +32,7 @@ msgid "noGPS"
 msgstr "測位待機中..."
 
 msgid "unnamed"
-msgstr "未命名地块"
+msgstr "未命名区画"
 
 msgid "noData"
 msgstr "データなし"
@@ -115,7 +115,7 @@ msgid "undo"
 msgstr "元に戻す"
 
 msgid "finishField"
-msgstr "地块を完了"
+msgstr "区画を完了"
 
 msgid "startMeasure"
 msgstr "測量開始"
@@ -127,11 +127,11 @@ msgid "noPermission"
 msgstr "権限なし"
 
 msgid "msg_points_insufficient"
-msgstr "地块完了には最低3点必要です"
+msgstr "区画完了には最低3点必要です"
 
 # 共通
 msgid "field"
-msgstr "地块"
+msgstr "区画"
 
 # プロジェクト詳細ページ
 msgid "elevationData"
@@ -213,7 +213,7 @@ msgid "viewMap"
 msgstr "地図を表示"
 
 msgid "pointDetailsTable"
-msgstr "点位詳細表"
+msgstr "ポイント詳細表"
 
 msgid "serialNumber"
 msgstr "番号"
@@ -242,7 +242,7 @@ msgstr "地図情報"
 msgid "scale"
 msgstr "スケール"
 
-# 地图ページ
+# 地図ページ
 msgid "back"
 msgstr "戻る"
 
