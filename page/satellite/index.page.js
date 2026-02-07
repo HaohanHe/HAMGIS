@@ -1,5 +1,5 @@
 import { log, px } from "@zos/utils";
-import { createWidget, widget, align, prop, text_style } from '@zos/ui';
+import { createWidget, widget, align, prop, text_style, setStatusBarVisible } from '@zos/ui';
 import { Geolocation } from "@zos/sensor";
 import { getDeviceInfo } from "@zos/device";
 import { getText } from '@zos/i18n';
@@ -166,6 +166,9 @@ Page({
 
   build() {
     const { width, height } = getDeviceInfo();
+    
+    // 隐藏状态栏，避免显示"定位中"
+    setStatusBarVisible(false);
     
     // Background
     createWidget(widget.FILL_RECT, {

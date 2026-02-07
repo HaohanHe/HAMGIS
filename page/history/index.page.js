@@ -229,7 +229,13 @@ Page({
       this.data.widgets.detailsText.setProperty(prop.TEXT, detailsText);
     }
     
-    // 更新状态文字 - 已在开头处理，这里移除重复逻辑
+    // 更新状态文字 - 显示当前记录位置
+    if (this.data.widgets.statusText) {
+      const currentNum = this.data.currentIndex + 1;
+      const totalNum = this.data.measurements.length;
+      this.data.widgets.statusText.setProperty(prop.TEXT, `${currentNum}/${totalNum}`);
+      this.data.widgets.statusText.setProperty(prop.COLOR, 0x00ff00); // 绿色表示有数据
+    }
   },
 
   onInit() {
