@@ -4,7 +4,7 @@ import { setScrollMode, SCROLL_MODE_VERTICAL } from '@zos/page';
 import { getDeviceInfo } from "@zos/device";
 import { getText } from '@zos/i18n';
 import { localStorage } from '@zos/storage';
-import { back } from '@zos/router';
+import { back, push } from '@zos/router';
 import { onKey, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 
 const logger = log.getLogger("hamgis-history");

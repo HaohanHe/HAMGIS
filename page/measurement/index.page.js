@@ -7,7 +7,7 @@ import { Vibrator } from "@zos/sensor";
 import { localStorage } from '@zos/storage';
 import { push, exit } from '@zos/router';
 import { getText } from '@zos/i18n';
-import { onKey, onDigitalCrown, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
+import { onKey, KEY_HOME, KEY_SELECT, KEY_SHORTCUT, KEY_BACK, KEY_EVENT_CLICK } from '@zos/interaction';
 import { getSystemMode } from '@zos/settings';
 import { barometerManager } from '../../utils/barometer.js';
 import { calculateElevationStats } from '../../utils/elevation.js';
@@ -302,11 +302,7 @@ Page({
     
     // GPS状态追踪
     lastGPSStatus: null,
-    isDualBand: false,
-    
-    // 表冠滚轮节流控制
-    lastCrownTime: 0,
-    crownThrottleMs: 300  // 滚轮事件节流间隔（毫秒）
+    isDualBand: false
   },
 
   // 安全的setProperty包装函数，增强widget存在性检查和错误处理
@@ -2407,30 +2403,28 @@ Page({
 
     // 移除底部提示文字
 
-    // 检查系统按键模式
-    let buttonModeEnabled = false;
-    try {
-      const systemMode = getSystemMode();
-      buttonModeEnabled = systemMode && systemMode.button === true;
-      logger.debug(`System button mode: ${buttonModeEnabled}`);
-    } catch (e) {
-      logger.error(`Failed to get system mode: ${e}`);
-    }
-
     // 注册按键监听
-    // 上键(Home/Select): 采集点功能 - 仅在系统开启按键模式时可用
-    // 下键(Shortcut/Back): 结束采集/退出软件
+    // 上键(Home/Select): 采集点功能 - 在GIS采集模式和测面积模式下都可用
+    // 下键(Shortcut/Back): 返回功能 - 全局可用
+    // 注意：仅在系统开启按键模式时生效
     onKey({
       callback: (key, keyEvent) => {
+        // 检查系统是否开启了按键模式
+        try {
+          const systemMode = getSystemMode();
+          if (!systemMode.button) {
+            // 系统未开启按键模式，按键不生效
+            return false;
+          }
+        } catch (e) {
+          logger.error(`获取系统模式失败: ${e}`);
+          // 获取失败时，默认不启用按键功能
+          return false;
+        }
+        
         if (keyEvent === KEY_EVENT_CLICK) {
-          // 上键：采集点 - 仅在系统开启按键模式时可用
+          // 上键：采集点 - 在手动采集模式下可用（包括GIS采集模式和测面积模式）
           if (key === KEY_HOME || key === KEY_SELECT) {
-            // 检查系统是否开启按键模式，未开启则无功能
-            if (!buttonModeEnabled) {
-              logger.debug(`Home/Select key ignored: button mode not enabled`);
-              return false; // 不拦截，让系统处理
-            }
-            
             // 非自动采集模式下，上键触发采集
             if (!this.data.settings.autoCollect) {
               logger.debug(`Home/Select key triggered collection: ${key}, mode: ${this.isGISMode() ? 'GIS' : 'Area'}`);
@@ -2447,14 +2441,8 @@ Page({
               return true; // 拦截按键事件
             }
           }
-          // 下键：结束采集/退出软件 - 仅在系统开启按键模式时可用
+          // 下键：结束采集/退出软件
           if (key === KEY_SHORTCUT || key === KEY_BACK) {
-            // 检查系统是否开启按键模式，未开启则无功能
-            if (!buttonModeEnabled) {
-              logger.debug(`Shortcut/Back key ignored: button mode not enabled`);
-              return false; // 不拦截，让系统处理
-            }
-            
             logger.debug(`Shortcut/Back key triggered: ${key}, measureState: ${this.data.measureState}, points: ${this.data.points.length}`);
             
             // 检查是否正在采集中（有采集的点）
@@ -2474,38 +2462,6 @@ Page({
           }
         }
         return false;
-      }
-    });
-
-    // 注册表冠滚轮监听 - 添加节流控制
-    onDigitalCrown({
-      callback: (key, degree) => {
-        // 检查系统是否开启按键模式
-        if (!buttonModeEnabled) {
-          return; // 无功能
-        }
-        
-        const now = Date.now();
-        const elapsed = now - this.data.lastCrownTime;
-        
-        // 节流控制：如果距离上次处理的时间小于阈值，则忽略
-        if (elapsed < this.data.crownThrottleMs) {
-          return;
-        }
-        
-        this.data.lastCrownTime = now;
-        
-        logger.debug(`Digital crown rotated: key=${key}, degree=${degree}`);
-        
-        // 根据旋转方向执行不同操作
-        // 正数：逆时针旋转，负数：顺时针旋转
-        if (degree > 0) {
-          // 逆时针旋转 - 可以添加向上滚动或其他功能
-          logger.debug('Crown rotated counter-clockwise');
-        } else if (degree < 0) {
-          // 顺时针旋转 - 可以添加向下滚动或其他功能
-          logger.debug('Crown rotated clockwise');
-        }
       }
     });
   },
