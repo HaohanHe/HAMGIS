@@ -524,6 +524,8 @@ Page({
     this.data.currentPerimeter = 0;
     // 自动生成地块名：Field A, Field B, Field C...
     this.data.currentFieldName = this.generateFieldName();
+    
+    logger.debug(`New field started: ${this.data.currentFieldName}`);
 
     // 减少日志输出
     this.updateUI();
@@ -1275,12 +1277,23 @@ Page({
         if (Array.isArray(fields)) {
           const today = new Date().toISOString().split('T')[0];
           todayCount = fields.filter(f => f.date === today).length;
+          logger.debug(`Found ${todayCount} fields for today`);
         }
+      } else {
+        logger.debug('No stored measurements found');
+      }
+      
+      // 如果当前正在采集（有采集的点但未保存），需要额外加1
+      if (this.data.points && this.data.points.length > 0) {
+        todayCount += 1;
+        logger.debug(`Current field has ${this.data.points.length} points, count +1`);
       }
       
       // 生成字母：A, B, C, ..., Z, AA, AB, ...
       const letter = this.numberToLetter(todayCount);
-      return `${getText('field')}${letter}`;
+      const fieldName = `${getText('field')}${letter}`;
+      logger.debug(`Generated field name: ${fieldName} (count=${todayCount})`);
+      return fieldName;
     } catch (e) {
       logger.error(`Failed to generate field name: ${e}`);
       return `${getText('field')}${this.data.todayFieldCount + 1}`;
