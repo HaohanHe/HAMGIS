@@ -494,3 +494,6 @@ msgstr "保存してからモード切替"
 
 msgid "pointsNeeded"
 msgstr "{0}点、あと{1}点必要"
+
+msgid "confirmDelete"
+msgstr "削除してもよろしいですか？"

@@ -420,6 +420,9 @@ msgstr "{0} collected, {1} more needed"
 msgid "pointsNeeded"
 msgstr "{0} pts | {1} more needed"
 
+msgid "confirmDelete"
+msgstr "Confirm delete?"
+
 msgid "finishFeatureHint"
 msgstr "Finish Feature | Long press to finish project"
 

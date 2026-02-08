@@ -498,3 +498,6 @@ msgstr "{0}点已采集，还需{1}点"
 
 msgid "pointsNeeded"
 msgstr "{0}点，还需{1}点"
+
+msgid "confirmDelete"
+msgstr "确定删除吗？"
