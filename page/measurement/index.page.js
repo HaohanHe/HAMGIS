@@ -1512,15 +1512,19 @@ Page({
     if (this.data.widgets.gpsStatus) {
       const gpsText = this.getGPSText();
       const gpsColor = this.getGPSColor();
+      logger.debug(`Updating GPS status: text=${gpsText}, color=${gpsColor.toString(16)}, status=${this.data.gpsStatus}`);
       // BUTTON类型widget使用prop.MORE更新属性，而不是直接设置prop.TEXT
       try {
         this.data.widgets.gpsStatus.setProperty(prop.MORE, {
           text: gpsText,
           color: gpsColor
         });
+        logger.debug(`GPS status updated successfully`);
       } catch (e) {
         logger.warn(`GPS status button update failed: ${e}`);
       }
+    } else {
+      logger.warn(`GPS status widget not found`);
     }
     
     // 更新坐标显示
