@@ -235,7 +235,7 @@ Page({
         color: 0xcccccc,
         text_size: px(14),
         align_h: align.LEFT,
-        text: `📊 要素: 点×${fc.point} 线×${fc.line} 面×${fc.polygon}`
+        text: `📊 ${getText('element') || 'Element'}: ${getText('point') || 'Point'}×${fc.point} ${getText('line') || 'Line'}×${fc.line} ${getText('polygon') || 'Polygon'}×${fc.polygon}`
       });
       
       // Row 3: 总点数
@@ -247,7 +247,7 @@ Page({
         color: 0x80caff,
         text_size: px(14),
         align_h: align.LEFT,
-        text: `📍 总点数: ${totalPoints}${getText('individual') || '个'}`
+        text: `📍 ${getText('totalPoints') || 'Total Points'}: ${totalPoints}`
       });
       
     } else {
@@ -841,7 +841,7 @@ Page({
           text_size: px(11),
           align_h: align.CENTER_H,
           align_v: align.CENTER_V,
-          text: feature.featureName || `要素${index + 1}`
+          text: feature.featureName || `${getText('element') || 'Element'}${index + 1}`
         });
         
         // 点数

@@ -339,12 +339,6 @@ msgstr "长度"
 msgid "pointCount"
 msgstr "点数"
 
-msgid "featureName"
-msgstr "名称"
-
-msgid "featureList"
-msgstr "要素列表"
-
 # 导出页面
 msgid "export"
 msgstr "导出到手机"
@@ -507,3 +501,9 @@ msgstr "{0}点，还需{1}点"
 
 msgid "confirmDelete"
 msgstr "确定删除吗？"
+
+msgid "element"
+msgstr "要素"
+
+msgid "totalPoints"
+msgstr "总点数"
