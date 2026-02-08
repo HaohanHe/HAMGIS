@@ -1508,17 +1508,16 @@ Page({
     const highlightColor = isHighContrast ? 0xffffff : 0x80caff;
     const altColor = isHighContrast ? 0xffffff : 0x88ccff;
     
-    // GPS状态更新 - BUTTON类型widget使用prop.MORE更新文本，避免setProperty错误
+    // GPS状态更新 - 使用prop.TEXT直接更新文本
     if (this.data.widgets.gpsStatus) {
       const gpsText = this.getGPSText();
       const gpsColor = this.getGPSColor();
       logger.debug(`Updating GPS status: text=${gpsText}, color=${gpsColor.toString(16)}, status=${this.data.gpsStatus}`);
-      // BUTTON类型widget使用prop.MORE更新属性，而不是直接设置prop.TEXT
       try {
-        this.data.widgets.gpsStatus.setProperty(prop.MORE, {
-          text: gpsText,
-          color: gpsColor
-        });
+        // 先尝试直接设置text属性
+        this.data.widgets.gpsStatus.setProperty(prop.TEXT, gpsText);
+        // 再设置颜色
+        this.data.widgets.gpsStatus.setProperty(prop.COLOR, gpsColor);
         logger.debug(`GPS status updated successfully`);
       } catch (e) {
         logger.warn(`GPS status button update failed: ${e}`);
