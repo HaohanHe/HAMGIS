@@ -198,16 +198,25 @@ Page({
       getText('draft') || '草稿';
     const statusColor = this.data.project.status === 'completed' ? 0x00ff88 : 0xffaa00;
     
-    // Row 1: Date & Status
-    createWidget(widget.TEXT, {
+    // Row 1: Date icon
+    createWidget(widget.IMG, {
       x: cardX + px(15),
+      y: startY + px(13),
+      w: px(16),
+      h: px(16),
+      src: 'calendar.png'
+    });
+    
+    // Row 1: Date text
+    createWidget(widget.TEXT, {
+      x: cardX + px(35),
       y: startY + px(15),
-      w: (cardW - px(30)) / 2,
+      w: (cardW - px(60)) / 2,
       h: px(20),
       color: 0x888888,
       text_size: px(12),
       align_h: align.LEFT,
-      text: `📅 ${dateStr}`
+      text: dateStr
     });
     
     createWidget(widget.TEXT, {
@@ -226,28 +235,46 @@ Page({
       const fc = this.data.project.featureCount || { point: 0, line: 0, polygon: 0 };
       const totalPoints = this.data.project.totalPoints || 0;
       
+      // Row 2: Element stats icon
+      createWidget(widget.IMG, {
+        x: cardX + px(15),
+        y: startY + px(43),
+        w: px(16),
+        h: px(16),
+        src: 'layout-grid.png'
+      });
+      
       // Row 2: 要素统计
       createWidget(widget.TEXT, {
-        x: cardX + px(15),
+        x: cardX + px(35),
         y: startY + px(45),
-        w: cardW - px(30),
+        w: cardW - px(50),
         h: px(20),
         color: 0xcccccc,
         text_size: px(14),
         align_h: align.LEFT,
-        text: `📊 ${getText('element') || 'Element'}: ${getText('point') || 'Point'}×${fc.point} ${getText('line') || 'Line'}×${fc.line} ${getText('polygon') || 'Polygon'}×${fc.polygon}`
+        text: `${getText('element') || 'Element'}: ${getText('point') || 'Point'}×${fc.point} ${getText('line') || 'Line'}×${fc.line} ${getText('polygon') || 'Polygon'}×${fc.polygon}`
+      });
+      
+      // Row 3: Total points icon
+      createWidget(widget.IMG, {
+        x: cardX + px(15),
+        y: startY + px(68),
+        w: px(16),
+        h: px(16),
+        src: 'map-pin.png'
       });
       
       // Row 3: 总点数
       createWidget(widget.TEXT, {
-        x: cardX + px(15),
+        x: cardX + px(35),
         y: startY + px(70),
-        w: cardW - px(30),
+        w: cardW - px(50),
         h: px(20),
         color: 0x80caff,
         text_size: px(14),
         align_h: align.LEFT,
-        text: `📍 ${getText('totalPoints') || 'Total Points'}: ${totalPoints}`
+        text: `${getText('totalPoints') || 'Total Points'}: ${totalPoints}`
       });
       
     } else {
@@ -341,7 +368,7 @@ Page({
       radius: btnRadius,
       normal_color: 0x0986d4,
       press_color: 0x0061a4,
-      text: `🗺️ ${getText('viewMap') || '查看地图'}`,
+      text: getText('viewMap') || 'View Map',
       text_size: px(14),
       color: 0xffffff,
       click_func: () => {
@@ -356,6 +383,15 @@ Page({
         }
       }
     });
+    
+    // View Map Icon
+    createWidget(widget.IMG, {
+      x: cardX + (cardW - btnWidth) / 2 + px(10),
+      y: viewMapBtnY + (btnHeight - px(16)) / 2,
+      w: px(16),
+      h: px(16),
+      src: 'map.png'
+    });
 
     // Export Button
     createWidget(widget.BUTTON, {
@@ -366,7 +402,7 @@ Page({
       radius: btnRadius,
       normal_color: 0x4caf50,
       press_color: 0x2e7d32,
-      text: `📤 ${getText('exportToAndroid') || '导出APP'}`,
+      text: getText('exportToAndroid') || 'Export',
       text_size: px(14),
       color: 0xffffff,
       click_func: () => {
@@ -429,6 +465,15 @@ Page({
         }
       }
     });
+    
+    // Export Icon
+    createWidget(widget.IMG, {
+      x: cardX + (cardW - btnWidth) / 2 + px(10),
+      y: exportBtnY + (btnHeight - px(16)) / 2,
+      w: px(16),
+      h: px(16),
+      src: 'upload.png'
+    });
   },
   
   /**
@@ -489,17 +534,26 @@ Page({
     // 表格起始位置
     const tableStartY = startY;
     
+    // 表格标题图标
+    createWidget(widget.IMG, {
+      x: cardX,
+      y: tableStartY + px(2),
+      w: px(16),
+      h: px(16),
+      src: 'list.png'
+    });
+    
     // 标题
     createWidget(widget.TEXT, {
-      x: cardX,
+      x: cardX + px(25),
       y: tableStartY,
-      w: cardW,
+      w: cardW - px(25),
       h: titleHeight,
       color: 0xffffff,
       text_size: px(16),
       align_h: align.LEFT,
       text_style: text_style.BOLD,
-      text: `📊 ${getText('pointDetailsTable') || '点位详情表'}`
+      text: getText('pointDetailsTable') || 'Point Details'
     });
     
     if (points.length === 0) {
@@ -716,17 +770,26 @@ Page({
     // 表格起始位置
     const tableStartY = startY;
     
+    // 表格标题图标
+    createWidget(widget.IMG, {
+      x: cardX,
+      y: tableStartY + px(2),
+      w: px(16),
+      h: px(16),
+      src: 'layout-grid.png'
+    });
+    
     // 标题
     createWidget(widget.TEXT, {
-      x: cardX,
+      x: cardX + px(25),
       y: tableStartY,
-      w: cardW,
+      w: cardW - px(25),
       h: titleHeight,
       color: 0xffffff,
       text_size: px(16),
       align_h: align.LEFT,
       text_style: text_style.BOLD,
-      text: `📊 ${getText('featureList') || '要素列表'}`
+      text: getText('featureList') || 'Feature List'
     });
     
     if (features.length === 0) {
