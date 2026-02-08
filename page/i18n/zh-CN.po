@@ -339,6 +339,12 @@ msgstr "长度"
 msgid "pointCount"
 msgstr "点数"
 
+msgid "featureName"
+msgstr "名称"
+
+msgid "featureList"
+msgstr "要素列表"
+
 # 导出页面
 msgid "export"
 msgstr "导出到手机"

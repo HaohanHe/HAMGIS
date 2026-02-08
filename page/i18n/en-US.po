@@ -345,6 +345,12 @@ msgstr "Length"
 msgid "pointCount"
 msgstr "Point Count"
 
+msgid "featureName"
+msgstr "Name"
+
+msgid "featureList"
+msgstr "Feature List"
+
 # App Mode
 msgid "appMode"
 msgstr "App Mode"

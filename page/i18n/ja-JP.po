@@ -345,6 +345,12 @@ msgstr "長さ"
 msgid "pointCount"
 msgstr "点数"
 
+msgid "featureName"
+msgstr "名称"
+
+msgid "featureList"
+msgstr "要素リスト"
+
 # エクスポートページ
 msgid "export"
 msgstr "スマホへエクスポート"
