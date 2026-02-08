@@ -597,7 +597,7 @@ Page({
       timestamp: Date.now()
     };
     
-    // 震动反馈
+    // 震动反馈（短震动）
     if (this.data.vibrator) {
       this.data.vibrator.stop();
       this.data.vibrator.start();
@@ -605,7 +605,7 @@ Page({
         if (this.data.vibrator) {
           this.data.vibrator.stop();
         }
-      }, 100);
+      }, 50);
     }
     
     if (this.isGISMode()) {
@@ -854,23 +854,15 @@ Page({
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
     
-    // 震动反馈（长震动表示完成）
+    // 震动反馈（短震动表示完成）
     if (this.data.vibrator) {
       this.data.vibrator.stop();
       this.data.vibrator.start();
       setTimeout(() => {
         if (this.data.vibrator) {
           this.data.vibrator.stop();
-          setTimeout(() => {
-            this.data.vibrator.start();
-            setTimeout(() => {
-              if (this.data.vibrator) {
-                this.data.vibrator.stop();
-              }
-            }, 100);
-          }, 50);
         }
-      }, 100);
+      }, 80);
     }
     
     logger.debug(`Field completed: ${this.data.currentFieldName}, area: ${this.data.currentArea.toFixed(2)} sq meters`);
@@ -958,7 +950,7 @@ Page({
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
-    // 震动反馈
+    // 震动反馈（短震动）
     if (this.data.vibrator) {
       this.data.vibrator.stop();
       this.data.vibrator.start();
@@ -966,7 +958,7 @@ Page({
         if (this.data.vibrator) {
           this.data.vibrator.stop();
         }
-      }, 100);
+      }, 50);
     }
 
     logger.debug(`GIS feature completed: ${featureName}, type: ${featureType}`);
@@ -1125,23 +1117,15 @@ Page({
       this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0x00ff88);
     }
 
-    // 震动反馈（长震动表示完成）
+    // 震动反馈（短震动表示完成）
     if (this.data.vibrator) {
       this.data.vibrator.stop();
       this.data.vibrator.start();
       setTimeout(() => {
         if (this.data.vibrator) {
           this.data.vibrator.stop();
-          setTimeout(() => {
-            this.data.vibrator.start();
-            setTimeout(() => {
-              if (this.data.vibrator) {
-                this.data.vibrator.stop();
-              }
-            }, 100);
-          }, 50);
         }
-      }, 100);
+      }, 80);
     }
 
     // 重置状态，开始新项目
