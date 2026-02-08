@@ -1669,11 +1669,10 @@ Page({
         
         let displayText = '';
         
-        // 超过25个点后显示提示文字
+        // 超过25个点后显示点数
         if (this.data.points.length > 25) {
           const pointCount = this.data.points.length;
-          const pointText = getText('point') || '点';
-          displayText = `采集${pointCount}${pointText}\n暂停计算，完成后统计`;
+          displayText = `${pointCount}点`;
         } else if (this.data.currentArea > 0) {
           const areaValue = (this.data.currentArea * unitInfo.factor).toFixed(2);
           displayText = `${areaValue} ${unitInfo.symbol}`;
