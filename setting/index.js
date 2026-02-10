@@ -120,7 +120,7 @@ AppSettingsPage({
         title: 'HAMGIS 测亩'
       }, [
         Text({
-          value: '版本: 1.0.3 | 开发者: BI4MIB'
+          value: '版本: 1.0.4 | 开发者: BI4MIB'
         })
       ]),
       

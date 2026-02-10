@@ -7,7 +7,7 @@ const logger = log.getLogger("hamgis-app");
 App(BaseApp({
   globalData: {
     // 全局应用数据
-    appVersion: "1.0.3",
+    appVersion: "1.0.4",
     appName: "HAMGIS测亩",
     
     // 测量相关全局状态
