@@ -1509,10 +1509,17 @@ Page({
     if (this.data.widgets.gpsStatus) {
       const gpsText = this.getGPSText();
       const gpsColor = this.getGPSColor();
+      const deviceInfo = getDeviceInfo();
+      const width = deviceInfo.width;
+      const gpsBarHeight = px(50);
       logger.debug(`Updating GPS status: text=${gpsText}, color=${gpsColor.toString(16)}, status=${this.data.gpsStatus}`);
       try {
-        // BUTTON类型widget使用prop.MORE更新属性
+        // BUTTON类型widget使用prop.MORE更新属性，必须传入x, y, w, h
         this.data.widgets.gpsStatus.setProperty(prop.MORE, {
+          x: px(2),
+          y: px(2),
+          w: width - px(4),
+          h: gpsBarHeight - px(4),
           text: gpsText,
           color: gpsColor
         });
