@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: |
+  If you use this software, please cite it using the following metadata.
+  For more information, visit https://github.com/HaohanHe/HAMGIS
+authors:
+  - family-names: He
+    given-names: Haohan
+    email: bugreport@hsyscn.top
+    orcid: ""
+    affiliation: ""
+title: HAMGIS
+version: "1.0.0"
+date-released: "2026-02-14"
+description: |
+  Professional GIS Land Measurement App for Zepp OS smartwatches. 
+  Integrates Beidou, GPS multi-satellite positioning systems to provide 
+  precise field measurement solutions for farmers, surveyors, land managers, 
+  and GIS professionals.
+license: MIT
+repository-code: "https://github.com/HaohanHe/HAMGIS"
+keywords:
+  - gis
+  - land-measurement
+  - positioning
+  - beidou
+  - gps
+  - zepp-os
+  - smartwatch
+  - agriculture
+  - surveying
+  - geodesy
