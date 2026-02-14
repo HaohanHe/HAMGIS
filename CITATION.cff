@@ -6,14 +6,14 @@ authors:
   - family-names: He
     given-names: Haohan
     email: bugreport@hsyscn.top
-    orcid: ""
+    orcid: "0009-0003-8064-2272"
     affiliation: ""
 title: HAMGIS
 version: "1.0.0"
 date-released: "2026-02-14"
 description: |
   Professional GIS Land Measurement App for Zepp OS smartwatches. 
-  Integrates Beidou, GPS multi-satellite positioning systems to provide 
+  Integrates multi-satellite positioning systems to provide 
   precise field measurement solutions for farmers, surveyors, land managers, 
   and GIS professionals.
 license: MIT

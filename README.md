@@ -1,5 +1,7 @@
 # HAMGIS
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18641957.svg)](https://doi.org/10.5281/zenodo.18641957)
+
 [简体中文](#简体中文) | [English](#english) | [日本語](#日本語)
 
 ---
