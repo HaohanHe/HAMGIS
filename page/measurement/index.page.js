@@ -645,13 +645,15 @@ Page({
           this.data.measureState = MEASURE_STATE.COLLECTING;
         }
         
+        // 实时解算只在点数不多（<=25）时进行；长路线（>25 点）只采集，
+        // 完成要素时在 finishGISFeature() 一次性补算，避免热路径反复全量重算
         // 计算周长/长度 (线和面都需要)
-        if (this.data.points.length >= 2) {
+        if (this.data.points.length <= 25 && this.data.points.length >= 2) {
           this.calculatePerimeter();
         }
         
-        // 面要素计算面积
-        if (featureType === 'polygon' && this.data.points.length >= 3) {
+        // 面要素计算面积（>25 点延后到完成要素时一次性计算）
+        if (this.data.points.length <= 25 && featureType === 'polygon' && this.data.points.length >= 3) {
           this.calculateArea();
         }
         
@@ -666,13 +668,13 @@ Page({
         this.data.measureState = MEASURE_STATE.COLLECTING;
       }
       
-      // 如果有3个或以上点，计算面积
-      if (this.data.points.length >= 3) {
+      // 如果有3个或以上点，计算面积（>25 点延后到 finishField 一次性计算）
+      if (this.data.points.length <= 25 && this.data.points.length >= 3) {
         this.calculateArea();
       }
       
-      // 计算周长
-      if (this.data.points.length >= 2) {
+      // 计算周长（>25 点延后到 finishField 一次性计算）
+      if (this.data.points.length <= 25 && this.data.points.length >= 2) {
         this.calculatePerimeter();
       }
       
@@ -735,31 +737,59 @@ Page({
     this.updateUI();
   },
 
+  // 估算测点的最大空间跨度（米）。
+  // 旧实现对全部点对计算 Vincenty 距离（O(n^2)），仅仅为了判断范围是否超过
+  // 100km；长路线点数上千时，每采一个点就触发一次 O(n^2)，累计接近 O(n^3)，
+  // 在给第三方应用内存预算较紧的表款上会形成 CPU/堆峰值并导致重启。
+  // 这里改为 O(n) 包围盒 + 常数次 Vincenty 求跨度上界，在 100km 阈值附近与
+  // “所有点对最大距离”的判定保持等价（小范围绝不会误判为大范围）。
+  estimateSpanMeters(points) {
+    let minLat = points[0].lat, maxLat = points[0].lat;
+    let minLon = points[0].lon, maxLon = points[0].lon;
+    let sumLat = 0, sumLon = 0;
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i];
+      if (p.lat < minLat) minLat = p.lat;
+      if (p.lat > maxLat) maxLat = p.lat;
+      if (p.lon < minLon) minLon = p.lon;
+      if (p.lon > maxLon) maxLon = p.lon;
+      sumLat += p.lat;
+      sumLon += p.lon;
+    }
+    const cLat = sumLat / points.length;
+    const cLon = sumLon / points.length;
+    // 东西方向每经度距离随纬度升高而减小，取包围盒内纬度绝对值较小处，
+    // 得到偏大的东西跨度上界，宁可走更精确的大范围算法也不漏判。
+    const ewLat = Math.abs(minLat) < Math.abs(maxLat) ? minLat : maxLat;
+    const dNS = GeoCalculator.vincentyDistance(
+      { lat: minLat, lon: cLon }, { lat: maxLat, lon: cLon }
+    );
+    const dEW = GeoCalculator.vincentyDistance(
+      { lat: ewLat, lon: minLon }, { lat: ewLat, lon: maxLon }
+    );
+    return Math.sqrt(dNS * dNS + dEW * dEW);
+  },
+
   // 计算多边形面积 (使用Shoelace公式)
   calculateArea() {
     if (this.data.points.length < 3) {
       this.data.currentArea = 0;
       return;
     }
-    
+
     // 使用基于 WGS84 椭球体的精确面积计算
-    // 对于小范围测量（<100km），使用 geodesicPolygonArea 方法
+    // 对于小范围测量（跨度<=100km），使用 geodesicPolygonArea 方法
     // 对于大范围测量，使用 triangulatedGeodesicArea 方法
-    
-    const points = this.data.points.map(p => ({ lat: p.lat, lon: p.lon }));
-    
-    // 估算测量范围（对角线距离）
-    let maxDistance = 0;
-    for (let i = 0; i < points.length; i++) {
-      for (let j = i + 1; j < points.length; j++) {
-        const d = GeoCalculator.vincentyDistance(points[i], points[j]);
-        if (d > maxDistance) maxDistance = d;
-      }
-    }
-    
+
+    // 点对象只读取 lat/lon，直接复用，避免每次整组 map 拷贝
+    const points = this.data.points;
+
+    // O(n) 估算测量跨度（包围盒对角上界），替代旧的 O(n^2) 点对遍历
+    const span = this.estimateSpanMeters(points);
+
     // 根据测量范围选择计算方法
     let area;
-    if (maxDistance > 100000) {
+    if (span > 100000) {
       // 大范围测量（>100km），使用三角形分解法
       area = GeoCalculator.triangulatedGeodesicArea(points);
       logger.debug(`Large area measurement, using triangulation method: ${area} sq meters`);
@@ -768,7 +798,7 @@ Page({
       area = GeoCalculator.geodesicPolygonArea(points);
       logger.debug(`Small area measurement, using geodesic polygon method: ${area} sq meters`);
     }
-    
+
     this.data.currentArea = area;
   },
 
@@ -834,12 +864,11 @@ Page({
       return;
     }
     
-    // 如果点数超过25个，重新计算面积和周长（之前暂停了实时计算）
-    if (this.data.points.length > 25) {
-      logger.debug(`Recalculating area and perimeter for ${this.data.points.length} points`);
-      this.calculateArea();
-      this.calculatePerimeter();
-    }
+    // 完成时统一做一次最终解算：<=25 点实时值虽已最新（再算一次代价很小），
+    // >25 点的实时解算曾被延后，必须在此补齐，保证保存的是最终面积/周长。
+    logger.debug(`Finalizing area/perimeter for ${this.data.points.length} points`);
+    this.calculateArea();
+    this.calculatePerimeter();
     
     // 保存当前地块
     this.saveField();
@@ -900,6 +929,15 @@ Page({
         this.safeSetProperty(this.data.widgets.statusTip, prop.COLOR, 0xff3b30);
       }
       return;
+    }
+
+    // 完成前统一做一次最终解算：>25 点时采集阶段只采不算，这里必须补齐，
+    // 否则保存的 length/area/perimeter 会停留在第 25 点的旧值（甚至为 0）。
+    if (featureType === 'line') {
+      this.calculatePerimeter();
+    } else if (featureType === 'polygon') {
+      this.calculateArea();
+      this.calculatePerimeter();
     }
 
     // 构建要素对象
