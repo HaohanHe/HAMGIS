@@ -2,104 +2,207 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18641957.svg)](https://doi.org/10.5281/zenodo.18641957)
 
-[简体中文](#简体中文) | [English](#english) | [日本語](#日本語)
+[中文](#中文) ｜ [日本語](#日本語) ｜ [English](#english)
+
+下载 APK：<https://hsyscn.top/HAMGIS.apk>
 
 ---
 
-## 📱 Android 配套客户端
+## 中文
 
-[![HAMGIS Receiver](https://img.shields.io/badge/HAMGIS%20Receiver-下载客户端-FF6B9D?style=for-the-badge&logo=android)](https://github.com/HaohanHe/HAMGIS-drop)
-
-> **HAMGIS Receiver** 是 HAMGIS 的 Android 配套应用，用于接收手表端采集的数据并导出为 CSV、JSON、GeoJSON、KML 等专业格式。
-
----
-
-## 简体中文
-
-# HAMGIS 测亩 - 专业 GIS 土地测量应用
-
-HAMGIS 是一款适配农业、测绘等户外作业的移动端 GIS 采集软件，融合北斗、 GPS 等卫星定位系统，为农民、测绘人员、土地管理者及 GIS 专业人士提供精准实地测量解决方案。
+HAMGIS 是一款跑在 Zepp OS 智能手表上的野外 GIS 测亩应用。它融合北斗、GPS 等多星定位，在手表端完成轨迹采集、面积周长计算和项目管理，再通过手机端把数据导成专业 GIS 格式。目标用户是农民、测绘员、土地管理员和 GIS 从业者，让他们下到地里不用掏手机，抬手腕就能记边界、算亩数。
 
 ### 核心功能
-- **高精度实时定位**：融合北斗、GPS 多星定位系统，实时追踪测量轨迹。
-- **自动面积计算**：支持多点勾勒测量区域，实时计算面积与周长。
-- **高程数据采集**：通过气压计采集海拔数据，提供三维地理信息参考。
-- **可视化小地图**：内置实时地图视图，直观展示测量路径与围合区域。
-- **项目管理**：支持自动定时测量与完善的历史记录项目管理。
-- **数据导出**：支持导出多种专业 GIS 格式及 Excel，可对接 ArcGIS、QGIS 等主流软件。
+
+- **多星实时定位**：融合北斗与 GPS，手表端实时追踪测量轨迹（`page/measurement/`、`utils/projection.js`）。
+- **面积与周长自动计算**：手动多点勾勒，或按时间间隔自动采集点位，实时算面积和周长（`utils/elevation.js` 配合投影计算）。
+- **气压测高**：通过手表气压计采集海拔，给平面测量加上第三维（`utils/barometer.js`）。
+- **手表小地图**：内置 canvas 小地图，实时画出测量路径和已经围合的区域（`utils/minimap-renderer.js`、`page/map/`）。
+- **项目与历史管理**：按项目保存测量记录，支持回看、编辑和导出（`page/projects/`、`page/project-detail/`、`page/history/`）。
+- **数据导出**：手表端导出 CSV、JSON、GeoJSON、KML，可直接进 ArcGIS、QGIS（`page/export/`、`setting/export.js`）。Android 配套客户端 [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) 负责接收手表数据并做格式转换。
+- **卫星视图**：手表端查看当前可见卫星和定位状态（`page/satellite/`）。
 
 ### 应用场景
-可应用于国土、林业、农业、水利、电力、石油、土木等行业，适配土地确权、森林清查、农田测量、管线巡检等多场景。
+
+国土确权、林业清查、农田测亩、水利管线巡检、电力线路走向、石油地质踏勘、土木工程放样等户外测绘场景。
 
 ### 注意事项
-- **数据导出功能**：Android 平台可正常使用，iOS 平台需等待华米官方 API 更新。
-- 使用问题或建议可发至邮箱 [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top) 反馈。
+
+- 数据导出在 Android 手表上可用；Zepp OS 的 iOS 配套 API 还没开放，iOS 端导出要等华米官方更新。
+- 小内存表款跑长路线定时采集时曾出现 OOM 重启，最近一版已经修过一次，老固件请升级到最新。
+- 使用问题或建议请发邮件到 [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top)。
+
+### 目录结构
+
+```
+HAMGIS/
+├── app.js / app.json          # Zepp OS 应用入口与配置
+├── page/                      # 手表端页面
+│   ├── measurement/           # 测量主界面
+│   ├── map/                   # 小地图
+│   ├── projects/               # 项目列表
+│   ├── project-detail/         # 项目详情
+│   ├── history/                # 历史记录
+│   ├── data-view/              # 数据查看
+│   ├── export/                 # 导出
+│   ├── satellite/              # 卫星视图
+│   ├── settings/               # 设置
+│   └── i18n/                   # 多语言
+├── utils/                     # barometer / elevation / projection / minimap-renderer / formatters
+├── setting/                   # 手机端设置与导出桥接（zepp-bridge.js）
+├── app-side/                  # 手机端配套逻辑
+├── assets/                    # 图标与资源
+├── HAMGIS.apk                 # 预编译 APK（也可从 https://hsyscn.top/HAMGIS.apk 下载）
+└── poster_generator.html      # 分享海报生成器
+```
 
 ### 安装与开发
+
 1. 安装 [Zepp CLI](https://docs.zepp.com/docs/guides/tools/cli/)。
-2. 克隆仓库。
-3. 运行 `npm install` 安装依赖。
-4. 使用 `npm run build` 进行编译，或 `npm run preview` 进行预览。
+2. 克隆本仓库。
+3. `npm install` 安装依赖（运行时依赖 `@zeppos/zml`，开发依赖 `@zeppos/device-types`）。
+4. `npm run build` 编译，或 `npm run preview` 起预览。
 
----
+当前版本号见 `package.json`（v1.0.4）。
 
-## English
+### 引用
 
-# HAMGIS - Professional GIS Land Measurement App
+如果你在研究或工作中用到本软件，可通过 Zenodo 引用：<https://doi.org/10.5281/zenodo.18641957>，题录元数据见 [`CITATION.cff`](CITATION.cff)。
 
-HAMGIS is a mobile GIS collection software adapted for outdoor operations such as agriculture and surveying. It integrates Beidou, GPS, and other satellite positioning systems to provide precise field measurement solutions for farmers, surveyors, land managers, and GIS professionals.
+### 许可证
 
-### Key Features
-- **High-Precision Real-time Positioning**: Integrates Beidou and GPS multi-satellite systems for real-time tracking.
-- **Automatic Area Calculation**: Supports multi-point area delineation with real-time area and perimeter calculation.
-- **Elevation Data Collection**: Collects altitude data via barometer for 3D geographic reference.
-- **Visual Mini-map**: Built-in real-time map view to intuitively display measurement paths and enclosed areas.
-- **Project Management**: Supports automatic timed measurement and comprehensive history project management.
-- **Data Export**: Supports exporting various professional GIS formats and Excel, compatible with ArcGIS, QGIS, and other mainstream software.
-
-### Application Scenarios
-Applicable to industries such as land resources, forestry, agriculture, water conservancy, power, petroleum, and civil engineering. Suitable for land titling, forest inventory, farmland measurement, pipeline inspection, and more.
-
-### Notes
-- **Data Export**: Available on Android platform. iOS platform requires Huami official API update.
-- Feedback or suggestions can be sent to [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top).
-
-### Installation & Development
-1. Install [Zepp CLI](https://docs.zepp.com/docs/guides/tools/cli/).
-2. Clone the repository.
-3. Run `npm install` to install dependencies.
-4. Use `npm run build` to build, or `npm run preview` to preview.
+MIT，见 [LICENSE](LICENSE)。
 
 ---
 
 ## 日本語
 
-# HAMGIS - プロフェッショナルGIS土地測量アプリ
+HAMGIS は Zepp OS スマートウォッチ向けの野外 GIS 測量アプリです。北斗や GPS などのマルチ衛星測位を使い、ウォッチ側で軌跡の収録、面積と周囲長の計算、プロジェクト管理までを完結させ、スマホアプリ経由でプロ仕様の GIS フォーマットにエクスポートします。農家、測量士、土地管理者、GIS 技術者が、現場でスマホを取り出さずに手首を上げるだけで境界を記録し、面積を計算できるようにするのが目的です。
 
-HAMGISは、農業や測量などの屋外作業に適応したモバイルGIS収集ソフトウェアです。北斗（Beidou）やGPSなどの衛星測位システムを統合し、農家、測量士、土地管理者、およびGIS専門家に精密な実地測量ソリューションを提供します。
+### 主要な機能
 
-### 主な機能
-- **高精度リアルタイム測位**: 北斗、GPSマルチ衛星システムを統合し、リアルタイムで計測軌跡を追跡。
-- **自動面積計算**: 多点指定による計測エリアの作成に対応し、面積と周囲長をリアルタイムで計算。
-- **標高データ収集**: 気圧計による高度データの収集を行い、3D地理情報リファレンスを提供。
-- **可視化ミニマップ**: リアルタイムマップビューを内蔵し、計測経路と囲まれたエリアを直感的に表示。
-- **プロジェクト管理**: 自動定時計測と充実した履歴プロジェクト管理をサポート。
-- **データエクスポート**: 複数の専門的なGIS形式およびExcelへのエクスポートに対応し、ArcGISやQGISなどの主要ソフトウェアと連携可能。
+- **マルチ衛星リアルタイム測位**：北斗と GPS を統合し、ウォッチ上で計測軌跡をリアルタイム追跡（`page/measurement/`、`utils/projection.js`）。
+- **面積・周囲長の自動計算**：手動での多点指定、または時間間隔による自動サンプリングに対応し、面積と周囲長をリアルタイム計算（投影計算は `utils/elevation.js`）。
+- **気圧による標高取得**：ウォッチの気圧計で高度を記録し、平面測量に 3 次元目を追加（`utils/barometer.js`）。
+- **ウォッチ内ミニマップ**：canvas 製のミニマップを内蔵し、計測経路と囲んだ領域をその場で描画（`utils/minimap-renderer.js`、`page/map/`）。
+- **プロジェクトと履歴管理**：計測記録をプロジェクト単位で保存し、見返し、編集、エクスポートが可能（`page/projects/`、`page/project-detail/`、`page/history/`）。
+- **データエクスポート**：CSV、JSON、GeoJSON、KML で書き出し、ArcGIS や QGIS に直接読み込めます（`page/export/`、`setting/export.js`）。Android 用のコンパニオンアプリ [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) がウォッチからデータを受け取り、フォーマット変換を担当します。
+- **衛星ビュー**：ウォッチ上で現在捕捉中の衛星と測位品質を確認（`page/satellite/`）。
 
 ### 活用シーン
-国土、林業、農業、水利、電力、石油、土木などの業界に応用可能。土地権利確定、森林調査、農地測量、パイプライン巡検など、多岐にわたるシーンに対応します。
+
+土地権利確定、林業調査、農地の面積計測、水利管の巡検、電力線のルート確認、石油・地質調査、土木の丁張り確認など、屋外での測量作業全般を想定しています。
 
 ### 注意事項
-- **データエクスポート機能**：Androidプラットフォームでは正常に使用可能です。iOSプラットフォームはHuami公式APIの更新が必要です。
-- 使用上の問題や提案は、メール [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top) までお送りください。
+
+- データエクスポートは Android ウォッチで利用可能です。Zepp OS の iOS 向けコンパニオン API はまだ公開されていないため、iOS 側のエクスポートは Huami 公式 API の更新を待つ必要があります。
+- メモリの少ないウォッチで長距離ルートを定時採取すると OOM で再起動する問題が過去にあり、直近バージョンで修正済みです。古いファームウェアの方はアップデートしてください。
+- 不具合やご要望は [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top) までメールでお知らせください。
+
+### ディレクトリ構成
+
+```
+HAMGIS/
+├── app.js / app.json          # Zepp OS アプリのエントリと設定
+├── page/                      # ウォッチ画面
+│   ├── measurement/           # 計測メイン画面
+│   ├── map/                   # ミニマップ
+│   ├── projects/              # プロジェクト一覧
+│   ├── project-detail/        # プロジェクト詳細
+│   ├── history/               # 履歴
+│   ├── data-view/             # データ表示
+│   ├── export/                # エクスポート
+│   ├── satellite/             # 衛星ビュー
+│   ├── settings/              # 設定
+│   └── i18n/                  # 多言語対応
+├── utils/                     # barometer / elevation / projection / minimap-renderer / formatters
+├── setting/                   # スマホ側の設定とエクスポート橋渡し（zepp-bridge.js）
+├── app-side/                  # スマホ側のロジック
+├── assets/                    # アイコン・リソース
+├── HAMGIS.apk                 # ビルド済み APK（https://hsyscn.top/HAMGIS.apk からも取得可）
+└── poster_generator.html      # 共有ポスター生成ツール
+```
 
 ### インストールと開発
+
 1. [Zepp CLI](https://docs.zepp.com/docs/guides/tools/cli/) をインストールします。
-2. リポジトリをクローンします。
-3. `npm install` を执行して依存関係をインストールします。
-4. `npm run build` でビルド、または `npm run preview` でプレビューを実行します。
+2. 本リポジトリをクローンします。
+3. `npm install` で依存を導入します（実行時依存は `@zeppos/zml`、開発依存は `@zeppos/device-types`）。
+4. `npm run build` でビルド、または `npm run preview` でプレビューを起動します。
+
+現在のバージョンは `package.json` を参照してください（v1.0.4）。
+
+### 引用
+
+研究や業務で本ソフトを使用した場合は、Zenodo から引用できます：<https://doi.org/10.5281/zenodo.18641957>。書誌メタデータは [`CITATION.cff`](CITATION.cff) にあります。
+
+### ライセンス
+
+MIT ライセンスです。詳細は [LICENSE](LICENSE) を参照してください。
 
 ---
 
-## License
-MIT License
+## English
+
+HAMGIS is a field GIS area-measurement app that runs on Zepp OS smartwatches. It fuses Beidou and GPS for real-time positioning, and does track logging, area and perimeter calculation, and project management on the watch itself. Data then flows to a phone companion app that exports professional GIS formats. The target users are farmers, surveyors, land managers, and GIS practitioners who would rather raise their wrist than pull out a phone when standing in a field.
+
+### Features
+
+- **Multi-satellite real-time positioning**: combines Beidou and GPS to track the measurement path on the watch (`page/measurement/`, `utils/projection.js`).
+- **Automatic area and perimeter**: manual multi-point boundary or timed auto-sampling, with live area and perimeter calculation (`utils/elevation.js` handles the projection math).
+- **Barometric elevation**: reads the watch barometer for altitude, adding a third dimension to the planar survey (`utils/barometer.js`).
+- **On-watch mini-map**: a canvas mini-map draws the path and the enclosed polygon as you walk (`utils/minimap-renderer.js`, `page/map/`).
+- **Project and history management**: saves measurement records per project, with review, edit, and export (`page/projects/`, `page/project-detail/`, `page/history/`).
+- **Data export**: writes CSV, JSON, GeoJSON, and KML that drop straight into ArcGIS or QGIS (`page/export/`, `setting/export.js`). The Android companion app [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) receives data from the watch and converts formats.
+- **Satellite view**: shows visible satellites and fix status on the watch (`page/satellite/`).
+
+### Where it is used
+
+Land titling, forest inventory, farmland area measurement, water pipeline inspection, power line routing, oil and geology field work, and civil engineering stakeout.
+
+### Notes
+
+- Data export works on Android watches. Zepp OS has not opened the iOS companion API yet, so iOS export waits on a Huami official update.
+- On low-memory watch models, long-route timed sampling previously caused OOM restarts. That has been fixed in a recent release; update old firmware if you hit it.
+- Bugs or suggestions go to [bugreport@hsyscn.top](mailto:bugreport@hsyscn.top).
+
+### Layout
+
+```
+HAMGIS/
+├── app.js / app.json          # Zepp OS entry and config
+├── page/                      # Watch screens
+│   ├── measurement/           # Main measurement screen
+│   ├── map/                   # Mini-map
+│   ├── projects/              # Project list
+│   ├── project-detail/        # Project detail
+│   ├── history/               # History
+│   ├── data-view/             # Data view
+│   ├── export/                # Export
+│   ├── satellite/             # Satellite view
+│   ├── settings/              # Settings
+│   └── i18n/                  # Localization
+├── utils/                     # barometer / elevation / projection / minimap-renderer / formatters
+├── setting/                   # Phone-side settings and export bridge (zepp-bridge.js)
+├── app-side/                  # Phone-side logic
+├── assets/                    # Icons and resources
+├── HAMGIS.apk                 # Prebuilt APK (also at https://hsyscn.top/HAMGIS.apk)
+└── poster_generator.html      # Share poster generator
+```
+
+### Build and development
+
+1. Install the [Zepp CLI](https://docs.zepp.com/docs/guides/tools/cli/).
+2. Clone this repository.
+3. Run `npm install` (runtime dep `@zeppos/zml`, dev dep `@zeppos/device-types`).
+4. `npm run build` to compile, or `npm run preview` for a live preview.
+
+Current version is in `package.json` (v1.0.4).
+
+### Citation
+
+If you use this software in research or work, cite it via Zenodo: <https://doi.org/10.5281/zenodo.18641957>. Bibliographic metadata is in [`CITATION.cff`](CITATION.cff).
+
+### License
+
+MIT, see [LICENSE](LICENSE).
