@@ -15,11 +15,11 @@ HAMGIS 是一款跑在 Zepp OS 智能手表上的野外 GIS 测亩应用。它�
 ### 核心功能
 
 - **多星实时定位**：融合北斗与 GPS，手表端实时追踪测量轨迹（`page/measurement/`、`utils/projection.js`）。
-- **面积与周长自动计算**：手动多点勾勒，或按时间间隔自动采集点位，实时算面积和周长（`utils/elevation.js` 配合投影计算）。
+- **面积与周长自动计算**：手动多点勾勒，或按时间间隔自动采集点位，实时算面积和周长（ geodesic 多边形面积公式，见 `page/measurement/`）。
 - **气压测高**：通过手表气压计采集海拔，给平面测量加上第三维（`utils/barometer.js`）。
 - **手表小地图**：内置 canvas 小地图，实时画出测量路径和已经围合的区域（`utils/minimap-renderer.js`、`page/map/`）。
 - **项目与历史管理**：按项目保存测量记录，支持回看、编辑和导出（`page/projects/`、`page/project-detail/`、`page/history/`）。
-- **数据导出**：手表端导出 CSV、JSON、GeoJSON、KML，可直接进 ArcGIS、QGIS（`page/export/`、`setting/export.js`）。Android 配套客户端 [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) 负责接收手表数据并做格式转换。
+- **数据导出**：手表端导出 CSV、JSON、GeoJSON，可直接进 ArcGIS、QGIS（`page/export/`、`setting/export.js`）。Android 配套客户端 [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) 负责接收手表数据并做格式转换。
 - **卫星视图**：手表端查看当前可见卫星和定位状态（`page/satellite/`）。
 
 ### 应用场景
@@ -82,11 +82,11 @@ HAMGIS は Zepp OS スマートウォッチ向けの野外 GIS 測量アプリ�
 ### 主要な機能
 
 - **マルチ衛星リアルタイム測位**：北斗と GPS を統合し、ウォッチ上で計測軌跡をリアルタイム追跡（`page/measurement/`、`utils/projection.js`）。
-- **面積・周囲長の自動計算**：手動での多点指定、または時間間隔による自動サンプリングに対応し、面積と周囲長をリアルタイム計算（投影計算は `utils/elevation.js`）。
+- **面積・周囲長の自動計算**：手動での多点指定、または時間間隔による自動サンプリングに対応し、面積と周囲長をリアルタイム計算（測地線ポリゴン面積アルゴリズム、`page/measurement/` を参照）。
 - **気圧による標高取得**：ウォッチの気圧計で高度を記録し、平面測量に 3 次元目を追加（`utils/barometer.js`）。
 - **ウォッチ内ミニマップ**：canvas 製のミニマップを内蔵し、計測経路と囲んだ領域をその場で描画（`utils/minimap-renderer.js`、`page/map/`）。
 - **プロジェクトと履歴管理**：計測記録をプロジェクト単位で保存し、見返し、編集、エクスポートが可能（`page/projects/`、`page/project-detail/`、`page/history/`）。
-- **データエクスポート**：CSV、JSON、GeoJSON、KML で書き出し、ArcGIS や QGIS に直接読み込めます（`page/export/`、`setting/export.js`）。Android 用のコンパニオンアプリ [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) がウォッチからデータを受け取り、フォーマット変換を担当します。
+- **データエクスポート**：CSV、JSON、GeoJSON で書き出し、ArcGIS や QGIS に直接読み込めます（`page/export/`、`setting/export.js`）。Android 用のコンパニオンアプリ [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) がウォッチからデータを受け取り、フォーマット変換を担当します。
 - **衛星ビュー**：ウォッチ上で現在捕捉中の衛星と測位品質を確認（`page/satellite/`）。
 
 ### 活用シーン
@@ -149,11 +149,11 @@ HAMGIS is a field GIS area-measurement app that runs on Zepp OS smartwatches. It
 ### Features
 
 - **Multi-satellite real-time positioning**: combines Beidou and GPS to track the measurement path on the watch (`page/measurement/`, `utils/projection.js`).
-- **Automatic area and perimeter**: manual multi-point boundary or timed auto-sampling, with live area and perimeter calculation (`utils/elevation.js` handles the projection math).
+- **Automatic area and perimeter**: manual multi-point boundary or timed auto-sampling, with live area and perimeter calculation (geodesic polygon area formula, see `page/measurement/`).
 - **Barometric elevation**: reads the watch barometer for altitude, adding a third dimension to the planar survey (`utils/barometer.js`).
 - **On-watch mini-map**: a canvas mini-map draws the path and the enclosed polygon as you walk (`utils/minimap-renderer.js`, `page/map/`).
 - **Project and history management**: saves measurement records per project, with review, edit, and export (`page/projects/`, `page/project-detail/`, `page/history/`).
-- **Data export**: writes CSV, JSON, GeoJSON, and KML that drop straight into ArcGIS or QGIS (`page/export/`, `setting/export.js`). The Android companion app [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) receives data from the watch and converts formats.
+- **Data export**: writes CSV, JSON, and GeoJSON that drop straight into ArcGIS or QGIS (`page/export/`, `setting/export.js`). The Android companion app [HAMGIS Receiver](https://github.com/HaohanHe/HAMGIS-drop) receives data from the watch and converts formats.
 - **Satellite view**: shows visible satellites and fix status on the watch (`page/satellite/`).
 
 ### Where it is used
